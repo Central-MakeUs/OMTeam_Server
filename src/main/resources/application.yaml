@@ -1,3 +1,14 @@
 spring:
-  application:
-    name: omt
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  profiles:
+    group:
+      blue: "prod,blue"
+      green: "prod,green"
+
+server:
+  env: ${APP_ENV:blue}
+
