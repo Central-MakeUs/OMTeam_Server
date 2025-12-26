@@ -11,39 +11,43 @@ permissions:
 
 jobs:
   build:
+    name: 애플리케이션 빌드 및 Docker 이미지 생성
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 소스 코드 체크아웃
+        uses: actions/checkout@v4
 
-      - name: Install JDK 21
+      - name: JDK 21 설치
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+      - name: Gradle Wrapper 실행 권한 설정
+        run: chmod +x gradlew
         
-      - name: Build with Gradle
+      - name: Gradle 프로젝트 빌드
         run: ./gradlew clean build
-
-      - name: Login to DockerHub
+        
+      - name: DockerHub 로그인
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker
+      - name: Docker 이미지 빌드
         run: docker build --platform linux/amd64 -t ${{ secrets.DOCKERHUB_USERNAME }}/omt_server .
-      - name: Push Docker
+        
+      - name: Docker 이미지 푸시
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/omt_server:latest
 
   deploy:
+    name: OMT 서버 무중단 배포
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Set target IP
+      - name: 현재 활성 서버(Blue/Green) 판별
         run: |
           STATUS=$(curl -o /dev/null -w "%{http_code}" "http://${{ secrets.OMT_SERVER_IP }}/env")
           echo $STATUS
@@ -59,16 +63,13 @@ jobs:
             echo "CURRENT_PORT=8080" >> $GITHUB_ENV
             echo "STOPPED_PORT=8081" >> $GITHUB_ENV
             echo "TARGET_UPSTREAM=green" >> $GITHUB_ENV
-          elif [ "$CURRENT_UPSTREAM" = "green" ]; then
+          else
             echo "CURRENT_PORT=8081" >> $GITHUB_ENV
             echo "STOPPED_PORT=8080" >> $GITHUB_ENV
             echo "TARGET_UPSTREAM=blue" >> $GITHUB_ENV
-          else
-            echo "error"
-            exit 1
           fi
 
-      - name: Docker compose
+      - name: 신규 서버 컨테이너 실행 (Docker Compose)
         uses: appleboy/ssh-action@v1.0.3
         with:
           username: ubuntu
@@ -79,14 +80,14 @@ jobs:
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/omt_server:latest
             sudo docker-compose -f docker-compose-${{ env.TARGET_UPSTREAM }}.yml up -d
 
-      - name: Check deploy server URL
+      - name: 신규 서버 헬스 체크
         uses: jtalk/url-health-check-action@v4
         with:
           url: http://${{ secrets.OMT_SERVER_IP }}:${{ env.STOPPED_PORT }}/env
           max-attempts: 3
           retry-delay: 10s
 
-      - name: Change nginx upstream
+      - name: Nginx 트래픽 전환
         uses: appleboy/ssh-action@v1.0.3
         with:
           username: ubuntu
@@ -96,7 +97,7 @@ jobs:
           script: |
             sudo docker exec -i nginxserver bash -c 'echo "set \$service_url ${{ env.TARGET_UPSTREAM }};" > /etc/nginx/conf.d/service-env.inc && nginx -s reload'
 
-      - name: Stop current server
+      - name: 기존 서버 컨테이너 종료
         uses: appleboy/ssh-action@v1.0.3
         with:
           username: ubuntu
