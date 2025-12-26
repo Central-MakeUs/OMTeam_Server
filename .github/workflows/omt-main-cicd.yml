@@ -37,7 +37,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Docker 이미지 빌드
-        run: docker build --platform linux/amd64 -t ${{ secrets.DOCKERHUB_USERNAME }}/omt_server .
+        run: docker build -f docker/Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/omt_server .
         
       - name: Docker 이미지 푸시
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/omt_server:latest
