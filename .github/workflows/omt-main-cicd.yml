@@ -78,7 +78,7 @@ jobs:
           script_stop: true
           script: |
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/omt_server:latest
-            sudo docker-compose -f docker-compose-${{ env.TARGET_UPSTREAM }}.yml up -d
+            sudo docker compose -f docker compose-${{ env.TARGET_UPSTREAM }}.yml up -d
 
       - name: 신규 서버 헬스 체크
         uses: jtalk/url-health-check-action@v4
