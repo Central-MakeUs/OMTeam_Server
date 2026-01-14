@@ -1,0 +1,30 @@
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}
+    redirect-uri: ${GOOGLE_REDIRECT_URI}
+    token-uri: https://oauth2.googleapis.com/token
+    userinfo-uri: https://openidconnect.googleapis.com/v1/userinfo
+
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    redirect-uri: ${KAKAO_REDIRECT_URI}
+    token-uri: https://kauth.kakao.com/oauth/token
+    userinfo-uri: https://kapi.kakao.com/v2/user/me
+
+  apple:
+    client-id: ${APPLE_SERVICE_ID}
+    team-id: ${APPLE_TEAM_ID}
+    key-id: ${APPLE_KEY_ID}
+    private-key: ${APPLE_PRIVATE_KEY}
+    redirect-uri: ${APPLE_REDIRECT_URI}
+
+    token-uri: https://appleid.apple.com/auth/token
+    public-key-uri: https://appleid.apple.com/auth/keys
+    issuer: https://appleid.apple.com
+
+
+jwt:
+  access-token-expire-seconds: 300   # 5분
+  refresh-token-expire-seconds: 1209600 # 14일
