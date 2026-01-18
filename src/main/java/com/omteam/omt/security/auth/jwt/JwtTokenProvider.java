@@ -1,5 +1,6 @@
 package com.omteam.omt.security.auth.jwt;
 
+import com.omteam.omt.config.properties.JwtProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -7,32 +8,28 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
-    private String secret;
-
-    @Value("${jwt.access-token-expire-seconds}")
-    private long accessTokenExpireSeconds;
-
-    @Value("${jwt.refresh-token-expire-seconds}")
-    private long refreshTokenExpireSeconds;
+    private final JwtProperties jwtProperties;
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     public String createAccessToken(Long userId) {
-        return createToken(userId, accessTokenExpireSeconds);
+        return createToken(userId, jwtProperties.getAccessTokenExpireSeconds());
     }
 
     public String createRefreshToken(Long userId) {
-        return createToken(userId, refreshTokenExpireSeconds);
+        return createToken(userId, jwtProperties.getRefreshTokenExpireSeconds());
+    }
+
+    public long getAccessTokenExpireSeconds() {
+        return jwtProperties.getAccessTokenExpireSeconds();
     }
 
     private String createToken(Long userId, long expireSeconds) {
@@ -47,4 +44,3 @@ public class JwtTokenProvider {
                 .compact();
     }
 }
-
