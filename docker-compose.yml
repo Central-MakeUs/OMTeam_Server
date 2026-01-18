@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # OMT App Server (Spring Boot)
+  omt-app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: omt-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/omt?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-omt}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-omt1234}
+      - JWT_SECRET=${JWT_SECRET}
+      - OAUTH_GOOGLE_CLIENT_ID=${OAUTH_GOOGLE_CLIENT_ID}
+      - OAUTH_KAKAO_CLIENT_ID=${OAUTH_KAKAO_CLIENT_ID}
+      - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
+      - AI_SERVER_URL=http://ai-server:8000
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ai-server:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - omt-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # AI Server (FastAPI + LangGraph)
+  ai-server:
+    build:
+      context: ../OMTeam
+      dockerfile: Dockerfile
+    container_name: omt-ai-server
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - UPSTAGE_API_KEY=${UPSTAGE_API_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_HOST=${LANGFUSE_HOST}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - omt-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # MySQL (Development only)
+  mysql:
+    image: mysql:8.0
+    container_name: omt-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-rootpassword}
+      - MYSQL_DATABASE=omt
+      - MYSQL_USER=omt
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-omt1234}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - omt-network
+    profiles:
+      - dev
+
+  # Redis (Optional - for caching/session)
+  redis:
+    image: redis:7-alpine
+    container_name: omt-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - omt-network
+    profiles:
+      - dev
+      - prod
+
+networks:
+  omt-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:

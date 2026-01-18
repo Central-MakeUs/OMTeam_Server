@@ -1,0 +1,187 @@
+name: CD (이미지 빌드 · 배포)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '배포 환경'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - dev
+          - prod
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY_APP: omt-app
+  ECR_REPOSITORY_AI: omt-ai-server
+
+jobs:
+  # ===== Docker 이미지 빌드 및 ECR 푸시 =====
+  build-and-push:
+    name: Docker 이미지 빌드 및 ECR 푸시
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: 애플리케이션 서버 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: AI 서버 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          repository: Central-MakeUs/OMTeam_AI
+          path: ai-server
+          token: ${{ secrets.GH_PAT }}
+
+      - name: JDK 21 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Gradle 환경 설정
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: 애플리케이션 서버 JAR 빌드
+        run: |
+          chmod +x gradlew
+          ./gradlew build -x test
+
+      - name: AWS 자격 증명 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Amazon ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker 이미지 태그 설정
+        id: meta
+        run: echo "tags=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Docker Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
+      - name: 애플리케이션 서버 Docker 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_APP }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_APP }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: AI 서버 Docker 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v6
+        with:
+          context: ai-server
+          file: ai-server/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_AI }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_AI }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ===== EC2 배포 =====
+  deploy:
+    name: EC2 서버 배포
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment:
+      name: ${{ github.event.inputs.environment || 'prod' }}
+      url: http://${{ secrets.EC2_HOST }}:8080
+
+    steps:
+      - name: 배포용 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: AWS 자격 증명 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Amazon ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 배포 환경 변수 파일 생성
+        run: |
+          cat << EOF > deploy/.env
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG=${{ github.sha }}
+
+          # App Server
+          SPRING_PROFILES_ACTIVE=prod
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          OAUTH_GOOGLE_CLIENT_ID=${{ secrets.OAUTH_GOOGLE_CLIENT_ID }}
+          OAUTH_KAKAO_CLIENT_ID=${{ secrets.OAUTH_KAKAO_CLIENT_ID }}
+          OAUTH_APPLE_CLIENT_ID=${{ secrets.OAUTH_APPLE_CLIENT_ID }}
+
+          # Database (RDS)
+          RDS_URL=${{ secrets.RDS_URL }}
+          RDS_USERNAME=${{ secrets.RDS_USERNAME }}
+          RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
+
+          # AI Server
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          UPSTAGE_API_KEY=${{ secrets.UPSTAGE_API_KEY }}
+          LANGFUSE_SECRET_KEY=${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_PUBLIC_KEY=${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_HOST=${{ secrets.LANGFUSE_HOST }}
+          EOF
+
+      - name: EC2로 배포 파일 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml,docker-compose.prod.yml,deploy/.env,scripts/deploy.sh"
+          target: /home/${{ secrets.EC2_USERNAME }}/omt
+          strip_components: 0
+
+      - name: SSH로 EC2 배포 실행
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.EC2_USERNAME }}/omt
+
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
+
+            echo "서비스 상태 확인 중..."
+            sleep 30
+            curl -f http://localhost:8080/actuator/health || exit 1
+            curl -f http://localhost:8000/health || exit 1
+
+            echo "배포가 정상적으로 완료되었습니다."
+
+      - name: 배포 결과 알림
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ 배포 성공"
+          else
+            echo "❌ 배포 실패"
+          fi
