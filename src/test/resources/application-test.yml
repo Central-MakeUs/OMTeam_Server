@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+oauth:
+  google:
+    client-id: test-google-client-id
+  kakao:
+    client-id: test-kakao-client-id
+  apple:
+    client-id: test-apple-client-id
+    public-key-uri: https://appleid.apple.com/auth/keys
+
+jwt:
+  secret: test-jwt-secret-key-must-be-at-least-32-characters-long
+  access-token-expire-seconds: 300
+  refresh-token-expire-seconds: 1209600
+
+cors:
+  allowed-origins: http://localhost:3000
+
+server:
+  env: test
