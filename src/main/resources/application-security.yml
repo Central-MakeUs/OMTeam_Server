@@ -1,0 +1,18 @@
+# OAuth 및 JWT 설정
+# idToken 검증 방식 사용 - client-id만 필요 (audience 검증용)
+
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+
+  apple:
+    client-id: ${APPLE_CLIENT_ID}
+    public-key-uri: https://appleid.apple.com/auth/keys
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expire-seconds: ${JWT_ACCESS_EXPIRE:300}        # 기본 5분
+  refresh-token-expire-seconds: ${JWT_REFRESH_EXPIRE:1209600}  # 기본 14일

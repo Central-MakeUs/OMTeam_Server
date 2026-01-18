@@ -1,0 +1,35 @@
+# Production override - use with: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+version: '3.8'
+
+services:
+  omt-app:
+    image: ${ECR_REGISTRY}/omt-app:${IMAGE_TAG:-latest}
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=${RDS_URL}
+      - SPRING_DATASOURCE_USERNAME=${RDS_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${RDS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - OAUTH_GOOGLE_CLIENT_ID=${OAUTH_GOOGLE_CLIENT_ID}
+      - OAUTH_KAKAO_CLIENT_ID=${OAUTH_KAKAO_CLIENT_ID}
+      - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
+      - AI_SERVER_URL=http://ai-server:8000
+    depends_on:
+      ai-server:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  ai-server:
+    image: ${ECR_REGISTRY}/omt-ai-server:${IMAGE_TAG:-latest}
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # MySQL is not used in prod (using RDS instead)
+  mysql:
+    profiles:
+      - never
