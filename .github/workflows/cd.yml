@@ -101,7 +101,6 @@ jobs:
     needs: build-and-push
     environment:
       name: ${{ github.event.inputs.environment || 'prod' }}
-      url: http://${{ secrets.EC2_HOST }}:8080
 
     steps:
       - name: 배포용 코드 체크아웃
