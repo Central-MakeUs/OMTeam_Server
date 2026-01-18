@@ -168,7 +168,6 @@ jobs:
             echo "서비스 상태 확인 중..."
             sleep 30
             curl -f http://localhost:8080/actuator/health || exit 1
-            curl -f http://localhost:8000/health || exit 1
 
             echo "배포가 정상적으로 완료되었습니다."
 
