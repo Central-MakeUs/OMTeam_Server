@@ -1,98 +1,62 @@
 package com.omteam.omt.security.auth.service;
 
+import com.omteam.omt.common.exception.BusinessException;
+import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.security.auth.dto.LoginResponse;
 import com.omteam.omt.security.auth.jwt.JwtTokenProvider;
 import com.omteam.omt.security.auth.oauth.OAuthClient;
 import com.omteam.omt.security.auth.oauth.OAuthUserInfo;
 import com.omteam.omt.user.domain.SocialProvider;
 import com.omteam.omt.user.domain.User;
-import com.omteam.omt.user.domain.UserCharacter;
-import com.omteam.omt.user.domain.UserSocialAccount;
-import com.omteam.omt.user.repository.UserCharacterRepository;
-import com.omteam.omt.user.repository.UserRepository;
-import com.omteam.omt.user.repository.UserSocialAccountRepository;
-import jakarta.transaction.Transactional;
+import com.omteam.omt.user.service.UserProvisioningService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 인증 서비스 - OAuth 검증 및 토큰 발급 담당
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final List<OAuthClient> oAuthClients;
-    private final UserRepository userRepository;
-    private final UserSocialAccountRepository socialAccountRepository;
-    private final UserCharacterRepository characterRepository;
+    private final UserProvisioningService userProvisioningService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
-    public LoginResponse login(SocialProvider provider, String code) {
-        OAuthClient client = oAuthClients.stream()
-                .filter(c -> c.getProvider() == provider)
-                .findFirst()
-                .orElseThrow();
+    public LoginResponse login(SocialProvider provider, String idToken) {
+        OAuthClient client = findOAuthClient(provider);
+        OAuthUserInfo userInfo = client.getUserInfo(idToken);
 
-        OAuthUserInfo userInfo = client.getUserInfo(code);
-
-        User user = findOrCreateUser(
+        User user = userProvisioningService.findOrCreateUser(
                 provider,
                 userInfo.getProviderUserId(),
                 userInfo.getEmail()
         );
 
-        LoginResponse response = issueServerToken(user.getUserId());
-        response.setOnboardingCompleted(user.isOnboardingCompleted());
-        return response;
+        return createLoginResponse(user);
     }
 
-    private User findOrCreateUser(
-            SocialProvider provider,
-            String providerUserId,
-            String email
-    ) {
-        return socialAccountRepository
-                .findByProviderAndProviderUserId(provider, providerUserId)
-                .map(UserSocialAccount::getUser)
-                .orElseGet(() -> createUser(provider, providerUserId, email));
+    private OAuthClient findOAuthClient(SocialProvider provider) {
+        return oAuthClients.stream()
+                .filter(c -> c.getProvider() == provider)
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.OAUTH_PROVIDER_NOT_FOUND));
     }
 
-    private User createUser(
-            SocialProvider provider,
-            String providerUserId,
-            String email
-    ) {
-        User user = userRepository.save(
-                User.builder().email(email).build()
-        );
+    private LoginResponse createLoginResponse(User user) {
+        String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
 
-        socialAccountRepository.save(
-                UserSocialAccount.builder()
-                        .provider(provider)
-                        .providerUserId(providerUserId)
-                        .user(user)
-                        .build()
-        );
-
-        characterRepository.save(
-                UserCharacter.builder()
-                        .user(user)
-                        .level(1)
-                        .totalActiveDays(0)
-                        .build()
-        );
-
-        return user;
-    }
-
-    private LoginResponse issueServerToken(Long userId) {
-        String accessToken = jwtTokenProvider.createAccessToken(userId);
-        String refreshToken = jwtTokenProvider.createRefreshToken(userId);
-
-        return new LoginResponse(
+        LoginResponse response = new LoginResponse(
                 accessToken,
                 refreshToken,
-                3600
+                jwtTokenProvider.getAccessTokenExpireSeconds()
         );
+        response.setOnboardingCompleted(user.isOnboardingCompleted());
+
+        return response;
     }
 }
