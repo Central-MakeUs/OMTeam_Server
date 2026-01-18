@@ -117,40 +117,13 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 배포 환경 변수 파일 생성
-        run: |
-          cat << EOF > .env
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG=${{ github.sha }}
-
-          # App Server
-          SPRING_PROFILES_ACTIVE=prod
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          OAUTH_GOOGLE_CLIENT_ID=${{ secrets.OAUTH_GOOGLE_CLIENT_ID }}
-          OAUTH_KAKAO_CLIENT_ID=${{ secrets.OAUTH_KAKAO_CLIENT_ID }}
-          OAUTH_APPLE_CLIENT_ID=${{ secrets.OAUTH_APPLE_CLIENT_ID }}
-
-          # Database (RDS)
-          RDS_URL=${{ secrets.RDS_URL }}
-          RDS_USERNAME=${{ secrets.RDS_USERNAME }}
-          RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
-
-          # AI Server
-          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          UPSTAGE_API_KEY=${{ secrets.UPSTAGE_API_KEY }}
-          LANGFUSE_SECRET_KEY=${{ secrets.LANGFUSE_SECRET_KEY }}
-          LANGFUSE_PUBLIC_KEY=${{ secrets.LANGFUSE_PUBLIC_KEY }}
-          LANGFUSE_HOST=${{ secrets.LANGFUSE_HOST }}
-          EOF
-
       - name: EC2로 배포 파일 전송
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml,docker-compose.prod.yml,.env,scripts/deploy.sh"
+          source: "docker-compose.yml,docker-compose.prod.yml,scripts/deploy.sh"
           target: /home/${{ secrets.EC2_USERNAME }}/omt
           strip_components: 0
 
@@ -162,6 +135,26 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/${{ secrets.EC2_USERNAME }}/omt
+
+            # .env 파일 생성
+            cat > .env << 'ENVEOF'
+            ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+            IMAGE_TAG=${{ github.sha }}
+            SPRING_PROFILES_ACTIVE=prod
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            OAUTH_GOOGLE_CLIENT_ID=${{ secrets.OAUTH_GOOGLE_CLIENT_ID }}
+            OAUTH_KAKAO_CLIENT_ID=${{ secrets.OAUTH_KAKAO_CLIENT_ID }}
+            OAUTH_APPLE_CLIENT_ID=${{ secrets.OAUTH_APPLE_CLIENT_ID }}
+            RDS_URL=${{ secrets.RDS_URL }}
+            RDS_USERNAME=${{ secrets.RDS_USERNAME }}
+            RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
+            ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            UPSTAGE_API_KEY=${{ secrets.UPSTAGE_API_KEY }}
+            LANGFUSE_SECRET_KEY=${{ secrets.LANGFUSE_SECRET_KEY }}
+            LANGFUSE_PUBLIC_KEY=${{ secrets.LANGFUSE_PUBLIC_KEY }}
+            LANGFUSE_HOST=${{ secrets.LANGFUSE_HOST }}
+            ENVEOF
 
             # 기존 컨테이너 중지
             docker compose -f docker-compose.yml -f docker-compose.prod.yml down --timeout 30 || true
