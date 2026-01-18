@@ -1,18 +1,24 @@
 package com.omteam.omt.common.exception;
 
-import com.omteam.omt.common.response.ApiError;
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
 @Getter
 public class BusinessException extends RuntimeException {
 
-    private final ApiError error;
-    private final HttpStatus status;
+    private final ErrorCode errorCode;
 
-    public BusinessException(ApiError error, HttpStatus status) {
-        this.error = error;
-        this.status = status;
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
+    }
+
+    public BusinessException(ErrorCode errorCode, String message) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+
+    public BusinessException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode.getMessage(), cause);
+        this.errorCode = errorCode;
     }
 }
-
