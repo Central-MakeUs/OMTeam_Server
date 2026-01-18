@@ -119,6 +119,7 @@ jobs:
 
       - name: 배포 환경 변수 파일 생성
         run: |
+          mkdir -p deploy
           cat << EOF > deploy/.env
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG=${{ github.sha }}
