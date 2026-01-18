@@ -1,30 +1,18 @@
+# OAuth 및 JWT 설정
+# idToken 검증 방식 사용 - client-id만 필요 (audience 검증용)
+
 oauth:
   google:
     client-id: ${GOOGLE_CLIENT_ID}
-    client-secret: ${GOOGLE_CLIENT_SECRET}
-    redirect-uri: ${GOOGLE_REDIRECT_URI}
-    token-uri: https://oauth2.googleapis.com/token
-    userinfo-uri: https://openidconnect.googleapis.com/v1/userinfo
 
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
-    client-secret: ${KAKAO_CLIENT_SECRET}
-    redirect-uri: ${KAKAO_REDIRECT_URI}
-    token-uri: https://kauth.kakao.com/oauth/token
-    userinfo-uri: https://kapi.kakao.com/v2/user/me
 
   apple:
-    client-id: ${APPLE_SERVICE_ID}
-    team-id: ${APPLE_TEAM_ID}
-    key-id: ${APPLE_KEY_ID}
-    private-key: ${APPLE_PRIVATE_KEY}
-    redirect-uri: ${APPLE_REDIRECT_URI}
-
-    token-uri: https://appleid.apple.com/auth/token
+    client-id: ${APPLE_CLIENT_ID}
     public-key-uri: https://appleid.apple.com/auth/keys
-    issuer: https://appleid.apple.com
-
 
 jwt:
-  access-token-expire-seconds: 300   # 5분
-  refresh-token-expire-seconds: 1209600 # 14일
+  secret: ${JWT_SECRET}
+  access-token-expire-seconds: ${JWT_ACCESS_EXPIRE:300}        # 기본 5분
+  refresh-token-expire-seconds: ${JWT_REFRESH_EXPIRE:1209600}  # 기본 14일

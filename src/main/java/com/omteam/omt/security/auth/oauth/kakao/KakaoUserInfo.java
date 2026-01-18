@@ -1,26 +1,23 @@
 package com.omteam.omt.security.auth.oauth.kakao;
 
 import com.omteam.omt.security.auth.oauth.OAuthUserInfo;
-import java.util.Map;
+import io.jsonwebtoken.Claims;
 
 public class KakaoUserInfo implements OAuthUserInfo {
 
-    private final Map<String, Object> attributes;
+    private final Claims claims;
 
-    public KakaoUserInfo(Map<String, Object> attributes) {
-        this.attributes = attributes;
+    public KakaoUserInfo(Claims claims) {
+        this.claims = claims;
     }
 
     @Override
     public String getProviderUserId() {
-        return String.valueOf(attributes.get("id"));
+        return claims.getSubject();
     }
 
     @Override
     public String getEmail() {
-        Map<String, Object> account =
-                (Map<String, Object>) attributes.get("kakao_account");
-        return account != null ? (String) account.get("email") : null;
+        return claims.get("email", String.class);
     }
 }
-

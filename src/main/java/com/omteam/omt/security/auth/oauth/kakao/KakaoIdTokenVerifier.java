@@ -1,4 +1,4 @@
-package com.omteam.omt.security.auth.oauth.apple;
+package com.omteam.omt.security.auth.oauth.kakao;
 
 import com.omteam.omt.config.properties.OAuthProperties;
 import com.omteam.omt.security.auth.oauth.common.AbstractIdTokenVerifier;
@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class AppleIdTokenVerifier extends AbstractIdTokenVerifier {
+public class KakaoIdTokenVerifier extends AbstractIdTokenVerifier {
 
-    private static final String ISSUER = "https://appleid.apple.com";
+    private static final String ISSUER = "https://kauth.kakao.com";
 
-    private final ApplePublicKeyGenerator publicKeyGenerator;
+    private final KakaoPublicKeyGenerator publicKeyGenerator;
     private final OAuthProperties oAuthProperties;
 
     @Override
@@ -22,7 +22,7 @@ public class AppleIdTokenVerifier extends AbstractIdTokenVerifier {
 
     @Override
     protected String getAudience() {
-        return oAuthProperties.getApple().getClientId();
+        return oAuthProperties.getKakao().getClientId();
     }
 
     @Override

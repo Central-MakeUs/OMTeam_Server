@@ -1,12 +1,12 @@
-package com.omteam.omt.security.auth.oauth.apple;
+package com.omteam.omt.security.auth.oauth.google;
 
 import com.omteam.omt.security.auth.oauth.common.AbstractPublicKeyGenerator;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ApplePublicKeyGenerator extends AbstractPublicKeyGenerator {
+public class GooglePublicKeyGenerator extends AbstractPublicKeyGenerator {
 
-    private static final String JWKS_URL = "https://appleid.apple.com/auth/keys";
+    private static final String JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs";
 
     @Override
     protected String getJwksUrl() {
@@ -15,6 +15,6 @@ public class ApplePublicKeyGenerator extends AbstractPublicKeyGenerator {
 
     @Override
     protected String getProviderName() {
-        return "Apple";
+        return "Google";
     }
 }

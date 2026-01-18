@@ -1,23 +1,23 @@
 package com.omteam.omt.security.auth.oauth.google;
 
 import com.omteam.omt.security.auth.oauth.OAuthUserInfo;
-import java.util.Map;
+import io.jsonwebtoken.Claims;
 
 public class GoogleUserInfo implements OAuthUserInfo {
 
-    private final Map<String, Object> attributes;
+    private final Claims claims;
 
-    public GoogleUserInfo(Map<String, Object> attributes) {
-        this.attributes = attributes;
+    public GoogleUserInfo(Claims claims) {
+        this.claims = claims;
     }
 
     @Override
     public String getProviderUserId() {
-        return (String) attributes.get("sub");
+        return claims.getSubject();
     }
 
     @Override
     public String getEmail() {
-        return (String) attributes.get("email");
+        return claims.get("email", String.class);
     }
 }
