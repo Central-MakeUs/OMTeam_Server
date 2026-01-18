@@ -18,8 +18,6 @@ services:
       - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
       - AI_SERVER_URL=http://ai-server:8000
     depends_on:
-      mysql:
-        condition: service_healthy
       ai-server:
         condition: service_started
     healthcheck:
