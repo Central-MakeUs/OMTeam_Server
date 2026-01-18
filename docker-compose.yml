@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # OMT App Server (Spring Boot)
   omt-app:

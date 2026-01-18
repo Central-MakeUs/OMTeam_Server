@@ -119,8 +119,7 @@ jobs:
 
       - name: 배포 환경 변수 파일 생성
         run: |
-          mkdir -p deploy
-          cat << EOF > deploy/.env
+          cat << EOF > .env
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG=${{ github.sha }}
 
@@ -151,7 +150,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml,docker-compose.prod.yml,deploy/.env,scripts/deploy.sh"
+          source: "docker-compose.yml,docker-compose.prod.yml,.env,scripts/deploy.sh"
           target: /home/${{ secrets.EC2_USERNAME }}/omt
           strip_components: 0
 
