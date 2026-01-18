@@ -5,6 +5,10 @@ import com.omteam.omt.security.auth.dto.LoginResponse;
 import com.omteam.omt.security.auth.dto.OAuthLoginRequest;
 import com.omteam.omt.security.auth.service.AuthService;
 import com.omteam.omt.user.domain.SocialProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "인증", description = "소셜 로그인 API")
 @Slf4j
 @RestController
 @RequestMapping("/auth/oauth")
@@ -22,15 +27,17 @@ public class AuthController {
 
     private final AuthService authService;
 
-    /**
-     * 소셜 로그인
-     *
-     * @param provider 소셜 로그인 제공자 (google, kakao, apple)
-     * @param request  idToken을 포함한 로그인 요청
-     * @return 서버 발급 JWT 토큰
-     */
+    @Operation(
+            summary = "소셜 로그인",
+            description = "Google, Kakao, Apple의 idToken을 검증하여 서버 자체 JWT 토큰을 발급합니다."
+    )
     @PostMapping("/{provider}")
     public ApiResponse<LoginResponse> login(
+            @Parameter(
+                    description = "소셜 로그인 제공자",
+                    example = "google",
+                    schema = @Schema(allowableValues = {"google", "kakao", "apple"})
+            )
             @PathVariable String provider,
             @Valid @RequestBody OAuthLoginRequest request
     ) {
