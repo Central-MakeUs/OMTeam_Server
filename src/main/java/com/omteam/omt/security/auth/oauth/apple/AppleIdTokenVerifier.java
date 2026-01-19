@@ -2,7 +2,9 @@ package com.omteam.omt.security.auth.oauth.apple;
 
 import com.omteam.omt.config.properties.OAuthProperties;
 import com.omteam.omt.security.auth.oauth.common.AbstractIdTokenVerifier;
-import io.jsonwebtoken.SigningKeyResolver;
+import io.jsonwebtoken.Locator;
+import java.security.Key;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,12 +23,12 @@ public class AppleIdTokenVerifier extends AbstractIdTokenVerifier {
     }
 
     @Override
-    protected String getAudience() {
-        return oAuthProperties.getApple().getClientId();
+    protected List<String> getAllowedAudiences() {
+        return List.of(oAuthProperties.getApple().getClientId());
     }
 
     @Override
-    protected SigningKeyResolver getSigningKeyResolver() {
+    protected Locator<Key> getKeyLocator() {
         return publicKeyGenerator;
     }
 }
