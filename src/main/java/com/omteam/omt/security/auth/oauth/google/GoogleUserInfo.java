@@ -1,23 +1,23 @@
 package com.omteam.omt.security.auth.oauth.google;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.omteam.omt.security.auth.oauth.OAuthUserInfo;
-import io.jsonwebtoken.Claims;
 
 public class GoogleUserInfo implements OAuthUserInfo {
 
-    private final Claims claims;
+    private final Payload payload;
 
-    public GoogleUserInfo(Claims claims) {
-        this.claims = claims;
+    public GoogleUserInfo(Payload payload) {
+        this.payload = payload;
     }
 
     @Override
     public String getProviderUserId() {
-        return claims.getSubject();
+        return payload.getSubject();
     }
 
     @Override
     public String getEmail() {
-        return claims.get("email", String.class);
+        return payload.getEmail();
     }
 }
