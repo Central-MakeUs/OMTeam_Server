@@ -2,7 +2,9 @@ package com.omteam.omt.security.auth.oauth.kakao;
 
 import com.omteam.omt.config.properties.OAuthProperties;
 import com.omteam.omt.security.auth.oauth.common.AbstractIdTokenVerifier;
-import io.jsonwebtoken.SigningKeyResolver;
+import io.jsonwebtoken.Locator;
+import java.security.Key;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,12 +23,12 @@ public class KakaoIdTokenVerifier extends AbstractIdTokenVerifier {
     }
 
     @Override
-    protected String getAudience() {
-        return oAuthProperties.getKakao().getClientId();
+    protected List<String> getAllowedAudiences() {
+        return List.of(oAuthProperties.getKakao().getClientId());
     }
 
     @Override
-    protected SigningKeyResolver getSigningKeyResolver() {
+    protected Locator<Key> getKeyLocator() {
         return publicKeyGenerator;
     }
 }

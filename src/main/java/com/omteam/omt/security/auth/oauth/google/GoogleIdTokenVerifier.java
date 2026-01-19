@@ -2,7 +2,9 @@ package com.omteam.omt.security.auth.oauth.google;
 
 import com.omteam.omt.config.properties.OAuthProperties;
 import com.omteam.omt.security.auth.oauth.common.AbstractIdTokenVerifier;
-import io.jsonwebtoken.SigningKeyResolver;
+import io.jsonwebtoken.Locator;
+import java.security.Key;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,12 +23,12 @@ public class GoogleIdTokenVerifier extends AbstractIdTokenVerifier {
     }
 
     @Override
-    protected String getAudience() {
-        return oAuthProperties.getGoogle().getClientId();
+    protected List<String> getAllowedAudiences() {
+        return oAuthProperties.getGoogle().getAllClientIds();
     }
 
     @Override
-    protected SigningKeyResolver getSigningKeyResolver() {
+    protected Locator<Key> getKeyLocator() {
         return publicKeyGenerator;
     }
 }
