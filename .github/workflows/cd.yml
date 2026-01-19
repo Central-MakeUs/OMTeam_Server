@@ -142,7 +142,8 @@ jobs:
             IMAGE_TAG=${{ github.sha }}
             SPRING_PROFILES_ACTIVE=prod
             JWT_SECRET=${{ secrets.JWT_SECRET }}
-            OAUTH_GOOGLE_CLIENT_ID=${{ secrets.OAUTH_GOOGLE_CLIENT_ID }}
+            OAUTH_GOOGLE_IOS_CLIENT_ID=${{ secrets.OAUTH_GOOGLE_IOS_CLIENT_ID }}
+            OAUTH_GOOGLE_ANDROID_CLIENT_ID=${{ secrets.OAUTH_GOOGLE_ANDROID_CLIENT_ID }}
             OAUTH_KAKAO_CLIENT_ID=${{ secrets.OAUTH_KAKAO_CLIENT_ID }}
             OAUTH_APPLE_CLIENT_ID=${{ secrets.OAUTH_APPLE_CLIENT_ID }}
             RDS_URL=${{ secrets.RDS_URL }}
