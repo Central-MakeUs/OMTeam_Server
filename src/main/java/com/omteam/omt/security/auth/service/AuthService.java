@@ -8,22 +8,22 @@ import com.omteam.omt.security.auth.oauth.OAuthClient;
 import com.omteam.omt.security.auth.oauth.OAuthUserInfo;
 import com.omteam.omt.user.domain.SocialProvider;
 import com.omteam.omt.user.domain.User;
+import com.omteam.omt.user.repository.UserRepository;
 import com.omteam.omt.user.service.UserProvisioningService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * 인증 서비스 - OAuth 검증 및 토큰 발급 담당
- */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final List<OAuthClient> oAuthClients;
     private final UserProvisioningService userProvisioningService;
+    private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public LoginResponse login(SocialProvider provider, String idToken) {
@@ -39,6 +39,28 @@ public class AuthService {
         return createLoginResponse(user);
     }
 
+    public void logout(Long userId) {
+        refreshTokenService.deleteRefreshToken(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public LoginResponse refreshToken(String refreshToken) {
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        Long userId = jwtTokenProvider.getUserId(refreshToken);
+
+        if (!refreshTokenService.validateRefreshToken(userId, refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        return createLoginResponse(user);
+    }
+
     private OAuthClient findOAuthClient(SocialProvider provider) {
         return oAuthClients.stream()
                 .filter(c -> c.getProvider() == provider)
@@ -49,6 +71,12 @@ public class AuthService {
     private LoginResponse createLoginResponse(User user) {
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+
+        refreshTokenService.saveRefreshToken(
+                user.getUserId(),
+                refreshToken,
+                jwtTokenProvider.getRefreshTokenExpireSeconds()
+        );
 
         LoginResponse response = new LoginResponse(
                 accessToken,

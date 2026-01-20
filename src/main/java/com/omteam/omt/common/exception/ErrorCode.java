@@ -20,6 +20,7 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "A003", "만료된 토큰입니다"),
     OAUTH_PROVIDER_NOT_FOUND(HttpStatus.BAD_REQUEST, "A004", "지원하지 않는 소셜 로그인 제공자입니다"),
     INVALID_OAUTH_TOKEN(HttpStatus.UNAUTHORIZED, "A005", "유효하지 않은 소셜 로그인 토큰입니다"),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A006", "유효하지 않은 리프레시 토큰입니다"),
 
     // User (U)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "사용자를 찾을 수 없습니다"),
