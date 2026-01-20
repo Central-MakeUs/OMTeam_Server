@@ -2,7 +2,6 @@ package com.omteam.omt.security.auth.jwt;
 
 import com.omteam.omt.config.properties.JwtProperties;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -58,19 +57,6 @@ public class JwtTokenProvider {
                 .getPayload();
 
         return Long.parseLong(claims.getSubject());
-    }
-
-    public Long getUserIdFromExpiredToken(String token) {
-        try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-            return Long.parseLong(claims.getSubject());
-        } catch (ExpiredJwtException e) {
-            return Long.parseLong(e.getClaims().getSubject());
-        }
     }
 
     private String createToken(Long userId, long expireSeconds) {
