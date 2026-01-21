@@ -18,9 +18,13 @@ services:
       - OAUTH_KAKAO_CLIENT_ID=${OAUTH_KAKAO_CLIENT_ID}
       - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
       - AI_SERVER_URL=http://ai-server:8000
+      - SPRING_DATA_REDIS_HOST=omt-redis
+      - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       ai-server:
         condition: service_started
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
