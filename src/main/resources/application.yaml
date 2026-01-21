@@ -8,7 +8,10 @@ spring:
     group:
       blue: "prod,blue"
       green: "prod,green"
-
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 server:
   env: ${APP_ENV:blue}
 
