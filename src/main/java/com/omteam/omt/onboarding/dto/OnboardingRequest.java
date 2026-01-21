@@ -11,11 +11,15 @@ import jakarta.validation.constraints.Positive;
 
 import java.time.LocalTime;
 
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import lombok.Getter;
 
 @Getter
+@Setter
+@NoArgsConstructor
 public class OnboardingRequest {
 
     @NotBlank(message = "닉네임은 필수입니다")
