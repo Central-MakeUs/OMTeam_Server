@@ -26,8 +26,5 @@ jwt:
   access-token-expire-seconds: 300
   refresh-token-expire-seconds: 1209600
 
-cors:
-  allowed-origins: http://localhost:3000
-
 server:
   env: test
