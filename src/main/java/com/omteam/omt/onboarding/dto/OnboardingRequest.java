@@ -2,10 +2,15 @@ package com.omteam.omt.onboarding.dto;
 
 import com.omteam.omt.user.domain.LifestyleType;
 import com.omteam.omt.user.domain.WorkTimeType;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+
 import java.time.LocalTime;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
 import lombok.Getter;
 
 @Getter
@@ -21,9 +26,11 @@ public class OnboardingRequest {
     private WorkTimeType workTimeType;
 
     @NotNull(message = "운동 가능 시작 시간은 필수입니다")
+    @DateTimeFormat(pattern = "HH:mm")
     private LocalTime availableStartTime;
 
     @NotNull(message = "운동 가능 종료 시간은 필수입니다")
+    @DateTimeFormat(pattern = "HH:mm")
     private LocalTime availableEndTime;
 
     @Positive(message = "최소 운동 시간은 양수여야 합니다")
