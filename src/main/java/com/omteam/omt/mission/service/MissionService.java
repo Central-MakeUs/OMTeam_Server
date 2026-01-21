@@ -279,6 +279,34 @@ public class MissionService {
         return RecommendedMissionResponse.fromList(recommendations);
     }
 
+    public int expireUncompletedMissions(LocalDate targetDate) {
+        List<DailyRecommendedMission> uncompletedMissions = recommendedMissionRepository
+                .findByMissionDateAndStatus(targetDate, RecommendedMissionStatus.IN_PROGRESS);
+
+        int expiredCount = 0;
+        for (DailyRecommendedMission mission : uncompletedMissions) {
+            // 미션 상태를 만료로 변경
+            mission.expire();
+
+            // 실패 결과 저장
+            DailyMissionResult failureResult = DailyMissionResult.builder()
+                    .missionDate(targetDate)
+                    .result(MissionResult.FAILURE)
+                    .failureReason("시간 초과")
+                    .mission(mission.getMission())
+                    .user(mission.getUser())
+                    .build();
+
+            missionResultRepository.save(failureResult);
+            expiredCount++;
+
+            log.info("미션 만료 처리: userId={}, missionId={}, date={}",
+                    mission.getUser().getUserId(), mission.getMission().getId(), targetDate);
+        }
+
+        return expiredCount;
+    }
+
     private User findUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));

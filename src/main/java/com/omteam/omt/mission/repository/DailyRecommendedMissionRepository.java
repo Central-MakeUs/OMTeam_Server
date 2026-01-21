@@ -33,4 +33,13 @@ public interface DailyRecommendedMissionRepository extends JpaRepository<DailyRe
 
     boolean existsByUserUserIdAndMissionDateAndStatusIn(
             Long userId, LocalDate missionDate, List<RecommendedMissionStatus> statuses);
+
+    @Query("SELECT drm FROM DailyRecommendedMission drm " +
+            "JOIN FETCH drm.mission " +
+            "JOIN FETCH drm.user " +
+            "WHERE drm.missionDate = :missionDate " +
+            "AND drm.status = :status")
+    List<DailyRecommendedMission> findByMissionDateAndStatus(
+            @Param("missionDate") LocalDate missionDate,
+            @Param("status") RecommendedMissionStatus status);
 }
