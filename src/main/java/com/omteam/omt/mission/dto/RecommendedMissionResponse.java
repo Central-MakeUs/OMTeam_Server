@@ -1,0 +1,32 @@
+package com.omteam.omt.mission.dto;
+
+import com.omteam.omt.mission.domain.DailyRecommendedMission;
+import com.omteam.omt.mission.domain.RecommendedMissionStatus;
+import java.time.LocalDate;
+import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class RecommendedMissionResponse {
+    private Long recommendedMissionId;
+    private LocalDate missionDate;
+    private RecommendedMissionStatus status;
+    private MissionResponse mission;
+
+    public static RecommendedMissionResponse from(DailyRecommendedMission drm) {
+        return RecommendedMissionResponse.builder()
+                .recommendedMissionId(drm.getId())
+                .missionDate(drm.getMissionDate())
+                .status(drm.getStatus())
+                .mission(MissionResponse.from(drm.getMission()))
+                .build();
+    }
+
+    public static List<RecommendedMissionResponse> fromList(List<DailyRecommendedMission> missions) {
+        return missions.stream()
+                .map(RecommendedMissionResponse::from)
+                .toList();
+    }
+}
