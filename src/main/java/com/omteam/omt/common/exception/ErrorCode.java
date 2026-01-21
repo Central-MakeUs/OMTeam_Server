@@ -20,11 +20,14 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "A003", "만료된 토큰입니다"),
     OAUTH_PROVIDER_NOT_FOUND(HttpStatus.BAD_REQUEST, "A004", "지원하지 않는 소셜 로그인 제공자입니다"),
     INVALID_OAUTH_TOKEN(HttpStatus.UNAUTHORIZED, "A005", "유효하지 않은 소셜 로그인 토큰입니다"),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A006", "유효하지 않은 리프레시 토큰입니다"),
 
     // User (U)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "사용자를 찾을 수 없습니다"),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "U002", "이미 사용 중인 닉네임입니다"),
     ONBOARDING_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "U003", "온보딩을 완료해주세요"),
+    ONBOARDING_ALREADY_COMPLETED(HttpStatus.CONFLICT, "U004", "이미 온보딩이 완료되었습니다"),
+    ONBOARDING_NOT_FOUND(HttpStatus.NOT_FOUND, "U005", "온보딩 정보를 찾을 수 없습니다"),
 
     // Mission (M)
     MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "미션을 찾을 수 없습니다"),
