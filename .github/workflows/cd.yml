@@ -158,12 +158,12 @@ jobs:
             ENVEOF
 
             # 기존 컨테이너 중지
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml down --timeout 30 || true
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile prod down --timeout 30 || true
 
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile prod pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile prod up -d --remove-orphans
             docker image prune -f
 
             echo "서비스 상태 확인 중..."
