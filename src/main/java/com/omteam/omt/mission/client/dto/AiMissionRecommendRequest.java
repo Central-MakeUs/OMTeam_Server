@@ -28,7 +28,7 @@ public class AiMissionRecommendRequest {
         private String availableStartTime;
         private String availableEndTime;
         private int minExerciseMinutes;
-        private List<String> preferredExercise;
+        private List<String> preferredExercises;
         private LifestyleType lifestyleType;
 
         public static OnboardingData from(
@@ -46,7 +46,7 @@ public class AiMissionRecommendRequest {
                     .availableStartTime(availableStartTime.toString())
                     .availableEndTime(availableEndTime.toString())
                     .minExerciseMinutes(minExerciseMinutes)
-                    .preferredExercise(List.of(preferredExerciseText.split(",")))
+                    .preferredExercises(List.of(preferredExerciseText.split(",")))
                     .lifestyleType(lifestyleType)
                     .build();
         }
