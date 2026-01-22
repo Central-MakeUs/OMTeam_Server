@@ -113,7 +113,7 @@ public class MissionService {
 
         // 진행 중인 미션 만료 처리 (포기)
         findFirstMissionByStatus(userId, today, RecommendedMissionStatus.IN_PROGRESS)
-                .ifPresent(DailyRecommendedMission::expire);
+                .ifPresent(DailyRecommendedMission::isStartable);
 
         // 새 미션 시작
         newMission.start();
