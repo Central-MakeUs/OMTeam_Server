@@ -2,16 +2,32 @@ package com.omteam.omt.mission.dto;
 
 import com.omteam.omt.mission.domain.DailyRecommendedMission;
 import com.omteam.omt.mission.domain.RecommendedMissionStatus;
+
 import java.time.LocalDate;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
 public class RecommendedMissionResponse {
+
     private Long recommendedMissionId;
     private LocalDate missionDate;
+
+    @Schema(
+            description = "추천 미션의 현재 상태",
+            allowableValues = {
+                "RECOMMENDED",
+                "SELECTED",
+                "IN_PROGRESS",
+                "COMPLETED",
+                "EXPIRED"
+            },
+            example = "RECOMMENDED"
+    )
     private RecommendedMissionStatus status;
     private MissionResponse mission;
 
