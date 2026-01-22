@@ -79,7 +79,7 @@ public class MissionService {
                 .build();
     }
 
-    public RecommendedMissionResponse selectMission(Long userId, Long recommendedMissionId) {
+    public RecommendedMissionResponse startMission(Long userId, Long recommendedMissionId) {
         LocalDate today = LocalDate.now();
 
         validateNoInProgressMission(userId, today);
@@ -89,43 +89,35 @@ public class MissionService {
                 .findByIdAndUserUserId(recommendedMissionId, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MISSION_NOT_FOUND));
 
-        if (!recommendation.isSelectable()) {
+        if (!recommendation.isStartable()) {
             throw new BusinessException(ErrorCode.INVALID_MISSION_STATUS);
         }
 
-        clearOtherSelections(userId, today, recommendedMissionId);
-        recommendation.select();
+        recommendation.start();
         return RecommendedMissionResponse.from(recommendation);
     }
 
-    public RecommendedMissionResponse startMission(Long userId) {
+    public RecommendedMissionResponse reselectMission(Long userId, Long newMissionId) {
         LocalDate today = LocalDate.now();
 
-        validateNoInProgressMission(userId, today);
+        validateNoMissionResultToday(userId, today);
 
-        DailyRecommendedMission selectedMission = getSelectedMissionOrThrow(userId, today);
-        selectedMission.start();
-        return RecommendedMissionResponse.from(selectedMission);
-    }
+        // 새로 시작할 미션 조회
+        DailyRecommendedMission newMission = recommendedMissionRepository
+                .findByIdAndUserUserId(newMissionId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MISSION_NOT_FOUND));
 
-    public RecommendedMissionResponse reselectMission(Long userId) {
-        LocalDate today = LocalDate.now();
+        if (!newMission.isStartable()) {
+            throw new BusinessException(ErrorCode.INVALID_MISSION_STATUS);
+        }
 
-        // 진행 중인 미션 만료 처리
+        // 진행 중인 미션 만료 처리 (포기)
         findFirstMissionByStatus(userId, today, RecommendedMissionStatus.IN_PROGRESS)
                 .ifPresent(DailyRecommendedMission::expire);
 
-        // 선택된 미션들 만료 처리
-        findMissionsByStatus(userId, today, RecommendedMissionStatus.SELECTED)
-                .forEach(DailyRecommendedMission::expire);
-
-        // 추천 상태의 미션들 반환
-        List<DailyRecommendedMission> recommendations = findMissionsByStatus(userId, today, RecommendedMissionStatus.RECOMMENDED);
-        if (recommendations.isEmpty()) {
-            throw new BusinessException(ErrorCode.NO_RECOMMENDED_MISSIONS);
-        }
-
-        return RecommendedMissionResponse.from(recommendations.get(0));
+        // 새 미션 시작
+        newMission.start();
+        return RecommendedMissionResponse.from(newMission);
     }
 
     public MissionResultResponse completeMission(Long userId, MissionResultRequest request) {
@@ -157,30 +149,23 @@ public class MissionService {
         // 오늘의 결과 확인 - 완료된 경우
         var resultOpt = missionResultRepository.findByUserUserIdAndMissionDate(userId, today);
         if (resultOpt.isPresent()) {
-            return buildStatusResponse(today, false, false, false, true, null, MissionResultResponse.from(resultOpt.get()));
+            return buildStatusResponse(today, false, false, true, null, MissionResultResponse.from(resultOpt.get()));
         }
 
         // 진행 중인 미션 확인
         Optional<DailyRecommendedMission> inProgress = findFirstMissionByStatus(userId, today, RecommendedMissionStatus.IN_PROGRESS);
         if (inProgress.isPresent()) {
-            return buildStatusResponse(today, true, false, true, false, RecommendedMissionResponse.from(inProgress.get()), null);
-        }
-
-        // 선택된 미션 확인
-        Optional<DailyRecommendedMission> selected = findFirstMissionByStatus(userId, today, RecommendedMissionStatus.SELECTED);
-        if (selected.isPresent()) {
-            return buildStatusResponse(today, true, true, false, false, RecommendedMissionResponse.from(selected.get()), null);
+            return buildStatusResponse(today, true, true, false, RecommendedMissionResponse.from(inProgress.get()), null);
         }
 
         // 추천된 미션만 있거나 없는 경우
         boolean hasRecommendations = !findMissionsByStatus(userId, today, RecommendedMissionStatus.RECOMMENDED).isEmpty();
-        return buildStatusResponse(today, hasRecommendations, false, false, false, null, null);
+        return buildStatusResponse(today, hasRecommendations, false, false, null, null);
     }
 
     private TodayMissionStatusResponse buildStatusResponse(
             LocalDate date,
             boolean hasRecommendations,
-            boolean hasSelectedMission,
             boolean hasInProgressMission,
             boolean hasCompletedMission,
             RecommendedMissionResponse currentMission,
@@ -188,7 +173,6 @@ public class MissionService {
         return TodayMissionStatusResponse.builder()
                 .date(date)
                 .hasRecommendations(hasRecommendations)
-                .hasSelectedMission(hasSelectedMission)
                 .hasInProgressMission(hasInProgressMission)
                 .hasCompletedMission(hasCompletedMission)
                 .currentMission(currentMission)
@@ -203,7 +187,6 @@ public class MissionService {
         List<DailyRecommendedMission> recommendations = recommendedMissionRepository
                 .findActiveRecommendations(userId, today,
                         List.of(RecommendedMissionStatus.RECOMMENDED,
-                                RecommendedMissionStatus.SELECTED,
                                 RecommendedMissionStatus.IN_PROGRESS));
 
         return RecommendedMissionResponse.fromList(recommendations);
@@ -318,12 +301,6 @@ public class MissionService {
                 userId, date, List.of(RecommendedMissionStatus.IN_PROGRESS));
     }
 
-    private void clearOtherSelections(Long userId, LocalDate date, Long excludeId) {
-        findMissionsByStatus(userId, date, RecommendedMissionStatus.SELECTED).stream()
-                .filter(mission -> !mission.getId().equals(excludeId))
-                .forEach(DailyRecommendedMission::expire);
-    }
-
     // ==================== 상태별 미션 조회 Helper ====================
 
     private List<DailyRecommendedMission> findMissionsByStatus(Long userId, LocalDate date, RecommendedMissionStatus status) {
@@ -355,10 +332,5 @@ public class MissionService {
     private DailyRecommendedMission getInProgressMissionOrThrow(Long userId, LocalDate date) {
         return findFirstMissionByStatus(userId, date, RecommendedMissionStatus.IN_PROGRESS)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MISSION_NOT_IN_PROGRESS));
-    }
-
-    private DailyRecommendedMission getSelectedMissionOrThrow(Long userId, LocalDate date) {
-        return findFirstMissionByStatus(userId, date, RecommendedMissionStatus.SELECTED)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MISSION_NOT_SELECTED));
     }
 }

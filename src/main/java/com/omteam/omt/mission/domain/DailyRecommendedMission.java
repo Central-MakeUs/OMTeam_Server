@@ -56,10 +56,6 @@ public class DailyRecommendedMission {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public void select() {
-        this.status = RecommendedMissionStatus.SELECTED;
-    }
-
     public void start() {
         this.status = RecommendedMissionStatus.IN_PROGRESS;
     }
@@ -72,12 +68,8 @@ public class DailyRecommendedMission {
         this.status = RecommendedMissionStatus.EXPIRED;
     }
 
-    public boolean isSelectable() {
-        return this.status == RecommendedMissionStatus.RECOMMENDED;
-    }
-
     public boolean isStartable() {
-        return this.status == RecommendedMissionStatus.SELECTED;
+        return this.status == RecommendedMissionStatus.RECOMMENDED;
     }
 
     public boolean isInProgress() {

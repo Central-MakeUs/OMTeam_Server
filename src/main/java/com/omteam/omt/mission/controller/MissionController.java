@@ -57,42 +57,30 @@ public class MissionController {
     }
 
     @Operation(
-            summary = "미션 선택",
-            description = "추천된 미션 중 하나를 선택합니다."
+            summary = "미션 시작",
+            description = "추천된 미션 중 하나를 선택하여 즉시 시작합니다."
     )
-    @PostMapping("/daily/select")
-    public ApiResponse<RecommendedMissionResponse> selectMission(
+    @PostMapping("/daily/start")
+    public ApiResponse<RecommendedMissionResponse> startMission(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Valid @RequestBody MissionSelectRequest request
     ) {
         return ApiResponse.success(
-                missionService.selectMission(userPrincipal.getUserId(), request.getRecommendedMissionId())
-        );
-    }
-
-    @Operation(
-            summary = "미션 시작",
-            description = "선택한 미션을 시작합니다. 미션을 먼저 선택해야 합니다."
-    )
-    @PostMapping("/daily/start")
-    public ApiResponse<RecommendedMissionResponse> startMission(
-            @AuthenticationPrincipal UserPrincipal userPrincipal
-    ) {
-        return ApiResponse.success(
-                missionService.startMission(userPrincipal.getUserId())
+                missionService.startMission(userPrincipal.getUserId(), request.getRecommendedMissionId())
         );
     }
 
     @Operation(
             summary = "미션 다시 선택",
-            description = "진행 중이거나 선택된 미션을 취소하고 다시 선택할 수 있게 합니다."
+            description = "진행 중인 미션을 포기하고 다른 미션을 선택하여 즉시 시작합니다."
     )
     @PostMapping("/daily/reselect")
     public ApiResponse<RecommendedMissionResponse> reselectMission(
-            @AuthenticationPrincipal UserPrincipal userPrincipal
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody MissionSelectRequest request
     ) {
         return ApiResponse.success(
-                missionService.reselectMission(userPrincipal.getUserId())
+                missionService.reselectMission(userPrincipal.getUserId(), request.getRecommendedMissionId())
         );
     }
 

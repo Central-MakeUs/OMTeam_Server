@@ -9,7 +9,6 @@ import lombok.Getter;
 public class TodayMissionStatusResponse {
     private LocalDate date;
     private boolean hasRecommendations;
-    private boolean hasSelectedMission;
     private boolean hasInProgressMission;
     private boolean hasCompletedMission;
     private RecommendedMissionResponse currentMission;
