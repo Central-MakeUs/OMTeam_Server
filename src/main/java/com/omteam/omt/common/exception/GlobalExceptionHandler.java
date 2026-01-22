@@ -6,10 +6,12 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -97,6 +99,37 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(ApiResponse.fail(new ApiError(errorCode.getCode(), e.getMessage())));
+    }
+
+    /**
+     * HttpMessageNotReadableException 처리 - JSON 파싱 실패 (Enum 바인딩 실패 포함)
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException e) {
+        ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+        String message = extractReadableMessage(e);
+        log.warn("HttpMessageNotReadableException: {}", e.getMessage());
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ApiResponse.fail(new ApiError(errorCode.getCode(), message)));
+    }
+
+    private String extractReadableMessage(HttpMessageNotReadableException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof com.fasterxml.jackson.databind.exc.InvalidFormatException invalidFormatException) {
+            Class<?> targetType = invalidFormatException.getTargetType();
+            if (targetType != null && targetType.isEnum()) {
+                Object[] enumConstants = targetType.getEnumConstants();
+                String allowedValues = java.util.Arrays.stream(enumConstants)
+                        .map(Object::toString)
+                        .collect(java.util.stream.Collectors.joining(", "));
+                return String.format("'%s'은(는) 유효하지 않은 값입니다. 허용된 값: [%s]",
+                        invalidFormatException.getValue(), allowedValues);
+            }
+        }
+        return "요청 본문을 읽을 수 없습니다";
     }
 
     /**
