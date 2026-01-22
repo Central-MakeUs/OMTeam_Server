@@ -52,18 +52,10 @@ public class MissionService {
         LocalDate today = LocalDate.now();
         User user = findUserById(userId);
 
-        // 이미 진행 중인 미션이 있는지 확인
-        Optional<DailyRecommendedMission> inProgress = findFirstMissionByStatus(userId, today, RecommendedMissionStatus.IN_PROGRESS);
-        if (inProgress.isPresent()) {
-            return DailyMissionRecommendResponse.builder()
-                    .missionDate(today)
-                    .recommendations(List.of())
-                    .hasInProgressMission(true)
-                    .inProgressMission(RecommendedMissionResponse.from(inProgress.get()))
-                    .build();
-        }
-
+        // 오늘 이미 완료된 미션이 있으면 추천 불가
         validateNoMissionResultToday(userId, today);
+
+        // 기존 미션(IN_PROGRESS, RECOMMENDED)이 있으면 모두 만료 처리 후 새로 추천
         expireExistingRecommendations(userId, today);
 
         // AI 서버에서 새 미션 추천 받기
