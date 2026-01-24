@@ -179,7 +179,8 @@ public class MissionService {
         List<DailyRecommendedMission> recommendations = recommendedMissionRepository
                 .findActiveRecommendations(userId, today,
                         List.of(RecommendedMissionStatus.RECOMMENDED,
-                                RecommendedMissionStatus.IN_PROGRESS));
+                                RecommendedMissionStatus.IN_PROGRESS,
+                                RecommendedMissionStatus.COMPLETED));
 
         return RecommendedMissionResponse.fromList(recommendations);
     }
