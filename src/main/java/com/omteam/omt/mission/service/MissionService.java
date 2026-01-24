@@ -59,7 +59,7 @@ public class MissionService {
         expireExistingRecommendations(userId, today);
 
         // AI 서버에서 새 미션 추천 받기
-        AiMissionRecommendRequest request = buildAiRequest(userId, user);
+        AiMissionRecommendRequest request = buildAiRequest(userId);
         AiMissionRecommendResponse aiResponse = aiMissionClient.recommendDailyMissions(request);
         List<DailyRecommendedMission> recommendations = saveRecommendedMissions(user, today, aiResponse);
 
@@ -189,28 +189,26 @@ public class MissionService {
         List<DailyRecommendedMission> uncompletedMissions = recommendedMissionRepository
                 .findByMissionDateAndStatus(targetDate, RecommendedMissionStatus.IN_PROGRESS);
 
-        int expiredCount = 0;
-        for (DailyRecommendedMission mission : uncompletedMissions) {
-            // 미션 상태를 만료로 변경
-            mission.expire();
+        uncompletedMissions.forEach(mission -> expireMissionWithFailureResult(mission, targetDate));
 
-            // 실패 결과 저장
-            DailyMissionResult failureResult = DailyMissionResult.builder()
-                    .missionDate(targetDate)
-                    .result(MissionResult.FAILURE)
-                    .failureReason("시간 초과")
-                    .mission(mission.getMission())
-                    .user(mission.getUser())
-                    .build();
+        return uncompletedMissions.size();
+    }
 
-            missionResultRepository.save(failureResult);
-            expiredCount++;
+    private void expireMissionWithFailureResult(DailyRecommendedMission mission, LocalDate targetDate) {
+        mission.expire();
 
-            log.info("미션 만료 처리: userId={}, missionId={}, date={}",
-                    mission.getUser().getUserId(), mission.getMission().getId(), targetDate);
-        }
+        DailyMissionResult failureResult = DailyMissionResult.builder()
+                .missionDate(targetDate)
+                .result(MissionResult.FAILURE)
+                .failureReason("시간 초과")
+                .mission(mission.getMission())
+                .user(mission.getUser())
+                .build();
 
-        return expiredCount;
+        missionResultRepository.save(failureResult);
+
+        log.info("미션 만료 처리: userId={}, missionId={}, date={}",
+                mission.getUser().getUserId(), mission.getMission().getId(), targetDate);
     }
 
     private User findUserById(Long userId) {
@@ -226,7 +224,7 @@ public class MissionService {
                 .forEach(DailyRecommendedMission::expire);
     }
 
-    private AiMissionRecommendRequest buildAiRequest(Long userId, User user) {
+    private AiMissionRecommendRequest buildAiRequest(Long userId) {
         UserOnboarding onboarding = userOnboardingRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
 
