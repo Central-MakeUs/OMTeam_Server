@@ -263,7 +263,7 @@ public class MissionService {
                 .userId(userId)
                 .onboarding(onboardingData)
                 .recentMissionHistory(missionHistories)
-                .weeklyFailureReasons(weeklyFailureReasons != null ? weeklyFailureReasons : new ArrayList<>())
+                .weeklyFailureReasons(weeklyFailureReasons)
                 .build();
     }
 
