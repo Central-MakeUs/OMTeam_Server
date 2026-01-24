@@ -12,6 +12,13 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+  jpa:
+    hibernate:
+      ddl-auto: update
 server:
   env: ${APP_ENV:blue}
+
+ai-server:
+  base-url: ${AI_SERVER_BASE_URL:http://localhost:8000}
+  timeout-seconds: ${AI_SERVER_TIMEOUT:30}
 

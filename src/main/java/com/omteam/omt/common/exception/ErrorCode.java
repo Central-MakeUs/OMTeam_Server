@@ -32,7 +32,17 @@ public enum ErrorCode {
     // Mission (M)
     MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "미션을 찾을 수 없습니다"),
     DAILY_MISSION_ALREADY_EXISTS(HttpStatus.CONFLICT, "M002", "오늘의 미션이 이미 존재합니다"),
-    MISSION_ALREADY_COMPLETED(HttpStatus.CONFLICT, "M003", "이미 완료된 미션입니다");
+    MISSION_ALREADY_COMPLETED(HttpStatus.CONFLICT, "M003", "이미 완료된 미션입니다"),
+    MISSION_NOT_SELECTED(HttpStatus.BAD_REQUEST, "M004", "미션을 먼저 선택해주세요"),
+    MISSION_NOT_IN_PROGRESS(HttpStatus.BAD_REQUEST, "M005", "진행 중인 미션이 없습니다"),
+    MISSION_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "M006", "이미 진행 중인 미션이 있습니다"),
+    NO_RECOMMENDED_MISSIONS(HttpStatus.NOT_FOUND, "M007", "추천된 미션이 없습니다"),
+    INVALID_MISSION_STATUS(HttpStatus.BAD_REQUEST, "M008", "유효하지 않은 미션 상태입니다"),
+    MISSION_RESULT_ALREADY_EXISTS(HttpStatus.CONFLICT, "M009", "오늘의 미션 결과가 이미 존재합니다"),
+
+    // AI Server (AI)
+    AI_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI001", "AI 서버 응답 오류입니다"),
+    AI_SERVER_CONNECTION_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI002", "AI 서버 연결에 실패했습니다");
 
     private final HttpStatus status;
     private final String code;
