@@ -215,9 +215,10 @@ class AuthServiceTest {
     }
 
     private User createUser(boolean onboardingCompleted) {
-        User user = User.builder().email(email).build();
-        user.setUserId(1L);
-        user.setOnboardingCompleted(onboardingCompleted);
-        return user;
+        return User.builder()
+                .userId(1L)
+                .email(email)
+                .onboardingCompleted(onboardingCompleted)
+                .build();
     }
 }
