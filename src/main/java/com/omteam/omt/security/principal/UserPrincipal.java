@@ -1,13 +1,8 @@
 package com.omteam.omt.security.principal;
 
-import lombok.Getter;
+public record UserPrincipal(Long userId) {
 
-@Getter
-public class UserPrincipal {
-
-    private final Long userId;
-
-    public UserPrincipal(Long userId) {
-        this.userId = userId;
+    public Long getUserId() {
+        return userId;
     }
 }
