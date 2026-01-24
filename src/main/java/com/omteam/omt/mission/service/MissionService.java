@@ -1,5 +1,6 @@
 package com.omteam.omt.mission.service;
 
+import com.omteam.omt.character.service.CharacterService;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.client.AiMissionClient;
@@ -45,6 +46,7 @@ public class MissionService {
     private final UserRepository userRepository;
     private final UserOnboardingRepository userOnboardingRepository;
     private final AiMissionClient aiMissionClient;
+    private final CharacterService characterService;
 
     private static final int RECENT_HISTORY_DAYS = 7;
 
@@ -130,6 +132,11 @@ public class MissionService {
 
         missionResultRepository.save(missionResult);
         inProgressMission.complete();
+
+        // 미션 성공 시 캐릭터 경험치 증가
+        if (request.getResult() == MissionResult.SUCCESS) {
+            characterService.recordMissionSuccess(userId);
+        }
 
         return MissionResultResponse.from(missionResult);
     }
