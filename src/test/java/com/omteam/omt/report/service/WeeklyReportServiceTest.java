@@ -50,7 +50,7 @@ class WeeklyReportServiceTest {
 
         given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
                 .willReturn(Optional.of(analysis));
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class)))
+        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
                 .willReturn(List.of("시간 부족", "시간 부족", "피로", "날씨"));
 
         // when
@@ -72,7 +72,7 @@ class WeeklyReportServiceTest {
 
         given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
                 .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class)))
+        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
                 .willReturn(List.of());
 
         // when
@@ -89,7 +89,7 @@ class WeeklyReportServiceTest {
         // given
         given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any(LocalDate.class)))
                 .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class)))
+        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
                 .willReturn(List.of());
 
         // when
@@ -108,7 +108,7 @@ class WeeklyReportServiceTest {
 
         given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
                 .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class)))
+        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
                 .willReturn(List.of("시간 부족", "시간 부족", "시간 부족", "피로", "피로", "날씨"));
 
         // when
@@ -132,7 +132,7 @@ class WeeklyReportServiceTest {
 
         given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
                 .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class)))
+        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
                 .willReturn(List.of());
 
         // when
@@ -150,7 +150,7 @@ class WeeklyReportServiceTest {
 
         given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
                 .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class)))
+        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
                 .willReturn(List.of("a", "a", "b", "b", "c", "c", "d", "d", "e", "e", "f", "f", "g", "g"));
 
         // when

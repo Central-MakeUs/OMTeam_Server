@@ -10,10 +10,10 @@ import com.omteam.omt.report.repository.WeeklyAiAnalysisRepository;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class WeeklyReportService {
 
+    private static final int DAYS_IN_WEEK = 7;
+    private static final int TOP_FAILURE_REASONS_LIMIT = 5;
+
     private final WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
     private final DailyMissionResultRepository missionResultRepository;
 
@@ -31,35 +34,11 @@ public class WeeklyReportService {
      * 이번주 또는 특정 주의 AI 분석 리포트 조회
      */
     public WeeklyReportResponse getWeeklyReport(Long userId, LocalDate weekStartDate) {
-        // 주 시작일이 null이면 이번주로 설정
-        LocalDate effectiveStartDate = weekStartDate != null
-                ? weekStartDate
-                : LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate weekEndDate = effectiveStartDate.plusDays(6);
+        LocalDate effectiveStartDate = resolveWeekStartDate(weekStartDate);
+        LocalDate weekEndDate = effectiveStartDate.plusDays(DAYS_IN_WEEK - 1);
 
-        // AI 분석 결과 조회
-        WeeklyAiAnalysis analysis = weeklyAiAnalysisRepository
-                .findByUserUserIdAndWeekStartDate(userId, effectiveStartDate)
-                .orElse(null);
-
-        // 실패 원인 순위 계산
+        AiAnalysis aiAnalysis = getAiAnalysis(userId, effectiveStartDate);
         List<FailureReasonRank> failureReasons = getFailureReasonRanks(userId, effectiveStartDate, weekEndDate);
-
-        AiAnalysis aiAnalysis;
-        if (analysis != null) {
-            aiAnalysis = AiAnalysis.builder()
-                    .summary(analysis.getSummary())
-                    .insight(analysis.getInsight())
-                    .recommendation(analysis.getRecommendation())
-                    .build();
-        } else {
-            // AI 분석 결과가 없으면 기본 메시지
-            aiAnalysis = AiAnalysis.builder()
-                    .summary("아직 이번 주 AI 분석 결과가 없습니다.")
-                    .insight("매주 월요일에 지난 주 분석 결과가 생성됩니다.")
-                    .recommendation("꾸준히 미션을 수행해주세요!")
-                    .build();
-        }
 
         return WeeklyReportResponse.builder()
                 .weekStartDate(effectiveStartDate)
@@ -69,34 +48,54 @@ public class WeeklyReportService {
                 .build();
     }
 
+    private LocalDate resolveWeekStartDate(LocalDate weekStartDate) {
+        if (weekStartDate != null) {
+            return weekStartDate;
+        }
+        return LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    }
+
+    private AiAnalysis getAiAnalysis(Long userId, LocalDate weekStartDate) {
+        return weeklyAiAnalysisRepository
+                .findByUserUserIdAndWeekStartDate(userId, weekStartDate)
+                .map(this::toAiAnalysis)
+                .orElseGet(this::buildDefaultAiAnalysis);
+    }
+
+    private AiAnalysis toAiAnalysis(WeeklyAiAnalysis analysis) {
+        return AiAnalysis.builder()
+                .summary(analysis.getSummary())
+                .insight(analysis.getInsight())
+                .recommendation(analysis.getRecommendation())
+                .build();
+    }
+
+    private AiAnalysis buildDefaultAiAnalysis() {
+        return AiAnalysis.builder()
+                .summary("아직 이번 주 AI 분석 결과가 없습니다.")
+                .insight("매주 월요일에 지난 주 분석 결과가 생성됩니다.")
+                .recommendation("꾸준히 미션을 수행해주세요!")
+                .build();
+    }
+
     private List<FailureReasonRank> getFailureReasonRanks(Long userId, LocalDate startDate, LocalDate endDate) {
         List<String> reasons = missionResultRepository
-                .findFailureReasonsByUserIdAndDateRange(userId, MissionResult.FAILURE, startDate);
+                .findFailureReasonsByUserIdAndDateRange(userId, MissionResult.FAILURE, startDate, endDate);
 
-        // endDate까지만 필터링
-        // (Repository 쿼리가 startDate 이후만 필터링하므로 추가 필터링 필요시 여기서 처리)
-
-        // 실패 원인별 카운트
         Map<String, Long> reasonCounts = reasons.stream()
-                .filter(r -> r != null && !r.isBlank())
-                .collect(Collectors.groupingBy(r -> r, Collectors.counting()));
+                .filter(reason -> reason != null && !reason.isBlank())
+                .collect(Collectors.groupingBy(reason -> reason, Collectors.counting()));
 
-        // 순위별 정렬
-        List<FailureReasonRank> ranks = new ArrayList<>();
-        List<Map.Entry<String, Long>> sorted = reasonCounts.entrySet().stream()
-                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
-                .limit(5)
+        AtomicInteger rankCounter = new AtomicInteger(1);
+
+        return reasonCounts.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .limit(TOP_FAILURE_REASONS_LIMIT)
+                .map(entry -> FailureReasonRank.builder()
+                        .rank(rankCounter.getAndIncrement())
+                        .reason(entry.getKey())
+                        .count(entry.getValue().intValue())
+                        .build())
                 .toList();
-
-        int rank = 1;
-        for (Map.Entry<String, Long> entry : sorted) {
-            ranks.add(FailureReasonRank.builder()
-                    .rank(rank++)
-                    .reason(entry.getKey())
-                    .count(entry.getValue().intValue())
-                    .build());
-        }
-
-        return ranks;
     }
 }
