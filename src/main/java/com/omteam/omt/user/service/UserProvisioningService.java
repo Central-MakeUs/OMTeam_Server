@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserProvisioningService {
 
     private static final int INITIAL_CHARACTER_LEVEL = 1;
-    private static final int INITIAL_ACTIVE_DAYS = 0;
+    private static final int INITIAL_SUCCESS_COUNT = 0;
 
     private final UserRepository userRepository;
     private final UserSocialAccountRepository socialAccountRepository;
@@ -62,7 +62,7 @@ public class UserProvisioningService {
                 UserCharacter.builder()
                         .user(user)
                         .level(INITIAL_CHARACTER_LEVEL)
-                        .totalActiveDays(INITIAL_ACTIVE_DAYS)
+                        .successCount(INITIAL_SUCCESS_COUNT)
                         .build()
         );
     }
