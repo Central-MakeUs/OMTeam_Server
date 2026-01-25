@@ -18,6 +18,8 @@ public interface DailyMissionResultRepository extends JpaRepository<DailyMission
     List<DailyMissionResult> findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
             Long userId, LocalDate startDate, LocalDate endDate);
 
+    List<DailyMissionResult> findByUserUserIdOrderByMissionDateDesc(Long userId);
+
     @Query("SELECT dmr FROM DailyMissionResult dmr " +
             "WHERE dmr.user.userId = :userId " +
             "AND dmr.missionDate >= :startDate " +

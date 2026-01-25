@@ -2,7 +2,10 @@ package com.omteam.omt.statistics.service;
 
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
+import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
+import com.omteam.omt.statistics.dto.MissionTypeStatisticsResponse;
+import com.omteam.omt.statistics.dto.MissionTypeStatisticsResponse.TypeStatistics;
 import com.omteam.omt.statistics.dto.WeeklyStatisticsResponse;
 import com.omteam.omt.statistics.dto.WeeklyStatisticsResponse.DailyResult;
 import com.omteam.omt.statistics.dto.WeeklyStatisticsResponse.DailyStatus;
@@ -126,5 +129,54 @@ public class StatisticsService {
         }
 
         return dailyResults;
+    }
+
+    /**
+     * 미션 종류별 통계 조회
+     */
+    public MissionTypeStatisticsResponse getMissionTypeStatistics(Long userId) {
+        List<DailyMissionResult> allResults = missionResultRepository.findByUserUserIdOrderByMissionDateDesc(userId);
+
+        Map<MissionType, List<DailyMissionResult>> resultsByType = allResults.stream()
+                .collect(Collectors.groupingBy(r -> r.getMission().getType()));
+
+        List<TypeStatistics> typeStatistics = new ArrayList<>();
+        int totalSuccessCount = 0;
+
+        for (MissionType type : MissionType.values()) {
+            List<DailyMissionResult> typeResults = resultsByType.getOrDefault(type, List.of());
+
+            int successCount = (int) typeResults.stream()
+                    .filter(r -> r.getResult() == MissionResult.SUCCESS)
+                    .count();
+            int failureCount = (int) typeResults.stream()
+                    .filter(r -> r.getResult() == MissionResult.FAILURE)
+                    .count();
+            int totalCount = successCount + failureCount;
+            double successRate = totalCount > 0 ? (successCount * 100.0 / totalCount) : 0;
+
+            totalSuccessCount += successCount;
+
+            typeStatistics.add(TypeStatistics.builder()
+                    .type(type)
+                    .typeName(getTypeName(type))
+                    .successCount(successCount)
+                    .failureCount(failureCount)
+                    .totalCount(totalCount)
+                    .successRate(Math.round(successRate * 10) / 10.0)
+                    .build());
+        }
+
+        return MissionTypeStatisticsResponse.builder()
+                .totalSuccessCount(totalSuccessCount)
+                .byType(typeStatistics)
+                .build();
+    }
+
+    private String getTypeName(MissionType type) {
+        return switch (type) {
+            case EXERCISE -> "운동";
+            case DIET -> "식단";
+        };
     }
 }

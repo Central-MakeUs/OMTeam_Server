@@ -2,6 +2,7 @@ package com.omteam.omt.statistics.controller;
 
 import com.omteam.omt.common.response.ApiResponse;
 import com.omteam.omt.security.principal.UserPrincipal;
+import com.omteam.omt.statistics.dto.MissionTypeStatisticsResponse;
 import com.omteam.omt.statistics.dto.WeeklyStatisticsResponse;
 import com.omteam.omt.statistics.service.StatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +32,19 @@ public class StatisticsController {
     ) {
         return ApiResponse.success(
                 statisticsService.getWeeklyStatistics(userPrincipal.getUserId())
+        );
+    }
+
+    @Operation(
+            summary = "미션 종류별 통계 조회",
+            description = "전체 기간의 미션 종류별(운동, 식단) 성공/실패 통계를 조회합니다."
+    )
+    @GetMapping("/by-type")
+    public ApiResponse<MissionTypeStatisticsResponse> getMissionTypeStatistics(
+            @AuthenticationPrincipal UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(
+                statisticsService.getMissionTypeStatistics(userPrincipal.getUserId())
         );
     }
 }
