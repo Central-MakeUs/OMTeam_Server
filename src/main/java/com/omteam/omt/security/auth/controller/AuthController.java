@@ -58,8 +58,8 @@ public class AuthController {
     )
     @PostMapping("/logout")
     public ApiResponse<Void> logout(@AuthenticationPrincipal UserPrincipal principal) {
-        log.info("Logout request: userId={}", principal.getUserId());
-        authService.logout(principal.getUserId());
+        log.info("Logout request: userId={}", principal.userId());
+        authService.logout(principal.userId());
         return ApiResponse.success(null);
     }
 
