@@ -5,7 +5,6 @@ import static org.mockito.BDDMockito.*;
 
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.Mission;
-import com.omteam.omt.mission.domain.MissionDifficulty;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
@@ -236,7 +235,7 @@ class StatisticsServiceTest {
         Mission mission = Mission.builder()
                 .name("테스트 미션")
                 .type(type)
-                .difficulty(MissionDifficulty.EASY)
+                .difficulty(1)
                 .estimatedMinutes(30)
                 .estimatedCalories(100)
                 .build();

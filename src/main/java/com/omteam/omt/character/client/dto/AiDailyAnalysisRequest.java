@@ -1,6 +1,5 @@
 package com.omteam.omt.character.client.dto;
 
-import com.omteam.omt.mission.domain.MissionDifficulty;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import lombok.Builder;
@@ -20,7 +19,7 @@ public class AiDailyAnalysisRequest {
     @Builder
     public static class TodayMission {
         private MissionType missionType;
-        private MissionDifficulty difficulty;
+        private int difficulty;
         private MissionResult result;
         private String failureReason;
     }
