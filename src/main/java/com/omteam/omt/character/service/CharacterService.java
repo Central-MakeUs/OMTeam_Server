@@ -1,14 +1,13 @@
 package com.omteam.omt.character.service;
 
-import com.omteam.omt.character.domain.DailyEncouragementSet;
+import com.omteam.omt.character.domain.DailyAnalysis;
 import com.omteam.omt.character.domain.EncouragementIntent;
 import com.omteam.omt.character.domain.EncouragementMessage;
 import com.omteam.omt.character.dto.CharacterResponse;
-import com.omteam.omt.character.repository.DailyEncouragementSetRepository;
+import com.omteam.omt.character.repository.DailyAnalysisRepository;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
-import com.omteam.omt.mission.domain.DailyRecommendedMission;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.RecommendedMissionStatus;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
@@ -34,7 +33,7 @@ public class CharacterService {
             .build();
 
     private final UserCharacterRepository characterRepository;
-    private final DailyEncouragementSetRepository encouragementSetRepository;
+    private final DailyAnalysisRepository encouragementSetRepository;
     private final DailyMissionResultRepository missionResultRepository;
     private final DailyRecommendedMissionRepository recommendedMissionRepository;
 
@@ -73,14 +72,14 @@ public class CharacterService {
     }
 
     private EncouragementMessage getEncouragementMessage(Long userId, LocalDate today) {
-        Optional<DailyEncouragementSet> encouragementSetOpt =
+        Optional<DailyAnalysis> encouragementSetOpt =
                 encouragementSetRepository.findByUserUserIdAndTargetDate(userId, today);
 
         if (encouragementSetOpt.isEmpty()) {
             return DEFAULT_ENCOURAGEMENT;
         }
 
-        DailyEncouragementSet encouragementSet = encouragementSetOpt.get();
+        DailyAnalysis encouragementSet = encouragementSetOpt.get();
         EncouragementIntent intent = determineIntent(userId, today);
         EncouragementMessage message = encouragementSet.getMessageByIntent(intent);
 

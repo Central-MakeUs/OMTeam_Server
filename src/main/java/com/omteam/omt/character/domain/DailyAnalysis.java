@@ -37,7 +37,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-public class DailyEncouragementSet {
+public class DailyAnalysis {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,8 +47,12 @@ public class DailyEncouragementSet {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "feedback_text", nullable = false)
+    private String feedbackText;
+
     @Column(name = "target_date", nullable = false)
     private LocalDate targetDate;
+
 
     @Embedded
     @AttributeOverrides({

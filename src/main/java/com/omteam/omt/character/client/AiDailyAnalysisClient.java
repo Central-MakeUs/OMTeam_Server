@@ -1,7 +1,7 @@
 package com.omteam.omt.character.client;
 
-import com.omteam.omt.character.client.dto.AiEncouragementRequest;
-import com.omteam.omt.character.client.dto.AiEncouragementResponse;
+import com.omteam.omt.character.client.dto.AiDailyAnalysisRequest;
+import com.omteam.omt.character.client.dto.AiDailyAnalysisResponse;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.config.properties.AiServerProperties;
@@ -16,21 +16,21 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AiEncouragementClient {
+public class AiDailyAnalysisClient {
 
     private final WebClient webClient;
     private final AiServerProperties aiServerProperties;
 
-    private static final String ENCOURAGEMENT_ENDPOINT = "/ai/encouragement/daily";
+    private static final String DAILY_ANALYSIS_ENDPOINT = "/ai/analysis/daily";
 
-    public AiEncouragementResponse requestDailyEncouragement(AiEncouragementRequest request) {
+    public AiDailyAnalysisResponse requestDailyAnalysis(AiDailyAnalysisRequest request) {
         try {
             return webClient.post()
-                    .uri(aiServerProperties.getBaseUrl() + ENCOURAGEMENT_ENDPOINT)
+                    .uri(aiServerProperties.getBaseUrl() + DAILY_ANALYSIS_ENDPOINT)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
                     .retrieve()
-                    .bodyToMono(AiEncouragementResponse.class)
+                    .bodyToMono(AiDailyAnalysisResponse.class)
                     .timeout(Duration.ofSeconds(aiServerProperties.getTimeoutSeconds()))
                     .block();
         } catch (WebClientResponseException e) {

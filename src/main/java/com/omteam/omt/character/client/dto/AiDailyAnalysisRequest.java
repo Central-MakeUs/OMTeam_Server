@@ -8,11 +8,13 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class AiEncouragementRequest {
+public class AiDailyAnalysisRequest {
 
     private Long userId;
     private String targetDate;
     private TodayMission todayMission;
+
+    //recent summary 추가 필요
 
     @Getter
     @Builder
