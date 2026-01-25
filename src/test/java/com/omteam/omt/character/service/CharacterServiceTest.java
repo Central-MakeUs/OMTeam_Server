@@ -3,17 +3,16 @@ package com.omteam.omt.character.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
-import com.omteam.omt.character.domain.DailyEncouragementSet;
+import com.omteam.omt.character.domain.DailyAnalysis;
 import com.omteam.omt.character.domain.EncouragementMessage;
 import com.omteam.omt.character.dto.CharacterResponse;
-import com.omteam.omt.character.repository.DailyEncouragementSetRepository;
+import com.omteam.omt.character.repository.DailyAnalysisRepository;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
-import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.domain.UserCharacter;
 import com.omteam.omt.user.repository.UserCharacterRepository;
 import java.time.LocalDate;
@@ -31,7 +30,7 @@ class CharacterServiceTest {
     @Mock
     UserCharacterRepository characterRepository;
     @Mock
-    DailyEncouragementSetRepository encouragementSetRepository;
+    DailyAnalysisRepository dailyAnalysisRepository;
     @Mock
     DailyMissionResultRepository missionResultRepository;
     @Mock
@@ -45,7 +44,7 @@ class CharacterServiceTest {
     void setUp() {
         characterService = new CharacterService(
                 characterRepository,
-                encouragementSetRepository,
+                dailyAnalysisRepository,
                 missionResultRepository,
                 recommendedMissionRepository
         );
@@ -98,12 +97,12 @@ class CharacterServiceTest {
     void getCharacterInfo_with_encouragement() {
         // given
         UserCharacter character = createCharacter(2, 45);
-        DailyEncouragementSet encouragementSet = createEncouragementSet();
+        DailyAnalysis dailyAnalysis = createDailyAnalysis();
         DailyMissionResult yesterdayResult = createMissionResult(MissionResult.SUCCESS);
 
         given(characterRepository.findById(userId)).willReturn(Optional.of(character));
-        given(encouragementSetRepository.findByUserUserIdAndTargetDate(eq(userId), any(LocalDate.class)))
-                .willReturn(Optional.of(encouragementSet));
+        given(dailyAnalysisRepository.findByUserUserIdAndTargetDate(eq(userId), any(LocalDate.class)))
+                .willReturn(Optional.of(dailyAnalysis));
         given(missionResultRepository.findByUserUserIdAndMissionDate(eq(userId), any(LocalDate.class)))
                 .willReturn(Optional.of(yesterdayResult));
 
@@ -125,7 +124,7 @@ class CharacterServiceTest {
         UserCharacter character = createCharacter(1, 10);
 
         given(characterRepository.findById(userId)).willReturn(Optional.of(character));
-        given(encouragementSetRepository.findByUserUserIdAndTargetDate(eq(userId), any(LocalDate.class)))
+        given(dailyAnalysisRepository.findByUserUserIdAndTargetDate(eq(userId), any(LocalDate.class)))
                 .willReturn(Optional.empty());
 
         // when
@@ -161,9 +160,10 @@ class CharacterServiceTest {
                 .build();
     }
 
-    private DailyEncouragementSet createEncouragementSet() {
-        return DailyEncouragementSet.builder()
+    private DailyAnalysis createDailyAnalysis() {
+        return DailyAnalysis.builder()
                 .targetDate(LocalDate.now())
+                .feedbackText("전체적으로 목표에 근접해요")
                 .praise(EncouragementMessage.builder()
                         .title("잘하고 있어요")
                         .message("이대로만 하면 목표에 도달할 수 있어요.")
