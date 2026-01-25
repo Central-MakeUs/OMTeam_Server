@@ -35,7 +35,7 @@ public class OnboardingController {
             @Valid @RequestBody OnboardingRequest request
     ) {
         return ApiResponse.success(
-                onboardingService.createOnboarding(userPrincipal.getUserId(), request)
+                onboardingService.createOnboarding(userPrincipal.userId(), request)
         );
     }
 
@@ -49,7 +49,7 @@ public class OnboardingController {
             @Valid @RequestBody OnboardingRequest request
     ) {
         return ApiResponse.success(
-                onboardingService.updateOnboarding(userPrincipal.getUserId(), request)
+                onboardingService.updateOnboarding(userPrincipal.userId(), request)
         );
     }
 
@@ -62,7 +62,7 @@ public class OnboardingController {
             @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(
-                onboardingService.getOnboarding(userPrincipal.getUserId())
+                onboardingService.getOnboarding(userPrincipal.userId())
         );
     }
 }

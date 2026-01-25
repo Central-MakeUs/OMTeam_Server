@@ -78,13 +78,11 @@ public class AuthService {
                 jwtTokenProvider.getRefreshTokenExpireSeconds()
         );
 
-        LoginResponse response = new LoginResponse(
-                accessToken,
-                refreshToken,
-                jwtTokenProvider.getAccessTokenExpireSeconds()
-        );
-        response.setOnboardingCompleted(user.isOnboardingCompleted());
-
-        return response;
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .expiresIn(jwtTokenProvider.getAccessTokenExpireSeconds())
+                .onboardingCompleted(user.isOnboardingCompleted())
+                .build();
     }
 }

@@ -6,10 +6,12 @@ import org.springframework.context.annotation.Configuration;
 import java.util.TimeZone;
 
 @Configuration
-public class JacksonConfig {
+public class TimeZoneConfig {
+
+    private static final String DEFAULT_TIMEZONE = "Asia/Seoul";
 
     @PostConstruct
     public void init() {
-        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+        TimeZone.setDefault(TimeZone.getTimeZone(DEFAULT_TIMEZONE));
     }
 }

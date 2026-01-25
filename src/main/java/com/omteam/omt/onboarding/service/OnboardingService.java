@@ -72,7 +72,7 @@ public class OnboardingService {
         UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
 
-        user.setNickname(request.getNickname());
+        user.updateNickname(request.getNickname());
 
         onboarding.update(
                 request.getAppGoalText(),
