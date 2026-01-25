@@ -3,6 +3,7 @@ package com.omteam.omt.statistics.controller;
 import com.omteam.omt.common.response.ApiResponse;
 import com.omteam.omt.security.principal.UserPrincipal;
 import com.omteam.omt.statistics.dto.MissionTypeStatisticsResponse;
+import com.omteam.omt.statistics.dto.MonthlyPatternResponse;
 import com.omteam.omt.statistics.dto.WeeklyStatisticsResponse;
 import com.omteam.omt.statistics.service.StatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,6 +46,19 @@ public class StatisticsController {
     ) {
         return ApiResponse.success(
                 statisticsService.getMissionTypeStatistics(userPrincipal.getUserId())
+        );
+    }
+
+    @Operation(
+            summary = "월간 요일별 패턴 분석",
+            description = "지난 30일간의 요일별 성공 패턴을 분석하고 AI 피드백을 제공합니다."
+    )
+    @GetMapping("/monthly-pattern")
+    public ApiResponse<MonthlyPatternResponse> getMonthlyPattern(
+            @AuthenticationPrincipal UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(
+                statisticsService.getMonthlyPattern(userPrincipal.getUserId())
         );
     }
 }

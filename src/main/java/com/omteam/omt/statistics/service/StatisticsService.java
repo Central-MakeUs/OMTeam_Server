@@ -6,6 +6,9 @@ import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.statistics.dto.MissionTypeStatisticsResponse;
 import com.omteam.omt.statistics.dto.MissionTypeStatisticsResponse.TypeStatistics;
+import com.omteam.omt.statistics.dto.MonthlyPatternResponse;
+import com.omteam.omt.statistics.dto.MonthlyPatternResponse.AiFeedback;
+import com.omteam.omt.statistics.dto.MonthlyPatternResponse.DayOfWeekStatistics;
 import com.omteam.omt.statistics.dto.WeeklyStatisticsResponse;
 import com.omteam.omt.statistics.dto.WeeklyStatisticsResponse.DailyResult;
 import com.omteam.omt.statistics.dto.WeeklyStatisticsResponse.DailyStatus;
@@ -177,6 +180,103 @@ public class StatisticsService {
         return switch (type) {
             case EXERCISE -> "운동";
             case DIET -> "식단";
+        };
+    }
+
+    /**
+     * 월간 요일별 패턴 분석
+     */
+    public MonthlyPatternResponse getMonthlyPattern(Long userId) {
+        LocalDate today = LocalDate.now();
+        LocalDate monthAgo = today.minusDays(30);
+
+        List<DailyMissionResult> results = missionResultRepository
+                .findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(userId, monthAgo, today);
+
+        // 요일별 그룹핑
+        Map<DayOfWeek, List<DailyMissionResult>> resultsByDayOfWeek = results.stream()
+                .collect(Collectors.groupingBy(r -> r.getMissionDate().getDayOfWeek()));
+
+        List<DayOfWeekStatistics> dayOfWeekStats = new ArrayList<>();
+
+        for (DayOfWeek dow : DayOfWeek.values()) {
+            List<DailyMissionResult> dowResults = resultsByDayOfWeek.getOrDefault(dow, List.of());
+
+            int successCount = (int) dowResults.stream()
+                    .filter(r -> r.getResult() == MissionResult.SUCCESS)
+                    .count();
+            int failureCount = (int) dowResults.stream()
+                    .filter(r -> r.getResult() == MissionResult.FAILURE)
+                    .count();
+            int totalCount = successCount + failureCount;
+            double successRate = totalCount > 0 ? (successCount * 100.0 / totalCount) : 0;
+
+            dayOfWeekStats.add(DayOfWeekStatistics.builder()
+                    .dayOfWeek(dow)
+                    .dayName(getDayName(dow))
+                    .totalCount(totalCount)
+                    .successCount(successCount)
+                    .failureCount(failureCount)
+                    .successRate(Math.round(successRate * 10) / 10.0)
+                    .build());
+        }
+
+        // AI 피드백 생성 (간단한 규칙 기반, 추후 AI 서버 연동으로 대체 가능)
+        AiFeedback aiFeedback = generatePatternFeedback(dayOfWeekStats);
+
+        return MonthlyPatternResponse.builder()
+                .startDate(monthAgo)
+                .endDate(today)
+                .dayOfWeekStats(dayOfWeekStats)
+                .aiFeedback(aiFeedback)
+                .build();
+    }
+
+    private AiFeedback generatePatternFeedback(List<DayOfWeekStatistics> stats) {
+        // 가장 성공률이 높은 요일과 낮은 요일 찾기
+        DayOfWeekStatistics bestDay = stats.stream()
+                .filter(s -> s.totalCount() > 0)
+                .max((a, b) -> Double.compare(a.successRate(), b.successRate()))
+                .orElse(null);
+
+        DayOfWeekStatistics worstDay = stats.stream()
+                .filter(s -> s.totalCount() > 0)
+                .min((a, b) -> Double.compare(a.successRate(), b.successRate()))
+                .orElse(null);
+
+        if (bestDay == null) {
+            return AiFeedback.builder()
+                    .summary("아직 충분한 데이터가 없습니다.")
+                    .recommendation("꾸준히 미션을 수행하면 더 정확한 분석을 받을 수 있어요!")
+                    .build();
+        }
+
+        String summary = String.format("%s에 가장 잘 수행하고 있어요! (성공률 %.0f%%)",
+                bestDay.dayName(), bestDay.successRate());
+
+        String recommendation;
+        if (worstDay != null && worstDay.successRate() < 50 && !worstDay.dayOfWeek().equals(bestDay.dayOfWeek())) {
+            recommendation = String.format("%s은 휴식하고, %s에 가벼운 운동을 시도해보세요.",
+                    worstDay.dayName(), bestDay.dayName());
+        } else {
+            recommendation = "현재 패턴을 유지하면서 꾸준히 진행해보세요!";
+        }
+
+        return AiFeedback.builder()
+                .summary(summary)
+                .recommendation(recommendation)
+                .build();
+    }
+
+    private String getDayName(DayOfWeek dayOfWeek) {
+        return switch (dayOfWeek) {
+            case MONDAY -> "월요일";
+            case TUESDAY -> "화요일";
+            case WEDNESDAY -> "수요일";
+            case THURSDAY -> "목요일";
+            case FRIDAY -> "금요일";
+            case SATURDAY -> "토요일";
+            case SUNDAY -> "일요일";
         };
     }
 }
