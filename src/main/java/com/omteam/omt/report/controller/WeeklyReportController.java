@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "리포트", description = "주간/월간 리포트 관련 API")
+@Tag(name = "Weekly Report", description = "주간 리포트 API")
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
@@ -24,20 +24,15 @@ public class WeeklyReportController {
 
     private final WeeklyReportService weeklyReportService;
 
-    @Operation(
-            summary = "주간 AI 분석 리포트 조회",
-            description = "특정 주의 AI 분석 결과와 주요 실패 원인 순위를 조회합니다. " +
-                    "weekStartDate를 생략하면 이번 주 리포트를 조회합니다."
-    )
+    @Operation(summary = "주간 리포트 조회", description = "해당 주의 미션 성공률, 요일별 결과, AI 피드백을 조회합니다.")
     @GetMapping("/weekly")
     public ApiResponse<WeeklyReportResponse> getWeeklyReport(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @Parameter(description = "주 시작일 (월요일, YYYY-MM-DD 형식)")
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStartDate
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Parameter(description = "주간 시작일 (미입력시 이번 주)", example = "2024-01-15")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStartDate
     ) {
-        return ApiResponse.success(
-                weeklyReportService.getWeeklyReport(userPrincipal.getUserId(), weekStartDate)
-        );
+        WeeklyReportResponse response = weeklyReportService.getWeeklyReport(
+                principal.userId(), weekStartDate);
+        return ApiResponse.success(response);
     }
 }
