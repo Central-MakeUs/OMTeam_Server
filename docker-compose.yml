@@ -42,7 +42,7 @@ services:
   # AI Server (FastAPI + LangGraph)
   ai-server:
     build:
-      context: ../OMTeam
+      context: ../OMTeam_AI
       dockerfile: Dockerfile
     container_name: omt-ai-server
     ports:
