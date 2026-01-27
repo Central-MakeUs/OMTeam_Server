@@ -1,6 +1,7 @@
 package com.omteam.omt.report.controller;
 
 import com.omteam.omt.common.response.ApiResponse;
+import com.omteam.omt.report.dto.MonthlyPatternResponse;
 import com.omteam.omt.report.dto.WeeklyReportResponse;
 import com.omteam.omt.report.service.WeeklyReportService;
 import com.omteam.omt.security.principal.UserPrincipal;
@@ -33,6 +34,15 @@ public class WeeklyReportController {
     ) {
         WeeklyReportResponse response = weeklyReportService.getWeeklyReport(
                 principal.userId(), weekStartDate);
+        return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "월간 요일별 패턴 분석", description = "지난 30일간의 요일별 성공 패턴을 분석하고 AI 피드백을 제공합니다.")
+    @GetMapping("/monthly-pattern")
+    public ApiResponse<MonthlyPatternResponse> getMonthlyPattern(
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        MonthlyPatternResponse response = weeklyReportService.getMonthlyPattern(principal.userId());
         return ApiResponse.success(response);
     }
 }
