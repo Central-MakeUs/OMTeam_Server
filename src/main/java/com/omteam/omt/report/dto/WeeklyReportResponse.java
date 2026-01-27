@@ -1,39 +1,83 @@
 package com.omteam.omt.report.dto;
 
+import com.omteam.omt.mission.domain.MissionType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
 
-@Schema(description = "주간 AI 분석 리포트 응답")
+@Schema(description = "주간 리포트 응답")
 @Builder
 public record WeeklyReportResponse(
-        @Schema(description = "주 시작일 (월요일)")
+        @Schema(description = "주간 시작일 (월요일)", example = "2024-01-15")
         LocalDate weekStartDate,
 
-        @Schema(description = "주 종료일 (일요일)")
+        @Schema(description = "주간 종료일 (일요일)", example = "2024-01-21")
         LocalDate weekEndDate,
 
-        @Schema(description = "AI 분석 결과")
-        AiAnalysis aiAnalysis,
+        @Schema(description = "이번 주 성공률 (%)", example = "71.4")
+        double thisWeekSuccessRate,
 
-        @Schema(description = "주요 실패 원인 순위 (최대 5개)")
-        List<FailureReasonRank> topFailureReasons
+        @Schema(description = "지난 주 성공률 (%)", example = "57.1")
+        double lastWeekSuccessRate,
+
+        @Schema(description = "요일별 미션 결과 목록")
+        List<DailyResult> dailyResults,
+
+        @Schema(description = "미션 타입별 성공 횟수")
+        List<TypeSuccessCount> typeSuccessCounts,
+
+        @Schema(description = "실패 원인 순위 (상위 3개)")
+        List<FailureReasonRank> topFailureReasons,
+
+        @Schema(description = "AI 피드백")
+        AiFeedback aiFeedback
 ) {
 
-    @Schema(description = "AI 분석 결과")
+    @Schema(description = "요일별 미션 결과")
     @Builder
-    public record AiAnalysis(
-            @Schema(description = "주간 요약", example = "이번 주는 운동 미션에서 좋은 성과를 보였어요.")
-            String summary,
+    public record DailyResult(
+            @Schema(description = "날짜", example = "2024-01-15")
+            LocalDate date,
 
-            @Schema(description = "분석 인사이트", example = "평일보다 주말에 미션 성공률이 높았어요.")
-            String insight,
+            @Schema(description = "요일", example = "MONDAY")
+            DayOfWeek dayOfWeek,
 
-            @Schema(description = "추천 사항", example = "평일 저녁 시간을 활용해 가벼운 운동을 시도해보세요.")
-            String recommendation
-    ) {
+            @Schema(description = "미션 수행 상태", allowableValues = {"SUCCESS", "FAILURE", "NOT_PERFORMED"})
+            DailyStatus status,
+
+            @Schema(description = "미션 타입", allowableValues = {"EXERCISE", "DIET"})
+            MissionType missionType,
+
+            @Schema(description = "미션 제목", example = "30분 걷기")
+            String missionTitle
+    ) {}
+
+    @Schema(description = "미션 수행 상태")
+    public enum DailyStatus {
+        @Schema(description = "성공")
+        SUCCESS,
+
+        @Schema(description = "실패")
+        FAILURE,
+
+        @Schema(description = "미수행")
+        NOT_PERFORMED
     }
+
+    @Schema(description = "미션 타입별 성공 횟수")
+    @Builder
+    public record TypeSuccessCount(
+            @Schema(description = "미션 타입", allowableValues = {"EXERCISE", "DIET"})
+            MissionType type,
+
+            @Schema(description = "미션 타입 한글명", example = "운동")
+            String typeName,
+
+            @Schema(description = "성공 횟수", example = "3")
+            int successCount
+    ) {}
 
     @Schema(description = "실패 원인 순위")
     @Builder
@@ -44,8 +88,17 @@ public record WeeklyReportResponse(
             @Schema(description = "실패 원인", example = "시간 부족")
             String reason,
 
-            @Schema(description = "발생 횟수", example = "3")
+            @Schema(description = "발생 횟수", example = "5")
             int count
-    ) {
-    }
+    ) {}
+
+    @Schema(description = "AI 피드백")
+    @Builder
+    public record AiFeedback(
+            @Schema(description = "주요 실패 원인", example = "시간 부족")
+            String mainFailureReason,
+
+            @Schema(description = "종합 피드백", example = "이번 주는 업무가 많아 운동 시간 확보가 어려웠습니다.")
+            String overallFeedback
+    ) {}
 }
