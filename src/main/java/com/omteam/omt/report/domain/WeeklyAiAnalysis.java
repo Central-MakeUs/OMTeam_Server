@@ -1,14 +1,17 @@
-package com.omteam.omt.mission.domain;
+package com.omteam.omt.report.domain;
 
+import com.omteam.omt.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,33 +22,30 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "mission")
+@Table(name = "weekly_ai_analysis")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-public class Mission {
+public class WeeklyAiAnalysis {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private MissionType type;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
-    private int difficulty;  // 난이도 1~5 (별 개수)
+    private LocalDate weekStartDate;
 
-    @Column(nullable = false)
-    private int estimatedMinutes;
+    @Column(length = 200)
+    private String mainFailureReason;
 
-    @Column(nullable = false)
-    private int estimatedCalories;
+    @Column(length = 500)
+    private String overallFeedback;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

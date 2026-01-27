@@ -1,7 +1,6 @@
 package com.omteam.omt.mission.dto;
 
 import com.omteam.omt.mission.domain.Mission;
-import com.omteam.omt.mission.domain.MissionDifficulty;
 import com.omteam.omt.mission.domain.MissionType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,16 +24,8 @@ public class MissionResponse {
     )
     private MissionType type;
     
-    @Schema(
-            description = """
-                    미션 난이도
-                    - EASY: 쉬움
-                    - NORMAL: 보통
-                    - HARD: 어려움
-                    """,
-            allowableValues = {"EASY", "NORMAL", "HARD"}
-    )
-    private MissionDifficulty difficulty;
+    @Schema(description = "미션 난이도 (1~5, 별 개수)")
+    private int difficulty;
 
     @Schema(description = "예상 소요 시간")
     private int estimatedMinutes;

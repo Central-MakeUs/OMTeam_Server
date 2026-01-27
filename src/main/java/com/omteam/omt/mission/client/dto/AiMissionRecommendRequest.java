@@ -1,6 +1,5 @@
 package com.omteam.omt.mission.client.dto;
 
-import com.omteam.omt.mission.domain.MissionDifficulty;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.user.domain.LifestyleType;
@@ -58,14 +57,14 @@ public class AiMissionRecommendRequest {
     public static class MissionHistory {
         private String date;
         private MissionType missionType;
-        private MissionDifficulty difficulty;
+        private int difficulty;
         private MissionResult result;
         private String failureReason;
 
         public static MissionHistory of(
                 LocalDate date,
                 MissionType missionType,
-                MissionDifficulty difficulty,
+                int difficulty,
                 MissionResult result,
                 String failureReason
         ) {

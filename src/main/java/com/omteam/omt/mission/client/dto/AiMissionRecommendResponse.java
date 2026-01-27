@@ -1,7 +1,6 @@
 package com.omteam.omt.mission.client.dto;
 
 import com.omteam.omt.mission.domain.Mission;
-import com.omteam.omt.mission.domain.MissionDifficulty;
 import com.omteam.omt.mission.domain.MissionType;
 import java.util.List;
 import lombok.Getter;
@@ -21,7 +20,7 @@ public class AiMissionRecommendResponse {
     public static class RecommendedMission {
         private String name;
         private MissionType type;
-        private MissionDifficulty difficulty;
+        private int difficulty;
         private int estimatedMinutes;
         private int estimatedCalories;
 

@@ -18,6 +18,9 @@ public interface DailyMissionResultRepository extends JpaRepository<DailyMission
     List<DailyMissionResult> findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
             Long userId, LocalDate startDate, LocalDate endDate);
 
+    List<DailyMissionResult> findByUserUserIdAndMissionDateBetween(
+            Long userId, LocalDate startDate, LocalDate endDate);
+
     @Query("SELECT dmr FROM DailyMissionResult dmr " +
             "WHERE dmr.user.userId = :userId " +
             "AND dmr.missionDate >= :startDate " +
@@ -35,4 +38,6 @@ public interface DailyMissionResultRepository extends JpaRepository<DailyMission
             @Param("userId") Long userId,
             @Param("result") MissionResult result,
             @Param("startDate") LocalDate startDate);
+
+    List<DailyMissionResult> findByUserUserIdOrderByMissionDateDesc(Long userId);
 }
