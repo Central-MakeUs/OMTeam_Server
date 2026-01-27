@@ -1,4 +1,4 @@
-gpackage com.omteam.omt.integration.character;
+package com.omteam.omt.integration.character;
 
 import static org.assertj.core.api.Assertions.*;
 

@@ -32,7 +32,7 @@ public class StatisticsController {
             @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(
-                statisticsService.getWeeklyStatistics(userPrincipal.getUserId())
+                statisticsService.getWeeklyStatistics(userPrincipal.userId())
         );
     }
 
@@ -45,7 +45,7 @@ public class StatisticsController {
             @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(
-                statisticsService.getMissionTypeStatistics(userPrincipal.getUserId())
+                statisticsService.getMissionTypeStatistics(userPrincipal.userId())
         );
     }
 
@@ -58,7 +58,7 @@ public class StatisticsController {
             @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(
-                statisticsService.getMonthlyPattern(userPrincipal.getUserId())
+                statisticsService.getMonthlyPattern(userPrincipal.userId())
         );
     }
 }

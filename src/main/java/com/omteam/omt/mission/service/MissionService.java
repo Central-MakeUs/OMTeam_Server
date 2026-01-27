@@ -254,7 +254,7 @@ public class MissionService {
         // 주간 실패 사유 조회
         LocalDate today = LocalDate.now();
         List<String> weeklyFailureReasons = missionResultRepository
-                .findFailureReasonsByUserIdAndDateRange(userId, MissionResult.FAILURE, weekAgo, today);
+                .findFailureReasonsByUserIdAndDateRange(userId, MissionResult.FAILURE, weekAgo);
 
         OnboardingData onboardingData = OnboardingData.from(
                 onboarding.getAppGoalText(),

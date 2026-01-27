@@ -29,7 +29,7 @@ public class CharacterController {
             @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(
-                characterService.getCharacterInfo(userPrincipal.getUserId())
+                characterService.getCharacterInfo(userPrincipal.userId())
         );
     }
 }
