@@ -106,7 +106,7 @@ class UserProvisioningServiceTest {
     }
 
     @Test
-    @DisplayName("신규 사용자 생성 시 캐릭터 초기화 (레벨 1, 활동일수 0)")
+    @DisplayName("신규 사용자 생성 시 캐릭터 초기화 (레벨 1, 성공횟수 0)")
     void findOrCreateUser_creates_initial_character() {
         // given
         User savedUser = createUser();
@@ -123,7 +123,7 @@ class UserProvisioningServiceTest {
 
         UserCharacter savedCharacter = captor.getValue();
         assertThat(savedCharacter.getLevel()).isEqualTo(1);
-        assertThat(savedCharacter.getTotalActiveDays()).isEqualTo(0);
+        assertThat(savedCharacter.getSuccessCount()).isEqualTo(0);
     }
 
     private User createUser() {

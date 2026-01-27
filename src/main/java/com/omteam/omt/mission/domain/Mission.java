@@ -38,9 +38,8 @@ public class Mission {
     @Column(nullable = false)
     private MissionType type;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MissionDifficulty difficulty;
+    private int difficulty;  // 난이도 1~5 (별 개수)
 
     @Column(nullable = false)
     private int estimatedMinutes;

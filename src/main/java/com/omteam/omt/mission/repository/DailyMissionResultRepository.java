@@ -38,4 +38,6 @@ public interface DailyMissionResultRepository extends JpaRepository<DailyMission
             @Param("userId") Long userId,
             @Param("result") MissionResult result,
             @Param("startDate") LocalDate startDate);
+
+    List<DailyMissionResult> findByUserUserIdOrderByMissionDateDesc(Long userId);
 }
