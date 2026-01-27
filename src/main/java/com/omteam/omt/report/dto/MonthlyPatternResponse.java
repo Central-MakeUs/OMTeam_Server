@@ -1,4 +1,4 @@
-package com.omteam.omt.statistics.dto;
+package com.omteam.omt.report.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.DayOfWeek;

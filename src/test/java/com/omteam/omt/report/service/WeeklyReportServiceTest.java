@@ -3,19 +3,23 @@ package com.omteam.omt.report.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import com.omteam.omt.mission.domain.DailyMissionResult;
+import com.omteam.omt.mission.domain.Mission;
 import com.omteam.omt.mission.domain.MissionResult;
+import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.report.domain.WeeklyAiAnalysis;
 import com.omteam.omt.report.dto.WeeklyReportResponse;
+import com.omteam.omt.report.dto.WeeklyReportResponse.DailyStatus;
 import com.omteam.omt.report.repository.WeeklyAiAnalysisRepository;
 import com.omteam.omt.user.domain.User;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -25,157 +29,336 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class WeeklyReportServiceTest {
 
     @Mock
-    WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
-    @Mock
     DailyMissionResultRepository missionResultRepository;
+
+    @Mock
+    WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
 
     WeeklyReportService weeklyReportService;
 
     final Long userId = 1L;
+    final LocalDate monday = LocalDate.of(2024, 1, 15); // Monday
 
     @BeforeEach
     void setUp() {
         weeklyReportService = new WeeklyReportService(
-                weeklyAiAnalysisRepository,
-                missionResultRepository
+                missionResultRepository,
+                weeklyAiAnalysisRepository
         );
     }
 
-    @Test
-    @DisplayName("주간 리포트 조회 - AI 분석 결과 있음")
-    void getWeeklyReport_with_ai_analysis() {
-        // given
-        LocalDate weekStartDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        WeeklyAiAnalysis analysis = createWeeklyAiAnalysis(weekStartDate);
+    @Nested
+    @DisplayName("성공률 계산 테스트")
+    class SuccessRateTest {
 
-        given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
-                .willReturn(Optional.of(analysis));
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
-                .willReturn(List.of("시간 부족", "시간 부족", "피로", "날씨"));
+        @Test
+        @DisplayName("이번 주 성공률 계산 - 7일 중 5일 성공")
+        void calculateThisWeekSuccessRate() {
+            // given
+            List<DailyMissionResult> results = List.of(
+                    createMissionResult(monday, MissionResult.SUCCESS),
+                    createMissionResult(monday.plusDays(1), MissionResult.SUCCESS),
+                    createMissionResult(monday.plusDays(2), MissionResult.SUCCESS),
+                    createMissionResult(monday.plusDays(3), MissionResult.FAILURE),
+                    createMissionResult(monday.plusDays(4), MissionResult.SUCCESS),
+                    createMissionResult(monday.plusDays(5), MissionResult.FAILURE),
+                    createMissionResult(monday.plusDays(6), MissionResult.SUCCESS)
+            );
 
-        // when
-        WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, weekStartDate);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday), eq(monday.plusDays(6))))
+                    .willReturn(results);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday.minusDays(7)), eq(monday.minusDays(1))))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
 
-        // then
-        assertThat(response.weekStartDate()).isEqualTo(weekStartDate);
-        assertThat(response.weekEndDate()).isEqualTo(weekStartDate.plusDays(6));
-        assertThat(response.aiAnalysis().summary()).isEqualTo("이번 주 잘 하셨어요!");
-        assertThat(response.aiAnalysis().insight()).isEqualTo("화요일에 집중도가 높았습니다.");
-        assertThat(response.aiAnalysis().recommendation()).isEqualTo("다음 주에도 화요일을 활용해보세요.");
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.thisWeekSuccessRate()).isEqualTo(71.4); // 5/7 = 71.4%
+        }
+
+        @Test
+        @DisplayName("지난 주 성공률 계산")
+        void calculateLastWeekSuccessRate() {
+            // given
+            LocalDate lastWeekMonday = monday.minusDays(7);
+            List<DailyMissionResult> lastWeekResults = List.of(
+                    createMissionResult(lastWeekMonday, MissionResult.SUCCESS),
+                    createMissionResult(lastWeekMonday.plusDays(1), MissionResult.SUCCESS),
+                    createMissionResult(lastWeekMonday.plusDays(2), MissionResult.SUCCESS),
+                    createMissionResult(lastWeekMonday.plusDays(3), MissionResult.SUCCESS),
+                    createMissionResult(lastWeekMonday.plusDays(4), MissionResult.FAILURE),
+                    createMissionResult(lastWeekMonday.plusDays(5), MissionResult.FAILURE),
+                    createMissionResult(lastWeekMonday.plusDays(6), MissionResult.FAILURE)
+            );
+
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday), eq(monday.plusDays(6))))
+                    .willReturn(List.of());
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(lastWeekMonday), eq(monday.minusDays(1))))
+                    .willReturn(lastWeekResults);
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.lastWeekSuccessRate()).isEqualTo(57.1); // 4/7 = 57.1%
+        }
+
+        @Test
+        @DisplayName("결과가 없을 때 성공률 0%")
+        void zeroSuccessRateWhenNoResults() {
+            // given
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    anyLong(), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(anyLong(), any()))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.thisWeekSuccessRate()).isEqualTo(0.0);
+            assertThat(response.lastWeekSuccessRate()).isEqualTo(0.0);
+        }
     }
 
-    @Test
-    @DisplayName("주간 리포트 조회 - AI 분석 결과 없으면 기본 메시지")
-    void getWeeklyReport_without_ai_analysis() {
-        // given
-        LocalDate weekStartDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    @Nested
+    @DisplayName("요일별 결과 조회 테스트")
+    class DailyResultsTest {
 
-        given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
-                .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
-                .willReturn(List.of());
+        @Test
+        @DisplayName("요일별 결과 목록 생성 - 성공, 실패, 미수행 포함")
+        void buildDailyResults() {
+            // given
+            List<DailyMissionResult> results = List.of(
+                    createMissionResult(monday, MissionResult.SUCCESS),
+                    createMissionResult(monday.plusDays(2), MissionResult.FAILURE)
+            );
 
-        // when
-        WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, weekStartDate);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday), eq(monday.plusDays(6))))
+                    .willReturn(results);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday.minusDays(7)), eq(monday.minusDays(1))))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
 
-        // then
-        assertThat(response.aiAnalysis().summary()).contains("아직 이번 주 AI 분석 결과가 없습니다");
-        assertThat(response.aiAnalysis().insight()).contains("매주 월요일에");
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.dailyResults()).isNotEmpty();
+            assertThat(response.dailyResults().get(0).status()).isEqualTo(DailyStatus.SUCCESS);
+            assertThat(response.dailyResults().get(0).dayOfWeek()).isEqualTo(DayOfWeek.MONDAY);
+        }
     }
 
-    @Test
-    @DisplayName("주간 리포트 조회 - weekStartDate null이면 이번주")
-    void getWeeklyReport_null_date_defaults_to_this_week() {
-        // given
-        given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any(LocalDate.class)))
-                .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
-                .willReturn(List.of());
+    @Nested
+    @DisplayName("타입별 성공횟수 테스트")
+    class TypeSuccessCountTest {
 
-        // when
-        WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, null);
+        @Test
+        @DisplayName("운동 타입 3회 성공, 식단 타입 2회 성공")
+        void calculateTypeSuccessCounts() {
+            // given
+            List<DailyMissionResult> results = List.of(
+                    createMissionResult(monday, MissionResult.SUCCESS, MissionType.EXERCISE),
+                    createMissionResult(monday.plusDays(1), MissionResult.SUCCESS, MissionType.EXERCISE),
+                    createMissionResult(monday.plusDays(2), MissionResult.SUCCESS, MissionType.EXERCISE),
+                    createMissionResult(monday.plusDays(3), MissionResult.SUCCESS, MissionType.DIET),
+                    createMissionResult(monday.plusDays(4), MissionResult.SUCCESS, MissionType.DIET),
+                    createMissionResult(monday.plusDays(5), MissionResult.FAILURE, MissionType.EXERCISE)
+            );
 
-        // then
-        LocalDate expectedStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        assertThat(response.weekStartDate()).isEqualTo(expectedStart);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday), eq(monday.plusDays(6))))
+                    .willReturn(results);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday.minusDays(7)), eq(monday.minusDays(1))))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.typeSuccessCounts()).hasSize(2);
+            assertThat(response.typeSuccessCounts().stream()
+                    .filter(t -> t.type() == MissionType.EXERCISE)
+                    .findFirst().get().successCount()).isEqualTo(3);
+            assertThat(response.typeSuccessCounts().stream()
+                    .filter(t -> t.type() == MissionType.DIET)
+                    .findFirst().get().successCount()).isEqualTo(2);
+        }
     }
 
-    @Test
-    @DisplayName("주간 리포트 조회 - 실패 원인 순위 계산")
-    void getWeeklyReport_failure_reason_ranking() {
-        // given
-        LocalDate weekStartDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    @Nested
+    @DisplayName("실패 원인 순위 테스트")
+    class FailureReasonRankTest {
 
-        given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
-                .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
-                .willReturn(List.of("시간 부족", "시간 부족", "시간 부족", "피로", "피로", "날씨"));
+        @Test
+        @DisplayName("실패 원인 순위 상위 3개 반환")
+        void getTopFailureReasons() {
+            // given
+            List<DailyMissionResult> results = List.of(
+                    createMissionResultWithReason(monday, "시간 부족"),
+                    createMissionResultWithReason(monday.plusDays(1), "시간 부족"),
+                    createMissionResultWithReason(monday.plusDays(2), "시간 부족"),
+                    createMissionResultWithReason(monday.plusDays(3), "피로"),
+                    createMissionResultWithReason(monday.plusDays(4), "피로"),
+                    createMissionResultWithReason(monday.plusDays(5), "날씨")
+            );
 
-        // when
-        WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, weekStartDate);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday), eq(monday.plusDays(6))))
+                    .willReturn(results);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday.minusDays(7)), eq(monday.minusDays(1))))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
 
-        // then
-        assertThat(response.topFailureReasons()).hasSize(3);
-        assertThat(response.topFailureReasons().get(0).rank()).isEqualTo(1);
-        assertThat(response.topFailureReasons().get(0).reason()).isEqualTo("시간 부족");
-        assertThat(response.topFailureReasons().get(0).count()).isEqualTo(3);
-        assertThat(response.topFailureReasons().get(1).rank()).isEqualTo(2);
-        assertThat(response.topFailureReasons().get(1).reason()).isEqualTo("피로");
-        assertThat(response.topFailureReasons().get(1).count()).isEqualTo(2);
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.topFailureReasons()).hasSize(3);
+            assertThat(response.topFailureReasons().get(0).rank()).isEqualTo(1);
+            assertThat(response.topFailureReasons().get(0).reason()).isEqualTo("시간 부족");
+            assertThat(response.topFailureReasons().get(0).count()).isEqualTo(3);
+        }
     }
 
-    @Test
-    @DisplayName("주간 리포트 조회 - 실패 원인 없으면 빈 목록")
-    void getWeeklyReport_no_failure_reasons() {
-        // given
-        LocalDate weekStartDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    @Nested
+    @DisplayName("AI 피드백 조회 테스트")
+    class AiFeedbackTest {
 
-        given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
-                .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
-                .willReturn(List.of());
+        @Test
+        @DisplayName("AI 분석 결과가 존재할 때")
+        void getAiFeedbackWhenExists() {
+            // given
+            User user = User.builder().userId(userId).build();
+            WeeklyAiAnalysis analysis = WeeklyAiAnalysis.builder()
+                    .user(user)
+                    .weekStartDate(monday)
+                    .mainFailureReason("시간 부족")
+                    .overallFeedback("이번 주 피드백입니다.")
+                    .build();
 
-        // when
-        WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, weekStartDate);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    anyLong(), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.of(analysis));
 
-        // then
-        assertThat(response.topFailureReasons()).isEmpty();
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.aiFeedback().mainFailureReason()).isEqualTo("시간 부족");
+            assertThat(response.aiFeedback().overallFeedback()).isEqualTo("이번 주 피드백입니다.");
+        }
+
+        @Test
+        @DisplayName("AI 분석 결과가 없을 때 기본 메시지 반환")
+        void getDefaultMessageWhenNoAiFeedback() {
+            // given
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    anyLong(), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.aiFeedback().mainFailureReason()).isNull();
+            assertThat(response.aiFeedback().overallFeedback()).isEqualTo("아직 AI 분석 결과가 생성되지 않았습니다.");
+        }
     }
 
-    @Test
-    @DisplayName("주간 리포트 조회 - 실패 원인 최대 5개까지만")
-    void getWeeklyReport_max_5_failure_reasons() {
-        // given
-        LocalDate weekStartDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    @Nested
+    @DisplayName("주간 시작일 계산 테스트")
+    class WeekStartDateTest {
 
-        given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, weekStartDate))
-                .willReturn(Optional.empty());
-        given(missionResultRepository.findFailureReasonsByUserIdAndDateRange(eq(userId), eq(MissionResult.FAILURE), any(LocalDate.class), any(LocalDate.class)))
-                .willReturn(List.of("a", "a", "b", "b", "c", "c", "d", "d", "e", "e", "f", "f", "g", "g"));
+        @Test
+        @DisplayName("weekStartDate가 null일 때 이번 주 월요일 반환")
+        void resolveWeekStartDateWhenNull() {
+            // given
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    anyLong(), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(anyLong(), any()))
+                    .willReturn(Optional.empty());
 
-        // when
-        WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, weekStartDate);
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, null);
 
-        // then
-        assertThat(response.topFailureReasons()).hasSize(5);
+            // then
+            assertThat(response.weekStartDate().getDayOfWeek()).isEqualTo(DayOfWeek.MONDAY);
+        }
+
+        @Test
+        @DisplayName("weekStartDate가 월요일이 아닐 때 해당 주 월요일로 조정")
+        void resolveWeekStartDateWhenNotMonday() {
+            // given
+            LocalDate wednesday = LocalDate.of(2024, 1, 17); // Wednesday
+
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    anyLong(), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(anyLong(), any()))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, wednesday);
+
+            // then
+            assertThat(response.weekStartDate()).isEqualTo(monday);
+            assertThat(response.weekEndDate()).isEqualTo(monday.plusDays(6));
+        }
     }
 
-    /* ======================== */
-    /* ===== Helper Zone ====== */
-    /* ======================== */
+    private DailyMissionResult createMissionResult(LocalDate date, MissionResult result) {
+        return createMissionResult(date, result, MissionType.EXERCISE);
+    }
 
-    private WeeklyAiAnalysis createWeeklyAiAnalysis(LocalDate weekStartDate) {
-        User user = User.builder().email("test@test.com").build();
-        user.setUserId(userId);
+    private DailyMissionResult createMissionResult(LocalDate date, MissionResult result, MissionType type) {
+        Mission mission = Mission.builder()
+                .name("테스트 미션")
+                .type(type)
+                .build();
 
-        return WeeklyAiAnalysis.builder()
-                .user(user)
-                .weekStartDate(weekStartDate)
-                .weekEndDate(weekStartDate.plusDays(6))
-                .summary("이번 주 잘 하셨어요!")
-                .insight("화요일에 집중도가 높았습니다.")
-                .recommendation("다음 주에도 화요일을 활용해보세요.")
-                .topFailureReasons("시간 부족,피로")
+        return DailyMissionResult.builder()
+                .missionDate(date)
+                .result(result)
+                .mission(mission)
+                .build();
+    }
+
+    private DailyMissionResult createMissionResultWithReason(LocalDate date, String failureReason) {
+        Mission mission = Mission.builder()
+                .name("테스트 미션")
+                .type(MissionType.EXERCISE)
+                .build();
+
+        return DailyMissionResult.builder()
+                .missionDate(date)
+                .result(MissionResult.FAILURE)
+                .failureReason(failureReason)
+                .mission(mission)
                 .build();
     }
 }

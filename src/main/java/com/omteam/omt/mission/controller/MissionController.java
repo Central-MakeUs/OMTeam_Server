@@ -39,7 +39,7 @@ public class MissionController {
             @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(
-                missionService.recommendDailyMissions(userPrincipal.getUserId())
+                missionService.recommendDailyMissions(userPrincipal.userId())
         );
     }
 
@@ -52,7 +52,7 @@ public class MissionController {
             @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(
-                missionService.getTodayRecommendations(userPrincipal.getUserId())
+                missionService.getTodayRecommendations(userPrincipal.userId())
         );
     }
 
@@ -66,7 +66,7 @@ public class MissionController {
             @Valid @RequestBody MissionSelectRequest request
     ) {
         return ApiResponse.success(
-                missionService.startMission(userPrincipal.getUserId(), request.getRecommendedMissionId())
+                missionService.startMission(userPrincipal.userId(), request.getRecommendedMissionId())
         );
     }
 
@@ -80,7 +80,7 @@ public class MissionController {
             @Valid @RequestBody MissionSelectRequest request
     ) {
         return ApiResponse.success(
-                missionService.reselectMission(userPrincipal.getUserId(), request.getRecommendedMissionId())
+                missionService.reselectMission(userPrincipal.userId(), request.getRecommendedMissionId())
         );
     }
 
@@ -94,7 +94,7 @@ public class MissionController {
             @Valid @RequestBody MissionResultRequest request
     ) {
         return ApiResponse.success(
-                missionService.completeMission(userPrincipal.getUserId(), request)
+                missionService.completeMission(userPrincipal.userId(), request)
         );
     }
 
@@ -108,7 +108,7 @@ public class MissionController {
             @AuthenticationPrincipal UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(
-                missionService.getTodayMissionStatus(userPrincipal.getUserId())
+                missionService.getTodayMissionStatus(userPrincipal.userId())
         );
     }
 }

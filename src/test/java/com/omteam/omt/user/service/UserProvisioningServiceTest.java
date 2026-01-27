@@ -71,14 +71,10 @@ class UserProvisioningServiceTest {
     @DisplayName("신규 사용자 생성 - 소셜 계정이 없는 경우")
     void findOrCreateUser_new_user() {
         // given
+        User savedUser = createUser();
         given(socialAccountRepository.findByProviderAndProviderUserId(provider, providerUserId))
                 .willReturn(Optional.empty());
-        given(userRepository.save(any(User.class)))
-                .willAnswer(inv -> {
-                    User u = inv.getArgument(0);
-                    u.setUserId(1L);
-                    return u;
-                });
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
 
         // when
         User result = userProvisioningService.findOrCreateUser(provider, providerUserId, email);
@@ -92,14 +88,10 @@ class UserProvisioningServiceTest {
     @DisplayName("신규 사용자 생성 시 소셜 계정 저장")
     void findOrCreateUser_creates_social_account() {
         // given
+        User savedUser = createUser();
         given(socialAccountRepository.findByProviderAndProviderUserId(provider, providerUserId))
                 .willReturn(Optional.empty());
-        given(userRepository.save(any(User.class)))
-                .willAnswer(inv -> {
-                    User u = inv.getArgument(0);
-                    u.setUserId(1L);
-                    return u;
-                });
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
 
         // when
         userProvisioningService.findOrCreateUser(provider, providerUserId, email);
@@ -117,14 +109,10 @@ class UserProvisioningServiceTest {
     @DisplayName("신규 사용자 생성 시 캐릭터 초기화 (레벨 1, 성공횟수 0)")
     void findOrCreateUser_creates_initial_character() {
         // given
+        User savedUser = createUser();
         given(socialAccountRepository.findByProviderAndProviderUserId(provider, providerUserId))
                 .willReturn(Optional.empty());
-        given(userRepository.save(any(User.class)))
-                .willAnswer(inv -> {
-                    User u = inv.getArgument(0);
-                    u.setUserId(1L);
-                    return u;
-                });
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
 
         // when
         userProvisioningService.findOrCreateUser(provider, providerUserId, email);
@@ -139,8 +127,9 @@ class UserProvisioningServiceTest {
     }
 
     private User createUser() {
-        User user = User.builder().email(email).build();
-        user.setUserId(1L);
-        return user;
+        return User.builder()
+                .userId(1L)
+                .email(email)
+                .build();
     }
 }

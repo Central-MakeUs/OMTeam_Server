@@ -59,8 +59,32 @@ dependencies {
     testImplementation 'io.projectreactor:reactor-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'com.h2database:h2'
+
+    // MockWebServer for integration tests
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+    testImplementation 'com.squareup.okhttp3:okhttp:4.12.0'
 }
 
+// 단위 테스트 (기본 test 태스크)
 tasks.named('test') {
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+}
+
+// 통합 테스트 태스크
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    shouldRunAfter tasks.named('test')
+}
+
+// 전체 테스트 (단위 + 통합)
+tasks.register('allTests', Test) {
+    description = 'Runs all tests including integration tests.'
+    group = 'verification'
     useJUnitPlatform()
 }

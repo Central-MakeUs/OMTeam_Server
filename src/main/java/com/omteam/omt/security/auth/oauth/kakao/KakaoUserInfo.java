@@ -2,14 +2,12 @@ package com.omteam.omt.security.auth.oauth.kakao;
 
 import com.omteam.omt.security.auth.oauth.OAuthUserInfo;
 import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class KakaoUserInfo implements OAuthUserInfo {
 
     private final Claims claims;
-
-    public KakaoUserInfo(Claims claims) {
-        this.claims = claims;
-    }
 
     @Override
     public String getProviderUserId() {
