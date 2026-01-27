@@ -1,7 +1,8 @@
 package com.omteam.omt.config.properties;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -30,14 +31,10 @@ public class OAuthProperties {
         private String androidClientId;
 
         public List<String> getAllClientIds() {
-            List<String> clientIds = new ArrayList<>();
-            if (iosClientId != null && !iosClientId.isEmpty()) {
-                clientIds.add(iosClientId);
-            }
-            if (androidClientId != null && !androidClientId.isEmpty()) {
-                clientIds.add(androidClientId);
-            }
-            return clientIds;
+            return Stream.of(iosClientId, androidClientId)
+                    .filter(Objects::nonNull)
+                    .filter(id -> !id.isEmpty())
+                    .toList();
         }
     }
 

@@ -14,13 +14,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "user")
-@Getter @Setter
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -55,6 +54,10 @@ public class User {
     public void completeOnboarding(String nickname) {
         this.nickname = nickname;
         this.onboardingCompleted = true;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
     }
 
     public boolean isActive() {
