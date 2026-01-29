@@ -201,6 +201,95 @@ class WeeklyReportServiceTest {
                     .filter(t -> t.type() == MissionType.DIET)
                     .findFirst().get().successCount()).isEqualTo(2);
         }
+
+        @Test
+        @DisplayName("모든 MissionType이 포함되며 각 타입의 displayName이 올바르게 설정됨")
+        void allMissionTypesIncluded() {
+            // given
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday), eq(monday.plusDays(6))))
+                    .willReturn(List.of());
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday.minusDays(7)), eq(monday.minusDays(1))))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.typeSuccessCounts()).hasSize(MissionType.values().length);
+            assertThat(response.typeSuccessCounts().stream()
+                    .filter(t -> t.type() == MissionType.EXERCISE)
+                    .findFirst().get().typeName()).isEqualTo("운동");
+            assertThat(response.typeSuccessCounts().stream()
+                    .filter(t -> t.type() == MissionType.DIET)
+                    .findFirst().get().typeName()).isEqualTo("식단");
+        }
+
+        @Test
+        @DisplayName("특정 타입만 성공 기록이 있어도 모든 타입이 반환됨")
+        void allTypesReturnedEvenWhenOnlyOneTypeHasSuccess() {
+            // given
+            List<DailyMissionResult> results = List.of(
+                    createMissionResult(monday, MissionResult.SUCCESS, MissionType.EXERCISE),
+                    createMissionResult(monday.plusDays(1), MissionResult.SUCCESS, MissionType.EXERCISE)
+            );
+
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday), eq(monday.plusDays(6))))
+                    .willReturn(results);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday.minusDays(7)), eq(monday.minusDays(1))))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.typeSuccessCounts()).hasSize(MissionType.values().length);
+            assertThat(response.typeSuccessCounts().stream()
+                    .filter(t -> t.type() == MissionType.EXERCISE)
+                    .findFirst().get().successCount()).isEqualTo(2);
+            assertThat(response.typeSuccessCounts().stream()
+                    .filter(t -> t.type() == MissionType.DIET)
+                    .findFirst().get().successCount()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("실패한 미션은 성공 횟수에 포함되지 않음")
+        void failedMissionsNotCountedInSuccessCount() {
+            // given
+            List<DailyMissionResult> results = List.of(
+                    createMissionResult(monday, MissionResult.SUCCESS, MissionType.EXERCISE),
+                    createMissionResult(monday.plusDays(1), MissionResult.FAILURE, MissionType.EXERCISE),
+                    createMissionResult(monday.plusDays(2), MissionResult.FAILURE, MissionType.DIET),
+                    createMissionResult(monday.plusDays(3), MissionResult.SUCCESS, MissionType.DIET)
+            );
+
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday), eq(monday.plusDays(6))))
+                    .willReturn(results);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday.minusDays(7)), eq(monday.minusDays(1))))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.typeSuccessCounts().stream()
+                    .filter(t -> t.type() == MissionType.EXERCISE)
+                    .findFirst().get().successCount()).isEqualTo(1);
+            assertThat(response.typeSuccessCounts().stream()
+                    .filter(t -> t.type() == MissionType.DIET)
+                    .findFirst().get().successCount()).isEqualTo(1);
+        }
     }
 
     @Nested

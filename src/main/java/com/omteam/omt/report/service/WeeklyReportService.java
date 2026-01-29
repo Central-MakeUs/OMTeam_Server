@@ -152,17 +152,13 @@ public class WeeklyReportService {
 
         List<TypeSuccessCount> typeCounts = new ArrayList<>();
 
-        typeCounts.add(TypeSuccessCount.builder()
-                .type(MissionType.EXERCISE)
-                .typeName("운동")
-                .successCount(successByType.getOrDefault(MissionType.EXERCISE, 0L).intValue())
-                .build());
-
-        typeCounts.add(TypeSuccessCount.builder()
-                .type(MissionType.DIET)
-                .typeName("식단")
-                .successCount(successByType.getOrDefault(MissionType.DIET, 0L).intValue())
-                .build());
+        for (MissionType type : MissionType.values()) {
+            typeCounts.add(TypeSuccessCount.builder()
+                    .type(type)
+                    .typeName(type.getDisplayName())
+                    .successCount(successByType.getOrDefault(type, 0L).intValue())
+                    .build());
+        }
 
         return typeCounts;
     }
