@@ -42,7 +42,11 @@ public enum ErrorCode {
 
     // AI Server (AI)
     AI_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI001", "AI 서버 응답 오류입니다"),
-    AI_SERVER_CONNECTION_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI002", "AI 서버 연결에 실패했습니다");
+    AI_SERVER_CONNECTION_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI002", "AI 서버 연결에 실패했습니다"),
+
+    // Chat (CH)
+    INVALID_CHAT_INPUT(HttpStatus.BAD_REQUEST, "CH001", "유효하지 않은 채팅 입력입니다"),
+    CHAT_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "CH002", "채팅 세션을 찾을 수 없습니다");
 
     private final HttpStatus status;
     private final String code;
