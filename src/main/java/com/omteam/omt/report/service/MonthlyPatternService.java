@@ -52,23 +52,20 @@ public class MonthlyPatternService {
 
     private List<MonthlyPatternResponse.DayOfWeekStatistics> buildDayOfWeekStatistics(
             Map<DayOfWeek, List<DailyMissionResult>> resultsByDayOfWeek) {
-        List<MonthlyPatternResponse.DayOfWeekStatistics> stats = new ArrayList<>();
-
-        for (DayOfWeek dow : DayOfWeek.values()) {
-            List<DailyMissionResult> dowResults = resultsByDayOfWeek.getOrDefault(dow, List.of());
-            MissionResultStats missionStats = MissionResultStats.from(dowResults);
-
-            stats.add(MonthlyPatternResponse.DayOfWeekStatistics.builder()
-                    .dayOfWeek(dow)
-                    .dayName(DayOfWeekUtils.toKorean(dow))
-                    .totalCount(missionStats.totalCount())
-                    .successCount(missionStats.successCount())
-                    .failureCount(missionStats.failureCount())
-                    .successRate(missionStats.successRate())
-                    .build());
-        }
-
-        return stats;
+        return java.util.Arrays.stream(DayOfWeek.values())
+                .map(dow -> {
+                    List<DailyMissionResult> dowResults = resultsByDayOfWeek.getOrDefault(dow, List.of());
+                    MissionResultStats missionStats = MissionResultStats.from(dowResults);
+                    return MonthlyPatternResponse.DayOfWeekStatistics.builder()
+                            .dayOfWeek(dow)
+                            .dayName(DayOfWeekUtils.toKorean(dow))
+                            .totalCount(missionStats.totalCount())
+                            .successCount(missionStats.successCount())
+                            .failureCount(missionStats.failureCount())
+                            .successRate(missionStats.successRate())
+                            .build();
+                })
+                .toList();
     }
 
     private MonthlyPatternResponse.AiFeedback generatePatternFeedback(
@@ -115,7 +112,7 @@ public class MonthlyPatternService {
     }
 
     private String buildRecommendation(MonthlyPatternResponse.DayOfWeekStatistics bestDay,
-                                        MonthlyPatternResponse.DayOfWeekStatistics worstDay) {
+                                       MonthlyPatternResponse.DayOfWeekStatistics worstDay) {
         boolean hasLowPerformingDay = worstDay != null
                 && worstDay.successRate() < LOW_SUCCESS_RATE_THRESHOLD
                 && !worstDay.dayOfWeek().equals(bestDay.dayOfWeek());
