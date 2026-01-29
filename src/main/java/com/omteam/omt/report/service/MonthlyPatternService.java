@@ -8,6 +8,7 @@ import com.omteam.omt.report.dto.MonthlyPatternResponse;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,23 +53,21 @@ public class MonthlyPatternService {
 
     private List<MonthlyPatternResponse.DayOfWeekStatistics> buildDayOfWeekStatistics(
             Map<DayOfWeek, List<DailyMissionResult>> resultsByDayOfWeek) {
-        List<MonthlyPatternResponse.DayOfWeekStatistics> stats = new ArrayList<>();
 
-        for (DayOfWeek dow : DayOfWeek.values()) {
-            List<DailyMissionResult> dowResults = resultsByDayOfWeek.getOrDefault(dow, List.of());
-            MissionResultStats missionStats = MissionResultStats.from(dowResults);
-
-            stats.add(MonthlyPatternResponse.DayOfWeekStatistics.builder()
-                    .dayOfWeek(dow)
-                    .dayName(DayOfWeekUtils.toKorean(dow))
-                    .totalCount(missionStats.totalCount())
-                    .successCount(missionStats.successCount())
-                    .failureCount(missionStats.failureCount())
-                    .successRate(missionStats.successRate())
-                    .build());
-        }
-
-        return stats;
+        return Arrays.stream(DayOfWeek.values())
+                .map(dow -> {
+                    List<DailyMissionResult> dowResults = resultsByDayOfWeek.getOrDefault(dow, List.of());
+                    MissionResultStats missionStats = MissionResultStats.from(dowResults);
+                    return MonthlyPatternResponse.DayOfWeekStatistics.builder()
+                            .dayOfWeek(dow)
+                            .dayName(DayOfWeekUtils.toKorean(dow))
+                            .totalCount(missionStats.totalCount())
+                            .successCount(missionStats.successCount())
+                            .failureCount(missionStats.failureCount())
+                            .successRate(missionStats.successRate())
+                            .build();
+                })
+                .toList();
     }
 
     private MonthlyPatternResponse.AiFeedback generatePatternFeedback(
