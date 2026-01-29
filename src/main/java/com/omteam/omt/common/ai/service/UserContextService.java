@@ -14,6 +14,7 @@ import com.omteam.omt.user.repository.UserOnboardingRepository;
 import com.omteam.omt.user.repository.UserRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,21 +33,17 @@ public class UserContextService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        UserOnboarding onboarding = onboardingRepository.findByUserId(userId)
-                .orElse(null);
-
-        UserCharacter character = characterRepository.findById(userId)
-                .orElse(null);
+        Optional<UserOnboarding> onboardingOpt = onboardingRepository.findByUserId(userId);
+        Optional<UserCharacter> characterOpt = characterRepository.findById(userId);
 
         return UserContext.builder()
                 .nickname(user.getNickname())
-                .appGoal(onboarding != null ? onboarding.getAppGoalText() : null)
+                .appGoal(onboardingOpt.map(UserOnboarding::getAppGoalText).orElse(null))
                 .recentMissionSuccessRate(calculateSuccessRate(userId))
-                .currentLevel(character != null ? character.getLevel() : 1)
-                .successCount(character != null ? character.getSuccessCount() : 0)
-                .preferredExercise(onboarding != null ? onboarding.getPreferredExerciseText() : null)
-                .lifestyleType(onboarding != null && onboarding.getLifestyleType() != null
-                        ? onboarding.getLifestyleType().name() : null)
+                .currentLevel(characterOpt.map(UserCharacter::getLevel).orElse(1))
+                .successCount(characterOpt.map(UserCharacter::getSuccessCount).orElse(0))
+                .preferredExercise(onboardingOpt.map(UserOnboarding::getPreferredExerciseText).orElse(null))
+                .lifestyleType(onboardingOpt.map(UserOnboarding::getLifestyleType).map(Enum::name).orElse(null))
                 .build();
     }
 
