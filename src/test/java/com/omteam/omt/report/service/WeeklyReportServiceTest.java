@@ -220,12 +220,12 @@ class WeeklyReportServiceTest {
 
             // then
             assertThat(response.typeSuccessCounts()).hasSize(MissionType.values().length);
-            assertThat(response.typeSuccessCounts().stream()
-                    .filter(t -> t.type() == MissionType.EXERCISE)
-                    .findFirst().get().typeName()).isEqualTo("운동");
-            assertThat(response.typeSuccessCounts().stream()
-                    .filter(t -> t.type() == MissionType.DIET)
-                    .findFirst().get().typeName()).isEqualTo("식단");
+            for (MissionType type : MissionType.values()) {
+                assertThat(response.typeSuccessCounts()).anySatisfy(count -> {
+                    assertThat(count.type()).isEqualTo(type);
+                    assertThat(count.typeName()).isEqualTo(type.getDisplayName());
+                });
+            }
         }
 
         @Test
@@ -283,12 +283,15 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
 
             // then
-            assertThat(response.typeSuccessCounts().stream()
-                    .filter(t -> t.type() == MissionType.EXERCISE)
-                    .findFirst().get().successCount()).isEqualTo(1);
-            assertThat(response.typeSuccessCounts().stream()
-                    .filter(t -> t.type() == MissionType.DIET)
-                    .findFirst().get().successCount()).isEqualTo(1);
+            assertThat(response.typeSuccessCounts())
+                    .anySatisfy(count -> {
+                        assertThat(count.type()).isEqualTo(MissionType.EXERCISE);
+                        assertThat(count.successCount()).isEqualTo(1);
+                    })
+                    .anySatisfy(count -> {
+                        assertThat(count.type()).isEqualTo(MissionType.DIET);
+                        assertThat(count.successCount()).isEqualTo(1);
+                    });
         }
     }
 
