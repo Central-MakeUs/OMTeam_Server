@@ -3,10 +3,10 @@ package com.omteam.omt.character.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
-import com.omteam.omt.character.domain.DailyAnalysis;
-import com.omteam.omt.character.domain.EncouragementMessage;
 import com.omteam.omt.character.dto.CharacterResponse;
-import com.omteam.omt.character.repository.DailyAnalysisRepository;
+import com.omteam.omt.report.domain.DailyAnalysis;
+import com.omteam.omt.report.domain.EncouragementMessage;
+import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;

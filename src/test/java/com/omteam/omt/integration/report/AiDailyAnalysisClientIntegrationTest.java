@@ -1,11 +1,11 @@
-package com.omteam.omt.integration.character;
+package com.omteam.omt.integration.report;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.omteam.omt.character.client.AiDailyAnalysisClient;
-import com.omteam.omt.character.client.dto.AiDailyAnalysisRequest;
-import com.omteam.omt.character.client.dto.AiDailyAnalysisResponse;
-import com.omteam.omt.character.domain.EncouragementIntent;
+import com.omteam.omt.report.client.AiDailyAnalysisClient;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
+import com.omteam.omt.report.domain.EncouragementIntent;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.integration.IntegrationTestBase;

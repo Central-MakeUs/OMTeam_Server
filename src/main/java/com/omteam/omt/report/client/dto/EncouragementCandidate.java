@@ -1,6 +1,6 @@
-package com.omteam.omt.character.client.dto;
+package com.omteam.omt.report.client.dto;
 
-import com.omteam.omt.character.domain.EncouragementIntent;
+import com.omteam.omt.report.domain.EncouragementIntent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

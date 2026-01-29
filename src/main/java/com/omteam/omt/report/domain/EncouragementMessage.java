@@ -1,4 +1,4 @@
-package com.omteam.omt.character.domain;
+package com.omteam.omt.report.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
