@@ -1,13 +1,13 @@
-package com.omteam.omt.character.service;
+package com.omteam.omt.report.service;
 
-import com.omteam.omt.character.client.AiDailyAnalysisClient;
-import com.omteam.omt.character.client.dto.AiDailyAnalysisRequest;
-import com.omteam.omt.character.client.dto.AiDailyAnalysisResponse;
-import com.omteam.omt.character.client.dto.EncouragementCandidate;
-import com.omteam.omt.character.domain.DailyAnalysis;
-import com.omteam.omt.character.domain.EncouragementIntent;
-import com.omteam.omt.character.domain.EncouragementMessage;
-import com.omteam.omt.character.repository.DailyAnalysisRepository;
+import com.omteam.omt.report.client.AiDailyAnalysisClient;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
+import com.omteam.omt.report.client.dto.EncouragementCandidate;
+import com.omteam.omt.report.domain.DailyAnalysis;
+import com.omteam.omt.report.domain.EncouragementIntent;
+import com.omteam.omt.report.domain.EncouragementMessage;
+import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.user.domain.User;
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DailyAnalysisService {
 
     private final AiDailyAnalysisClient aiDailyAnalysisClient;
-    private final DailyAnalysisRepository DailyAnalysisRepository;
+    private final DailyAnalysisRepository dailyAnalysisRepository;
     private final DailyMissionResultRepository missionResultRepository;
     private final UserRepository userRepository;
 
@@ -56,7 +56,7 @@ public class DailyAnalysisService {
      */
     @Transactional
     public void generateDailyAnalysisForUser(User user, LocalDate targetDate) {
-        if (DailyAnalysisRepository.existsByUserUserIdAndTargetDate(user.getUserId(), targetDate)) {
+        if (dailyAnalysisRepository.existsByUserUserIdAndTargetDate(user.getUserId(), targetDate)) {
             log.debug("이미 분석 결과가 존재함: userId={}, targetDate={}", user.getUserId(), targetDate);
             return;
         }
@@ -70,7 +70,7 @@ public class DailyAnalysisService {
         AiDailyAnalysisResponse response = aiDailyAnalysisClient.requestDailyAnalysis(request);
 
         DailyAnalysis dailyAnalysis = buildDailyAnalysis(user, targetDate, response);
-        DailyAnalysisRepository.save(dailyAnalysis);
+        dailyAnalysisRepository.save(dailyAnalysis);
 
         log.info("데일리 분석 결과 생성 완료: userId={}, targetDate={}", user.getUserId(), targetDate);
     }

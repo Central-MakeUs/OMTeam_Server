@@ -1,4 +1,4 @@
-package com.omteam.omt.character.client.dto;
+package com.omteam.omt.report.client.dto;
 
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;

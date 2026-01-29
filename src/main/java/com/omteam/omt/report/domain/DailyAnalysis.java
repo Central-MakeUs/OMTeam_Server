@@ -1,4 +1,4 @@
-package com.omteam.omt.character.domain;
+package com.omteam.omt.report.domain;
 
 import com.omteam.omt.user.domain.User;
 import jakarta.persistence.AttributeOverride;
