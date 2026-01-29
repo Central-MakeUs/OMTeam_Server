@@ -19,6 +19,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -150,17 +151,13 @@ public class WeeklyReportService {
                         Collectors.counting()
                 ));
 
-        List<TypeSuccessCount> typeCounts = new ArrayList<>();
-
-        for (MissionType type : MissionType.values()) {
-            typeCounts.add(TypeSuccessCount.builder()
-                    .type(type)
-                    .typeName(type.getDisplayName())
-                    .successCount(successByType.getOrDefault(type, 0L).intValue())
-                    .build());
-        }
-
-        return typeCounts;
+        return Arrays.stream(MissionType.values())
+                .map(type -> TypeSuccessCount.builder()
+                        .type(type)
+                        .typeName(type.getDisplayName())
+                        .successCount(successByType.getOrDefault(type, 0L).intValue())
+                        .build())
+                .toList();
     }
 
     private List<FailureReasonRank> getFailureReasonRanks(List<DailyMissionResult> results) {
