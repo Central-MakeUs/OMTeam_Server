@@ -68,13 +68,14 @@ class WeeklyReportControllerTest {
     }
 
     @Test
-    @DisplayName("getDailyFeedback_WithoutDate_Success - 날짜 파라미터 없을 때 오늘 날짜로 조회")
+    @DisplayName("getDailyFeedback_WithoutDate_Success - 날짜 파라미터 없을 때 null을 서비스에 전달")
     void getDailyFeedback_WithoutDate_Success() {
         // given
         LocalDate today = LocalDate.now();
         DailyFeedbackResponse response = createDailyFeedbackResponse(today);
 
-        given(dailyAnalysisService.getDailyFeedback(principal.userId(), today))
+        // Service가 null을 받으면 오늘 날짜로 처리
+        given(dailyAnalysisService.getDailyFeedback(principal.userId(), null))
                 .willReturn(response);
 
         // when
@@ -84,9 +85,9 @@ class WeeklyReportControllerTest {
         // then
         assertThat(result.success()).isTrue();
         assertThat(result.data()).isNotNull();
-        assertThat(result.data().targetDate()).isEqualTo(today);
 
-        then(dailyAnalysisService).should().getDailyFeedback(principal.userId(), today);
+        // Controller는 null을 그대로 Service에 전달
+        then(dailyAnalysisService).should().getDailyFeedback(principal.userId(), null);
     }
 
     @Test

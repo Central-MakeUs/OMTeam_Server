@@ -127,9 +127,12 @@ public class DailyAnalysisService {
 
     /**
      * 특정 날짜의 데일리 피드백을 조회한다.
+     * 날짜가 null인 경우 오늘 날짜로 조회한다.
      */
     @Transactional(readOnly = true)
-    public DailyFeedbackResponse getDailyFeedback(Long userId, LocalDate targetDate) {
+    public DailyFeedbackResponse getDailyFeedback(Long userId, LocalDate date) {
+        LocalDate targetDate = (date == null) ? LocalDate.now() : date;
+
         DailyAnalysis dailyAnalysis = dailyAnalysisRepository
                 .findByUserUserIdAndTargetDate(userId, targetDate)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DAILY_FEEDBACK_NOT_FOUND));

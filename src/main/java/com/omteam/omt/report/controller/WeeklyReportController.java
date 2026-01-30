@@ -58,9 +58,8 @@ public class WeeklyReportController {
             @Parameter(description = "조회할 날짜 (미입력시 오늘)", example = "2024-01-15")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
-        LocalDate targetDate = date != null ? date : LocalDate.now();
         DailyFeedbackResponse response = dailyAnalysisService.getDailyFeedback(
-                principal.userId(), targetDate);
+                principal.userId(), date);
         return ApiResponse.success(response);
     }
 }
