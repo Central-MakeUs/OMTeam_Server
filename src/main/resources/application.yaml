@@ -4,10 +4,6 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
-  profiles:
-    group:
-      blue: "prod,blue"
-      green: "prod,green"
   data:
     redis:
       host: ${REDIS_HOST}
@@ -15,8 +11,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-server:
-  env: ${APP_ENV:blue}
 
 ai-server:
   base-url: ${AI_SERVER_BASE_URL:http://localhost:8000}
