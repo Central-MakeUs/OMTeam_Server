@@ -1,11 +1,11 @@
-package com.omteam.omt.integration.character;
+package com.omteam.omt.integration.report;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.omteam.omt.character.domain.DailyAnalysis;
-import com.omteam.omt.character.domain.EncouragementIntent;
-import com.omteam.omt.character.repository.DailyAnalysisRepository;
-import com.omteam.omt.character.service.DailyAnalysisService;
+import com.omteam.omt.report.domain.DailyAnalysis;
+import com.omteam.omt.report.domain.EncouragementIntent;
+import com.omteam.omt.report.repository.DailyAnalysisRepository;
+import com.omteam.omt.report.service.DailyAnalysisService;
 import com.omteam.omt.integration.IntegrationTestBase;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.Mission;

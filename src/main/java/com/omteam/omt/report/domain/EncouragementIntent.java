@@ -1,4 +1,4 @@
-package com.omteam.omt.character.domain;
+package com.omteam.omt.report.domain;
 
 /**
  * 격려 메시지 의도 유형

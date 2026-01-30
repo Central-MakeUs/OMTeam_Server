@@ -1,7 +1,7 @@
-package com.omteam.omt.character.client;
+package com.omteam.omt.report.client;
 
-import com.omteam.omt.character.client.dto.AiDailyAnalysisRequest;
-import com.omteam.omt.character.client.dto.AiDailyAnalysisResponse;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.config.properties.AiServerProperties;

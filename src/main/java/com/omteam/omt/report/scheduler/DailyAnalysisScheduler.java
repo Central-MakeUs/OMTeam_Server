@@ -1,6 +1,6 @@
-package com.omteam.omt.character.scheduler;
+package com.omteam.omt.report.scheduler;
 
-import com.omteam.omt.character.service.DailyAnalysisService;
+import com.omteam.omt.report.service.DailyAnalysisService;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

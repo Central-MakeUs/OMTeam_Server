@@ -3,6 +3,7 @@ package com.omteam.omt.report.controller;
 import com.omteam.omt.common.response.ApiResponse;
 import com.omteam.omt.report.dto.MonthlyPatternResponse;
 import com.omteam.omt.report.dto.WeeklyReportResponse;
+import com.omteam.omt.report.service.MonthlyPatternService;
 import com.omteam.omt.report.service.WeeklyReportService;
 import com.omteam.omt.security.principal.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WeeklyReportController {
 
     private final WeeklyReportService weeklyReportService;
+    private final MonthlyPatternService monthlyPatternService;
 
     @Operation(summary = "주간 리포트 조회", description = "해당 주의 미션 성공률, 요일별 결과, AI 피드백을 조회합니다.")
     @GetMapping("/weekly")
@@ -42,7 +44,7 @@ public class WeeklyReportController {
     public ApiResponse<MonthlyPatternResponse> getMonthlyPattern(
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        MonthlyPatternResponse response = weeklyReportService.getMonthlyPattern(principal.userId());
+        MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(principal.userId());
         return ApiResponse.success(response);
     }
 }
