@@ -1,11 +1,13 @@
 package com.omteam.omt.common.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "헬스 체크", description = "서버 헬스 체크 API")
 @RestController
 public class HealthCheckController {
 
@@ -19,14 +21,5 @@ public class HealthCheckController {
     @GetMapping("/actuator/health")
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of("status", "UP"));
-    }
-
-    /**
-     * 배포 환경 확인용 (인증 필요)
-     * blue-green 배포 시 현재 활성 환경 확인
-     */
-    @GetMapping("/env")
-    public ResponseEntity<Map<String, String>> getEnv() {
-        return ResponseEntity.ok(Map.of("env", env));
     }
 }
