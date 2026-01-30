@@ -1,5 +1,7 @@
 package com.omteam.omt.report.service;
 
+import com.omteam.omt.common.exception.BusinessException;
+import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.report.client.AiDailyAnalysisClient;
 import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
 import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
@@ -7,6 +9,7 @@ import com.omteam.omt.report.client.dto.EncouragementCandidate;
 import com.omteam.omt.report.domain.DailyAnalysis;
 import com.omteam.omt.report.domain.EncouragementIntent;
 import com.omteam.omt.report.domain.EncouragementMessage;
+import com.omteam.omt.report.dto.DailyFeedbackResponse;
 import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
@@ -120,5 +123,20 @@ public class DailyAnalysisService {
                 .title(candidate.getTitle())
                 .message(candidate.getMessage())
                 .build();
+    }
+
+    /**
+     * 특정 날짜의 데일리 피드백을 조회한다.
+     * 날짜가 null인 경우 오늘 날짜로 조회한다.
+     */
+    @Transactional(readOnly = true)
+    public DailyFeedbackResponse getDailyFeedback(Long userId, LocalDate date) {
+        LocalDate targetDate = (date == null) ? LocalDate.now() : date;
+
+        DailyAnalysis dailyAnalysis = dailyAnalysisRepository
+                .findByUserUserIdAndTargetDate(userId, targetDate)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DAILY_FEEDBACK_NOT_FOUND));
+
+        return DailyFeedbackResponse.from(dailyAnalysis);
     }
 }

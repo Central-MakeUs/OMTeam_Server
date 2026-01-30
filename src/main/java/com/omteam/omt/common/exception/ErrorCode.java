@@ -46,7 +46,10 @@ public enum ErrorCode {
 
     // Chat (CH)
     INVALID_CHAT_INPUT(HttpStatus.BAD_REQUEST, "CH001", "유효하지 않은 채팅 입력입니다"),
-    CHAT_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "CH002", "채팅 세션을 찾을 수 없습니다");
+    CHAT_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "CH002", "채팅 세션을 찾을 수 없습니다"),
+
+    // Report (R)
+    DAILY_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 날짜의 피드백을 찾을 수 없습니다");
 
     private final HttpStatus status;
     private final String code;
