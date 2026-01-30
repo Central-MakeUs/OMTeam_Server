@@ -73,43 +73,23 @@ public class MissionService {
                 .build();
     }
 
-    public RecommendedMissionResponse startMission(Long userId, Long recommendedMissionId) {
-        LocalDate today = LocalDate.now();
-
-        validateNoInProgressMission(userId, today);
-        validateNoMissionResultToday(userId, today);
-
-        DailyRecommendedMission recommendation = recommendedMissionRepository
-                .findByIdAndUserUserId(recommendedMissionId, userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MISSION_NOT_FOUND));
-
-        if (!recommendation.isStartable()) {
-            throw new BusinessException(ErrorCode.INVALID_MISSION_STATUS);
-        }
-
-        recommendation.start();
-        return RecommendedMissionResponse.from(recommendation);
-    }
-
-    public RecommendedMissionResponse reselectMission(Long userId, Long newMissionId) {
+    public RecommendedMissionResponse startMission(Long userId, Long missionId) {
         LocalDate today = LocalDate.now();
 
         validateNoMissionResultToday(userId, today);
 
-        // 새로 시작할 미션 조회
         DailyRecommendedMission newMission = recommendedMissionRepository
-                .findByIdAndUserUserId(newMissionId, userId)
+                .findByIdAndUserUserId(missionId, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MISSION_NOT_FOUND));
 
         if (!newMission.isStartable()) {
             throw new BusinessException(ErrorCode.INVALID_MISSION_STATUS);
         }
 
-        // 진행 중인 미션 만료 처리 (포기)
+        // 진행 중인 미션이 있으면 자동 만료 처리
         findFirstMissionByStatus(userId, today, RecommendedMissionStatus.IN_PROGRESS)
                 .ifPresent(DailyRecommendedMission::expire);
 
-        // 새 미션 시작
         newMission.start();
         return RecommendedMissionResponse.from(newMission);
     }
@@ -308,12 +288,6 @@ public class MissionService {
 
     private Optional<DailyRecommendedMission> findFirstMissionByStatus(Long userId, LocalDate date, RecommendedMissionStatus status) {
         return findMissionsByStatus(userId, date, status).stream().findFirst();
-    }
-
-    private void validateNoInProgressMission(Long userId, LocalDate date) {
-        if (hasInProgressMission(userId, date)) {
-            throw new BusinessException(ErrorCode.MISSION_ALREADY_IN_PROGRESS);
-        }
     }
 
     private void validateNoMissionResultToday(Long userId, LocalDate date) {

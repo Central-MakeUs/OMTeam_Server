@@ -58,7 +58,8 @@ public class MissionController {
 
     @Operation(
             summary = "미션 시작",
-            description = "추천된 미션 중 하나를 선택하여 즉시 시작합니다."
+            description = "추천된 미션 중 하나를 선택하여 시작합니다. " +
+                    "진행 중인 미션이 있으면 자동으로 포기 처리 후 새 미션을 시작합니다."
     )
     @PostMapping("/daily/start")
     public ApiResponse<RecommendedMissionResponse> startMission(
@@ -67,20 +68,6 @@ public class MissionController {
     ) {
         return ApiResponse.success(
                 missionService.startMission(userPrincipal.userId(), request.getRecommendedMissionId())
-        );
-    }
-
-    @Operation(
-            summary = "미션 다시 선택",
-            description = "진행 중인 미션을 포기하고 다른 미션을 선택하여 즉시 시작합니다."
-    )
-    @PostMapping("/daily/reselect")
-    public ApiResponse<RecommendedMissionResponse> reselectMission(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @Valid @RequestBody MissionSelectRequest request
-    ) {
-        return ApiResponse.success(
-                missionService.reselectMission(userPrincipal.userId(), request.getRecommendedMissionId())
         );
     }
 
