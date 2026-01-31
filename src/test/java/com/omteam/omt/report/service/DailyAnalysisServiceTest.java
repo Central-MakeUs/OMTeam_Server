@@ -3,6 +3,8 @@ package com.omteam.omt.report.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import com.omteam.omt.common.ai.dto.UserContext;
+import com.omteam.omt.common.ai.service.UserContextService;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.report.domain.DailyAnalysis;
@@ -24,6 +26,9 @@ class DailyAnalysisServiceTest {
     @Mock
     DailyAnalysisRepository dailyAnalysisRepository;
 
+    @Mock
+    UserContextService userContextService;
+
     DailyAnalysisService dailyAnalysisService;
 
     User testUser;
@@ -35,7 +40,8 @@ class DailyAnalysisServiceTest {
                 null,
                 dailyAnalysisRepository,
                 null,
-                null
+                null,
+                userContextService
         );
 
         testUser = User.builder()

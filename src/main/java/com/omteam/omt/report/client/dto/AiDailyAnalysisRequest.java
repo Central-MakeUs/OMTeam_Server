@@ -1,5 +1,6 @@
 package com.omteam.omt.report.client.dto;
 
+import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import lombok.Builder;
@@ -11,6 +12,7 @@ public class AiDailyAnalysisRequest {
 
     private Long userId;
     private String targetDate;
+    private UserContext userContext;
     private TodayMission todayMission;
 
     //recent summary 추가 필요

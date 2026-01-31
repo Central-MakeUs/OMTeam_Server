@@ -3,8 +3,6 @@ package com.omteam.omt.report.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
-import com.omteam.omt.common.exception.BusinessException;
-import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.Mission;
 import com.omteam.omt.mission.domain.MissionResult;
@@ -36,6 +34,9 @@ class WeeklyReportServiceTest {
     @Mock
     WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
 
+    @Mock
+    ObjectMapper objectMapper;
+
     WeeklyReportService weeklyReportService;
 
     final Long userId = 1L;
@@ -49,7 +50,8 @@ class WeeklyReportServiceTest {
     void setUp() {
         weeklyReportService = new WeeklyReportService(
                 missionResultRepository,
-                weeklyAiAnalysisRepository
+                weeklyAiAnalysisRepository,
+                objectMapper
         );
     }
 
@@ -352,6 +354,10 @@ class WeeklyReportServiceTest {
             WeeklyAiAnalysis analysis = WeeklyAiAnalysis.builder()
                     .user(user)
                     .weekStartDate(monday)
+                    .failureReasonRankingJson(null)
+                    .weeklyFeedback("이번주는 잘하셨어요.")
+                    .dayOfWeekFeedbackTitle("화요일에 집중해보세요")
+                    .dayOfWeekFeedbackContent("화요일에 미션 수행률이 낮았습니다.")
                     .mainFailureReason("시간 부족")
                     .overallFeedback("이번 주 피드백입니다.")
                     .build();
@@ -366,6 +372,10 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.aiFeedback().failureReasonRanking()).isEmpty();
+            assertThat(response.aiFeedback().weeklyFeedback()).isEqualTo("이번주는 잘하셨어요.");
+            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isEqualTo("화요일에 집중해보세요");
+            assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isEqualTo("화요일에 미션 수행률이 낮았습니다.");
             assertThat(response.aiFeedback().mainFailureReason()).isEqualTo("시간 부족");
             assertThat(response.aiFeedback().overallFeedback()).isEqualTo("이번 주 피드백입니다.");
         }
@@ -384,8 +394,55 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.aiFeedback().failureReasonRanking()).isEmpty();
+            assertThat(response.aiFeedback().weeklyFeedback()).isNull();
+            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isNull();
+            assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isEqualTo("아직 AI 분석 결과가 생성되지 않았습니다.");
             assertThat(response.aiFeedback().mainFailureReason()).isNull();
             assertThat(response.aiFeedback().overallFeedback()).isEqualTo("아직 AI 분석 결과가 생성되지 않았습니다.");
+        }
+
+        @Test
+        @DisplayName("failureReasonRankingJson이 유효한 JSON일 때 파싱")
+        void parseFailureReasonRankingJson() throws Exception {
+            // given
+            User user = User.builder().userId(userId).build();
+            String rankingJson = "[{\"rank\":1,\"category\":\"시간 부족\",\"count\":3}," +
+                    "{\"rank\":2,\"category\":\"피로\",\"count\":2}]";
+
+            WeeklyAiAnalysis analysis = WeeklyAiAnalysis.builder()
+                    .user(user)
+                    .weekStartDate(monday)
+                    .failureReasonRankingJson(rankingJson)
+                    .weeklyFeedback("이번주 피드백")
+                    .dayOfWeekFeedbackTitle("제목")
+                    .dayOfWeekFeedbackContent("내용")
+                    .mainFailureReason("시간 부족")
+                    .overallFeedback("종합 피드백")
+                    .build();
+
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    anyLong(), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.of(analysis));
+            given(objectMapper.readValue(eq(rankingJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
+                    .willReturn(List.of(
+                            java.util.Map.of("rank", 1, "category", "시간 부족", "count", 3),
+                            java.util.Map.of("rank", 2, "category", "피로", "count", 2)
+                    ));
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+
+            // then
+            assertThat(response.aiFeedback().failureReasonRanking()).hasSize(2);
+            assertThat(response.aiFeedback().failureReasonRanking().get(0).rank()).isEqualTo(1);
+            assertThat(response.aiFeedback().failureReasonRanking().get(0).category()).isEqualTo("시간 부족");
+            assertThat(response.aiFeedback().failureReasonRanking().get(0).count()).isEqualTo(3);
+            assertThat(response.aiFeedback().failureReasonRanking().get(1).rank()).isEqualTo(2);
+            assertThat(response.aiFeedback().failureReasonRanking().get(1).category()).isEqualTo("피로");
+            assertThat(response.aiFeedback().failureReasonRanking().get(1).count()).isEqualTo(2);
         }
     }
 
