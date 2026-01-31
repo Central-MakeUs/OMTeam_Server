@@ -1,5 +1,6 @@
 package com.omteam.omt.mission.client.dto;
 
+import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.user.domain.LifestyleType;
@@ -16,6 +17,7 @@ import lombok.Getter;
 public class AiMissionRecommendRequest {
 
     private Long userId;
+    private UserContext userContext;
     private OnboardingData onboarding;
     private List<MissionHistory> recentMissionHistory;
     private List<String> weeklyFailureReasons;
