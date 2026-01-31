@@ -1,5 +1,8 @@
 package com.omteam.omt.report.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
@@ -7,6 +10,7 @@ import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.report.domain.WeeklyAiAnalysis;
 import com.omteam.omt.report.dto.WeeklyReportResponse;
 import com.omteam.omt.report.dto.WeeklyReportResponse.AiFeedback;
+import com.omteam.omt.report.dto.WeeklyReportResponse.AiFailureReasonRank;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyResult;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyStatus;
 import com.omteam.omt.report.dto.WeeklyReportResponse.FailureReasonRank;
@@ -22,9 +26,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -32,6 +38,7 @@ public class WeeklyReportService {
 
     private final DailyMissionResultRepository missionResultRepository;
     private final WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
+    private final ObjectMapper objectMapper;
 
     public WeeklyReportResponse getWeeklyReport(Long userId, LocalDate weekStartDate) {
         LocalDate effectiveStart = resolveWeekStartDate(weekStartDate);
@@ -179,17 +186,51 @@ public class WeeklyReportService {
     }
 
     private AiFeedback getAiFeedback(Long userId, LocalDate weekStartDate) {
-        Optional<WeeklyAiAnalysis> analysis = weeklyAiAnalysisRepository
+        Optional<WeeklyAiAnalysis> analysisOpt = weeklyAiAnalysisRepository
                 .findByUserUserIdAndWeekStartDate(userId, weekStartDate);
 
-        return analysis
-                .map(a -> AiFeedback.builder()
-                        .mainFailureReason(a.getMainFailureReason())
-                        .overallFeedback(a.getOverallFeedback())
-                        .build())
-                .orElse(AiFeedback.builder()
-                        .mainFailureReason(null)
-                        .overallFeedback("아직 AI 분석 결과가 생성되지 않았습니다.")
-                        .build());
+        if (analysisOpt.isEmpty()) {
+            return AiFeedback.builder()
+                    .failureReasonRanking(List.of())
+                    .weeklyFeedback(null)
+                    .dayOfWeekFeedbackTitle(null)
+                    .dayOfWeekFeedbackContent("아직 AI 분석 결과가 생성되지 않았습니다.")
+                    .mainFailureReason(null)
+                    .overallFeedback("아직 AI 분석 결과가 생성되지 않았습니다.")
+                    .build();
+        }
+
+        WeeklyAiAnalysis analysis = analysisOpt.get();
+        List<AiFailureReasonRank> failureRanking = parseFailureReasonRanking(
+                analysis.getFailureReasonRankingJson());
+
+        return AiFeedback.builder()
+                .failureReasonRanking(failureRanking)
+                .weeklyFeedback(analysis.getWeeklyFeedback())
+                .dayOfWeekFeedbackTitle(analysis.getDayOfWeekFeedbackTitle())
+                .dayOfWeekFeedbackContent(analysis.getDayOfWeekFeedbackContent())
+                .mainFailureReason(analysis.getMainFailureReason())
+                .overallFeedback(analysis.getOverallFeedback())
+                .build();
+    }
+
+    private List<AiFailureReasonRank> parseFailureReasonRanking(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            List<Map<String, Object>> rawList = objectMapper.readValue(json,
+                    new TypeReference<List<Map<String, Object>>>() {});
+            return rawList.stream()
+                    .map(map -> AiFailureReasonRank.builder()
+                            .rank(((Number) map.get("rank")).intValue())
+                            .category((String) map.get("category"))
+                            .count(((Number) map.get("count")).intValue())
+                            .build())
+                    .toList();
+        } catch (JsonProcessingException e) {
+            log.warn("실패 원인 순위 JSON 파싱 실패: {}", json, e);
+            return List.of();
+        }
     }
 }

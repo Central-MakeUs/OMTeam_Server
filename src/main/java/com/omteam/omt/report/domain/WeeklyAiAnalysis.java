@@ -47,6 +47,18 @@ public class WeeklyAiAnalysis {
     @Column(length = 500)
     private String overallFeedback;
 
+    @Column(columnDefinition = "TEXT")
+    private String failureReasonRankingJson;
+
+    @Column(length = 1000)
+    private String weeklyFeedback;
+
+    @Column(length = 100)
+    private String dayOfWeekFeedbackTitle;
+
+    @Column(length = 1000)
+    private String dayOfWeekFeedbackContent;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
