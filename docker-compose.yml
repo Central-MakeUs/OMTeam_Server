@@ -68,30 +68,6 @@ services:
         limits:
           memory: 1G
 
-  # MySQL (Development only)
-  mysql:
-    image: mysql:8.0
-    container_name: omt-mysql
-    ports:
-      - "3307:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-rootpassword}
-      - MYSQL_DATABASE=omt
-      - MYSQL_USER=omt
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-omt1234}
-    volumes:
-      - mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-    networks:
-      - omt-network
-    profiles:
-      - dev
-
   # Redis (Optional - for caching/session)
   redis:
     image: redis:7-alpine
@@ -117,5 +93,4 @@ networks:
     driver: bridge
 
 volumes:
-  mysql-data:
   redis-data:
