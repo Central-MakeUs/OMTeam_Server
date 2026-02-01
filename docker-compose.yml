@@ -17,11 +17,11 @@ services:
       - OAUTH_GOOGLE_ANDROID_CLIENT_ID=${OAUTH_GOOGLE_ANDROID_CLIENT_ID}
       - OAUTH_KAKAO_CLIENT_ID=${OAUTH_KAKAO_CLIENT_ID}
       - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
-      - AI_SERVER_URL=http://ai-server:8000
+      - AI_SERVER_URL=http://omt-ai:8000
       - SPRING_DATA_REDIS_HOST=omt-redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      ai-server:
+      omt-ai:
         condition: service_started
       redis:
         condition: service_healthy
@@ -40,11 +40,11 @@ services:
           memory: 512M
 
   # AI Server (FastAPI + LangGraph)
-  ai-server:
+  omt-ai:
     build:
       context: ../OMTeam_AI
       dockerfile: Dockerfile
-    container_name: omt-ai-server
+    container_name: omt-ai
     ports:
       - "8000:8000"
     environment:
