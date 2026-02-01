@@ -13,11 +13,11 @@ services:
       - OAUTH_GOOGLE_IOS_CLIENT_ID=${OAUTH_GOOGLE_IOS_CLIENT_ID}
       - OAUTH_KAKAO_CLIENT_ID=${OAUTH_KAKAO_CLIENT_ID}
       - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
-      - AI_SERVER_URL=http://ai-server:8000
+      - AI_SERVER_URL=http://omt-ai:8000
       - SPRING_DATA_REDIS_HOST=omt-redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
-      ai-server:
+      omt-ai:
         condition: service_started
       redis:
         condition: service_healthy
@@ -26,8 +26,8 @@ services:
         limits:
           memory: 1G
 
-  ai-server:
-    image: ${ECR_REGISTRY}/omt-ai-server:${IMAGE_TAG:-latest}
+  omt-ai:
+    image: ${ECR_REGISTRY}/omt-ai:${IMAGE_TAG:-latest}
     deploy:
       resources:
         limits:
