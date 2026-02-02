@@ -3,6 +3,8 @@ package com.omteam.omt.report.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import com.omteam.omt.common.exception.BusinessException;
+import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.Mission;
 import com.omteam.omt.mission.domain.MissionResult;
@@ -38,6 +40,10 @@ class WeeklyReportServiceTest {
 
     final Long userId = 1L;
     final LocalDate monday = LocalDate.of(2024, 1, 15); // Monday
+    // 2024년 1월 15일은 1월의 3번째 월요일 (첫 번째 월요일: 1/1)
+    final Integer year = 2024;
+    final Integer month = 1;
+    final Integer weekOfMonth = 3;
 
     @BeforeEach
     void setUp() {
@@ -75,7 +81,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.thisWeekSuccessRate()).isEqualTo(71.4); // 5/7 = 71.4%
@@ -106,7 +112,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.lastWeekSuccessRate()).isEqualTo(57.1); // 4/7 = 57.1%
@@ -123,7 +129,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.thisWeekSuccessRate()).isEqualTo(0.0);
@@ -154,7 +160,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.dailyResults()).isNotEmpty();
@@ -190,7 +196,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.typeSuccessCounts()).hasSize(2);
@@ -216,7 +222,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.typeSuccessCounts()).hasSize(MissionType.values().length);
@@ -247,7 +253,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.typeSuccessCounts()).hasSize(MissionType.values().length);
@@ -280,7 +286,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.typeSuccessCounts())
@@ -322,7 +328,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.topFailureReasons()).hasSize(3);
@@ -355,7 +361,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.of(analysis));
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.aiFeedback().mainFailureReason()).isEqualTo("시간 부족");
@@ -373,7 +379,7 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.aiFeedback().mainFailureReason()).isNull();
@@ -396,18 +402,18 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, null);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, null, null, null);
 
             // then
             assertThat(response.weekStartDate().getDayOfWeek()).isEqualTo(DayOfWeek.MONDAY);
         }
 
         @Test
-        @DisplayName("weekStartDate가 월요일이 아닐 때 해당 주 월요일로 조정")
-        void resolveWeekStartDateWhenNotMonday() {
+        @DisplayName("year, month, weekOfMonth로 해당 월의 특정 주 월요일 계산")
+        void resolveWeekStartDateWithYearMonthWeek() {
             // given
-            LocalDate wednesday = LocalDate.of(2024, 1, 17); // Wednesday
-
+            // 2024년 2월 1일은 목요일, 첫 번째 월요일은 2024-02-05
+            // 2주차 월요일은 2024-02-12
             given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
                     anyLong(), any(), any()))
                     .willReturn(List.of());
@@ -415,11 +421,43 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, wednesday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, 2024, 2, 2);
 
             // then
-            assertThat(response.weekStartDate()).isEqualTo(monday);
-            assertThat(response.weekEndDate()).isEqualTo(monday.plusDays(6));
+            assertThat(response.weekStartDate()).isEqualTo(LocalDate.of(2024, 2, 12));
+            assertThat(response.weekEndDate()).isEqualTo(LocalDate.of(2024, 2, 18));
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 주차 요청 시 예외 발생")
+        void throwExceptionWhenInvalidWeekOfMonth() {
+            // given & when & then
+            // 2024년 2월은 최대 4주차까지 존재 (첫 번째 월요일: 2/5, 4주차 월요일: 2/26)
+            assertThatThrownBy(() -> weeklyReportService.getWeeklyReport(userId, 2024, 2, 15))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(ex -> {
+                        BusinessException be = (BusinessException) ex;
+                        assertThat(be.getErrorCode()).isEqualTo(ErrorCode.INVALID_WEEK_OF_MONTH);
+                    });
+        }
+
+        @Test
+        @DisplayName("0 이하의 주차 요청 시 예외 발생")
+        void throwExceptionWhenWeekOfMonthIsZeroOrNegative() {
+            // given & when & then
+            assertThatThrownBy(() -> weeklyReportService.getWeeklyReport(userId, 2024, 2, 0))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(ex -> {
+                        BusinessException be = (BusinessException) ex;
+                        assertThat(be.getErrorCode()).isEqualTo(ErrorCode.INVALID_WEEK_OF_MONTH);
+                    });
+
+            assertThatThrownBy(() -> weeklyReportService.getWeeklyReport(userId, 2024, 2, -1))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(ex -> {
+                        BusinessException be = (BusinessException) ex;
+                        assertThat(be.getErrorCode()).isEqualTo(ErrorCode.INVALID_WEEK_OF_MONTH);
+                    });
         }
     }
 

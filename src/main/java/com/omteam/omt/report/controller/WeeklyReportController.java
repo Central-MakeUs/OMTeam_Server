@@ -34,11 +34,15 @@ public class WeeklyReportController {
     @GetMapping("/weekly")
     public ApiResponse<WeeklyReportResponse> getWeeklyReport(
             @AuthenticationPrincipal UserPrincipal principal,
-            @Parameter(description = "주간 시작일 (미입력시 이번 주)", example = "2024-01-15")
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStartDate
+            @Parameter(description = "연도 (미입력시 이번 주)", example = "2024")
+            @RequestParam(required = false) Integer year,
+            @Parameter(description = "월 (1-12)", example = "1")
+            @RequestParam(required = false) Integer month,
+            @Parameter(description = "해당 월의 주차 (1부터 시작)", example = "3")
+            @RequestParam(required = false) Integer weekOfMonth
     ) {
         WeeklyReportResponse response = weeklyReportService.getWeeklyReport(
-                principal.userId(), weekStartDate);
+                principal.userId(), year, month, weekOfMonth);
         return ApiResponse.success(response);
     }
 

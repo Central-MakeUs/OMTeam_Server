@@ -49,7 +49,8 @@ public enum ErrorCode {
     CHAT_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "CH002", "채팅 세션을 찾을 수 없습니다"),
 
     // Report (R)
-    DAILY_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 날짜의 피드백을 찾을 수 없습니다");
+    DAILY_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 날짜의 피드백을 찾을 수 없습니다"),
+    INVALID_WEEK_OF_MONTH(HttpStatus.BAD_REQUEST, "R002", "해당 월에 존재하지 않는 주차입니다");
 
     private final HttpStatus status;
     private final String code;
