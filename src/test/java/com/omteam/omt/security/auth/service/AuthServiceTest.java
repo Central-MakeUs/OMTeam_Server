@@ -196,6 +196,73 @@ class AuthServiceTest {
                 .isEqualTo(ErrorCode.INVALID_REFRESH_TOKEN);
     }
 
+    @Test
+    @DisplayName("토큰 갱신 실패 - 탈퇴한 사용자")
+    void refreshToken_fail_withdrawn_user() {
+        // given
+        String refreshToken = "valid-refresh-token";
+        Long userId = 1L;
+        User withdrawnUser = spy(createUser(true));
+        given(withdrawnUser.isActive()).willReturn(false);
+
+        given(jwtTokenProvider.validateToken(refreshToken)).willReturn(true);
+        given(jwtTokenProvider.getUserId(refreshToken)).willReturn(userId);
+        given(refreshTokenService.validateRefreshToken(userId, refreshToken)).willReturn(true);
+        given(userRepository.findById(userId)).willReturn(Optional.of(withdrawnUser));
+
+        // when & then
+        assertThatThrownBy(() -> authService.refreshToken(refreshToken))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.USER_ALREADY_WITHDRAWN);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 성공")
+    void withdraw_success() {
+        // given
+        Long userId = 1L;
+        User user = createUser(true);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+        // when
+        authService.withdraw(userId);
+
+        // then
+        then(userRepository).should().findById(userId);
+        then(refreshTokenService).should().deleteRefreshToken(userId);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 실패 - 사용자 없음")
+    void withdraw_fail_user_not_found() {
+        // given
+        Long userId = 1L;
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> authService.withdraw(userId))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 실패 - 이미 탈퇴한 사용자")
+    void withdraw_fail_already_withdrawn() {
+        // given
+        Long userId = 1L;
+        User withdrawnUser = spy(createUser(true));
+        given(withdrawnUser.isActive()).willReturn(false);
+        given(userRepository.findById(userId)).willReturn(Optional.of(withdrawnUser));
+
+        // when & then
+        assertThatThrownBy(() -> authService.withdraw(userId))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.USER_ALREADY_WITHDRAWN);
+    }
+
     /* ======================== */
     /* ===== Helper Zone ====== */
     /* ======================== */

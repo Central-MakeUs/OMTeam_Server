@@ -28,6 +28,7 @@ public enum ErrorCode {
     ONBOARDING_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "U003", "온보딩을 완료해주세요"),
     ONBOARDING_ALREADY_COMPLETED(HttpStatus.CONFLICT, "U004", "이미 온보딩이 완료되었습니다"),
     ONBOARDING_NOT_FOUND(HttpStatus.NOT_FOUND, "U005", "온보딩 정보를 찾을 수 없습니다"),
+    USER_ALREADY_WITHDRAWN(HttpStatus.BAD_REQUEST, "U006", "이미 탈퇴한 사용자입니다"),
 
     // Mission (M)
     MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "미션을 찾을 수 없습니다"),

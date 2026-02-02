@@ -33,6 +33,7 @@ public class UserProvisioningService {
         return socialAccountRepository
                 .findByProviderAndProviderUserId(provider, providerUserId)
                 .map(UserSocialAccount::getUser)
+                .filter(User::isActive)
                 .orElseGet(() -> createNewUser(provider, providerUserId, email));
     }
 

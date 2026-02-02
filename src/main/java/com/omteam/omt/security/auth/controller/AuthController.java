@@ -74,4 +74,15 @@ public class AuthController {
                 authService.refreshToken(request.getRefreshToken())
         );
     }
+
+    @Operation(
+            summary = "회원 탈퇴",
+            description = "회원 탈퇴를 처리합니다. Soft Delete 방식으로 동작하며, 탈퇴 후 동일 소셜 계정으로 재가입 가능합니다."
+    )
+    @PostMapping("/withdraw")
+    public ApiResponse<Void> withdraw(@AuthenticationPrincipal UserPrincipal principal) {
+        log.info("Withdraw request: userId={}", principal.userId());
+        authService.withdraw(principal.userId());
+        return ApiResponse.success(null);
+    }
 }
