@@ -1,5 +1,7 @@
 package com.omteam.omt.report.service;
 
+import com.omteam.omt.common.exception.BusinessException;
+import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
@@ -33,8 +35,8 @@ public class WeeklyReportService {
     private final DailyMissionResultRepository missionResultRepository;
     private final WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
 
-    public WeeklyReportResponse getWeeklyReport(Long userId, LocalDate weekStartDate) {
-        LocalDate effectiveStart = resolveWeekStartDate(weekStartDate);
+    public WeeklyReportResponse getWeeklyReport(Long userId, Integer year, Integer month, Integer weekOfMonth) {
+        LocalDate effectiveStart = resolveWeekStartDate(year, month, weekOfMonth);
         LocalDate weekEnd = effectiveStart.plusDays(6);
         LocalDate today = LocalDate.now();
 
@@ -75,11 +77,31 @@ public class WeeklyReportService {
                 .build();
     }
 
-    private LocalDate resolveWeekStartDate(LocalDate weekStartDate) {
-        if (weekStartDate == null) {
+    private LocalDate resolveWeekStartDate(Integer year, Integer month, Integer weekOfMonth) {
+        if (year == null || month == null || weekOfMonth == null) {
             return LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         }
-        return weekStartDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+
+        if (weekOfMonth < 1) {
+            throw new BusinessException(ErrorCode.INVALID_WEEK_OF_MONTH);
+        }
+
+        // 해당 월의 첫 번째 월요일 계산
+        LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
+        LocalDate firstMonday = firstDayOfMonth.with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY));
+
+        // 해당 월의 마지막 날
+        LocalDate lastDayOfMonth = firstDayOfMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+        // 요청한 주차의 월요일 계산
+        LocalDate targetMonday = firstMonday.plusDays((long) (weekOfMonth - 1) * 7);
+
+        // 해당 월요일이 해당 월을 벗어나면 예외
+        if (targetMonday.isAfter(lastDayOfMonth)) {
+            throw new BusinessException(ErrorCode.INVALID_WEEK_OF_MONTH);
+        }
+
+        return targetMonday;
     }
 
     private double calculateSuccessRate(List<DailyMissionResult> results,
