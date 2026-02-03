@@ -8,10 +8,14 @@ import com.omteam.omt.mission.domain.Mission;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
+import com.omteam.omt.report.domain.WeeklyAiAnalysis;
 import com.omteam.omt.report.dto.MonthlyPatternResponse;
+import com.omteam.omt.report.repository.WeeklyAiAnalysisRepository;
+import com.omteam.omt.user.domain.User;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,13 +30,19 @@ class MonthlyPatternServiceTest {
     @Mock
     DailyMissionResultRepository missionResultRepository;
 
+    @Mock
+    WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
+
     MonthlyPatternService monthlyPatternService;
 
     final Long userId = 1L;
 
     @BeforeEach
     void setUp() {
-        monthlyPatternService = new MonthlyPatternService(missionResultRepository);
+        monthlyPatternService = new MonthlyPatternService(
+                missionResultRepository,
+                weeklyAiAnalysisRepository
+        );
     }
 
     @Nested
@@ -46,6 +56,8 @@ class MonthlyPatternServiceTest {
             given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
                     eq(userId), any(), any()))
                     .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.empty());
 
             // when
             MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
@@ -63,6 +75,8 @@ class MonthlyPatternServiceTest {
             given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
                     eq(userId), any(), any()))
                     .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.empty());
 
             // when
             MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
@@ -79,6 +93,8 @@ class MonthlyPatternServiceTest {
             given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
                     eq(userId), any(), any()))
                     .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.empty());
 
             // when
             MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
@@ -115,6 +131,8 @@ class MonthlyPatternServiceTest {
             given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
                     eq(userId), any(), any()))
                     .willReturn(results);
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.empty());
 
             // when
             MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
@@ -154,6 +172,8 @@ class MonthlyPatternServiceTest {
             given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
                     eq(userId), any(), any()))
                     .willReturn(results);
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.empty());
 
             // when
             MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
@@ -167,155 +187,51 @@ class MonthlyPatternServiceTest {
     }
 
     @Nested
-    @DisplayName("AI 피드백 생성 테스트")
+    @DisplayName("AI 피드백 조회 테스트")
     class AiFeedbackTest {
 
         @Test
-        @DisplayName("데이터가 없을 때 기본 피드백 반환")
-        void returnsDefaultFeedbackWhenNoData() {
+        @DisplayName("AI 분석 결과가 없을 때 null 피드백 반환")
+        void returnsNullFeedbackWhenNoAnalysis() {
             // given
             given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
                     eq(userId), any(), any()))
                     .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.empty());
 
             // when
             MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
 
             // then
-            assertThat(response.aiFeedback().summary()).isEqualTo("아직 충분한 데이터가 없습니다.");
-            assertThat(response.aiFeedback().recommendation()).isEqualTo("꾸준히 미션을 수행하면 더 정확한 분석을 받을 수 있어요!");
+            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isNull();
+            assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isNull();
         }
 
         @Test
-        @DisplayName("최고 성공 요일이 피드백에 포함됨")
-        void includesBestDayInFeedback() {
+        @DisplayName("AI 분석 결과가 있을 때 피드백 반환")
+        void returnsFeedbackWhenAnalysisExists() {
             // given
-            LocalDate monday = LocalDate.of(2024, 1, 15);
-            LocalDate tuesday = LocalDate.of(2024, 1, 16);
-
-            List<DailyMissionResult> results = List.of(
-                    createMissionResult(monday, MissionResult.SUCCESS),
-                    createMissionResult(tuesday, MissionResult.FAILURE)
-            );
+            User user = User.builder().userId(userId).build();
+            WeeklyAiAnalysis analysis = WeeklyAiAnalysis.builder()
+                    .user(user)
+                    .weekStartDate(LocalDate.now())
+                    .dayOfWeekFeedbackTitle("화요일에 집중해보세요")
+                    .dayOfWeekFeedbackContent("화요일에 미션 수행률이 낮았습니다.")
+                    .build();
 
             given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
                     eq(userId), any(), any()))
-                    .willReturn(results);
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.of(analysis));
 
             // when
             MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
 
             // then
-            assertThat(response.aiFeedback().summary()).contains("월요일");
-            assertThat(response.aiFeedback().summary()).contains("100%");
-        }
-
-        @Test
-        @DisplayName("저성공률 요일이 있을 때 휴식 추천 생성")
-        void recommendsRestOnLowSuccessDay() {
-            // given
-            LocalDate monday = LocalDate.of(2024, 1, 15);
-            LocalDate tuesday1 = LocalDate.of(2024, 1, 16);
-            LocalDate tuesday2 = LocalDate.of(2024, 1, 23);
-            LocalDate tuesday3 = LocalDate.of(2024, 1, 30);
-
-            List<DailyMissionResult> results = List.of(
-                    createMissionResult(monday, MissionResult.SUCCESS),
-                    createMissionResult(tuesday1, MissionResult.FAILURE),
-                    createMissionResult(tuesday2, MissionResult.FAILURE),
-                    createMissionResult(tuesday3, MissionResult.FAILURE)
-            );
-
-            given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
-                    eq(userId), any(), any()))
-                    .willReturn(results);
-
-            // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
-
-            // then
-            assertThat(response.aiFeedback().recommendation()).contains("화요일");
-            assertThat(response.aiFeedback().recommendation()).contains("휴식");
-            assertThat(response.aiFeedback().recommendation()).contains("월요일");
-        }
-
-        @Test
-        @DisplayName("모든 요일 성공률이 높을 때 유지 추천 생성")
-        void recommendsMaintenanceWhenAllDaysHaveHighSuccessRate() {
-            // given
-            LocalDate monday = LocalDate.of(2024, 1, 15);
-            LocalDate tuesday = LocalDate.of(2024, 1, 16);
-
-            List<DailyMissionResult> results = List.of(
-                    createMissionResult(monday, MissionResult.SUCCESS),
-                    createMissionResult(tuesday, MissionResult.SUCCESS)
-            );
-
-            given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
-                    eq(userId), any(), any()))
-                    .willReturn(results);
-
-            // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
-
-            // then
-            assertThat(response.aiFeedback().recommendation()).isEqualTo("현재 패턴을 유지하면서 꾸준히 진행해보세요!");
-        }
-    }
-
-    @Nested
-    @DisplayName("최고/최저 성공 요일 찾기 테스트")
-    class BestAndWorstDayTest {
-
-        @Test
-        @DisplayName("최고 성공률 요일이 올바르게 식별됨")
-        void identifiesBestPerformingDay() {
-            // given
-            LocalDate monday = LocalDate.of(2024, 1, 15);
-            LocalDate tuesday1 = LocalDate.of(2024, 1, 16);
-            LocalDate tuesday2 = LocalDate.of(2024, 1, 23);
-            LocalDate wednesday = LocalDate.of(2024, 1, 17);
-
-            List<DailyMissionResult> results = List.of(
-                    createMissionResult(monday, MissionResult.SUCCESS),
-                    createMissionResult(tuesday1, MissionResult.SUCCESS),
-                    createMissionResult(tuesday2, MissionResult.FAILURE),
-                    createMissionResult(wednesday, MissionResult.FAILURE)
-            );
-
-            given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
-                    eq(userId), any(), any()))
-                    .willReturn(results);
-
-            // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
-
-            // then
-            assertThat(response.aiFeedback().summary()).contains("월요일");
-        }
-
-        @Test
-        @DisplayName("동일한 성공률일 때도 정상 동작")
-        void handlesEqualSuccessRates() {
-            // given
-            LocalDate monday = LocalDate.of(2024, 1, 15);
-            LocalDate tuesday = LocalDate.of(2024, 1, 16);
-
-            List<DailyMissionResult> results = List.of(
-                    createMissionResult(monday, MissionResult.SUCCESS),
-                    createMissionResult(tuesday, MissionResult.SUCCESS)
-            );
-
-            given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
-                    eq(userId), any(), any()))
-                    .willReturn(results);
-
-            // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
-
-            // then
-            assertThat(response.aiFeedback().summary()).isNotNull();
-            assertThat(response.aiFeedback().recommendation()).isNotNull();
+            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isEqualTo("화요일에 집중해보세요");
+            assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isEqualTo("화요일에 미션 수행률이 낮았습니다.");
         }
     }
 

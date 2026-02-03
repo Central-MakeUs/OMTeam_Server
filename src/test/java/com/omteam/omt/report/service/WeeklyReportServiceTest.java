@@ -359,10 +359,6 @@ class WeeklyReportServiceTest {
                     .weekStartDate(monday)
                     .failureReasonRankingJson(null)
                     .weeklyFeedback("이번주는 잘하셨어요.")
-                    .dayOfWeekFeedbackTitle("화요일에 집중해보세요")
-                    .dayOfWeekFeedbackContent("화요일에 미션 수행률이 낮았습니다.")
-                    .mainFailureReason("시간 부족")
-                    .overallFeedback("이번 주 피드백입니다.")
                     .build();
 
             given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
@@ -377,8 +373,6 @@ class WeeklyReportServiceTest {
             // then
             assertThat(response.aiFeedback().failureReasonRanking()).isEmpty();
             assertThat(response.aiFeedback().weeklyFeedback()).isEqualTo("이번주는 잘하셨어요.");
-            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isEqualTo("화요일에 집중해보세요");
-            assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isEqualTo("화요일에 미션 수행률이 낮았습니다.");
         }
 
         @Test
@@ -397,8 +391,6 @@ class WeeklyReportServiceTest {
             // then
             assertThat(response.aiFeedback().failureReasonRanking()).isEmpty();
             assertThat(response.aiFeedback().weeklyFeedback()).isNull();
-            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isNull();
-            assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isEqualTo("아직 AI 분석 결과가 생성되지 않았습니다.");
         }
 
         @Test
@@ -414,10 +406,6 @@ class WeeklyReportServiceTest {
                     .weekStartDate(monday)
                     .failureReasonRankingJson(rankingJson)
                     .weeklyFeedback("이번주 피드백")
-                    .dayOfWeekFeedbackTitle("제목")
-                    .dayOfWeekFeedbackContent("내용")
-                    .mainFailureReason("시간 부족")
-                    .overallFeedback("종합 피드백")
                     .build();
 
             given(missionResultRepository.findByUserUserIdAndMissionDateBetween(

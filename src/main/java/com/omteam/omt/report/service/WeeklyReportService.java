@@ -225,10 +225,6 @@ public class WeeklyReportService {
             return AiFeedback.builder()
                     .failureReasonRanking(List.of())
                     .weeklyFeedback(null)
-                    .dayOfWeekFeedbackTitle(null)
-                    .dayOfWeekFeedbackContent("아직 AI 분석 결과가 생성되지 않았습니다.")
-                    .mainFailureReason(null)
-                    .overallFeedback("아직 AI 분석 결과가 생성되지 않았습니다.")
                     .build();
         }
 
@@ -239,10 +235,6 @@ public class WeeklyReportService {
         return AiFeedback.builder()
                 .failureReasonRanking(failureRanking)
                 .weeklyFeedback(analysis.getWeeklyFeedback())
-                .dayOfWeekFeedbackTitle(analysis.getDayOfWeekFeedbackTitle())
-                .dayOfWeekFeedbackContent(analysis.getDayOfWeekFeedbackContent())
-                .mainFailureReason(analysis.getMainFailureReason())
-                .overallFeedback(analysis.getOverallFeedback())
                 .build();
     }
 

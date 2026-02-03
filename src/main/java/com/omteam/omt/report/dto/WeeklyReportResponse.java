@@ -98,25 +98,11 @@ public record WeeklyReportResponse(
     @Schema(description = "AI 피드백")
     @Builder
     public record AiFeedback(
-            // 새로운 필드
             @Schema(description = "이번주 실패 원인 순위 (AI 카테고리화)")
             List<AiFailureReasonRank> failureReasonRanking,
 
             @Schema(description = "이번주 결과에 대한 피드백")
-            String weeklyFeedback,
-
-            @Schema(description = "요일별 피드백 제목", example = "화요일에 집중해보세요")
-            String dayOfWeekFeedbackTitle,
-
-            @Schema(description = "요일별 피드백 내용")
-            String dayOfWeekFeedbackContent,
-
-            // 하위 호환성 유지
-            @Schema(description = "주요 실패 원인", example = "시간 부족")
-            String mainFailureReason,
-
-            @Schema(description = "종합 피드백", example = "이번 주는 업무가 많아 운동 시간 확보가 어려웠습니다.")
-            String overallFeedback
+            String weeklyFeedback
     ) {}
 
     @Schema(description = "AI 분석 실패 원인 순위")

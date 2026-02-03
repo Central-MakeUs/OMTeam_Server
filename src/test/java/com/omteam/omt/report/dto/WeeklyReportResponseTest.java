@@ -55,8 +55,6 @@ class WeeklyReportResponseTest {
             );
 
             AiFeedback aiFeedback = AiFeedback.builder()
-                    .mainFailureReason("시간 부족")
-                    .overallFeedback("이번 주 피드백입니다.")
                     .build();
 
             // when
@@ -301,79 +299,6 @@ class WeeklyReportResponseTest {
             assertThat(ranks.get(0).rank()).isEqualTo(1);
             assertThat(ranks.get(1).rank()).isEqualTo(2);
             assertThat(ranks.get(2).rank()).isEqualTo(3);
-        }
-    }
-
-    @Nested
-    @DisplayName("AiFeedback 테스트")
-    class AiFeedbackTest {
-
-        @Test
-        @DisplayName("AiFeedback Builder로 생성 성공")
-        void builder_creates_ai_feedback() {
-            // when
-            AiFeedback feedback = AiFeedback.builder()
-                    .mainFailureReason("시간 부족")
-                    .overallFeedback("이번 주는 업무가 많아 운동 시간 확보가 어려웠습니다.")
-                    .build();
-
-            // then
-            assertThat(feedback.mainFailureReason()).isEqualTo("시간 부족");
-            assertThat(feedback.overallFeedback()).isEqualTo("이번 주는 업무가 많아 운동 시간 확보가 어려웠습니다.");
-        }
-
-        @Test
-        @DisplayName("AI 피드백이 없을 때 null 허용")
-        void null_feedback_allowed() {
-            // when
-            AiFeedback feedback = AiFeedback.builder()
-                    .mainFailureReason(null)
-                    .overallFeedback(null)
-                    .build();
-
-            // then
-            assertThat(feedback.mainFailureReason()).isNull();
-            assertThat(feedback.overallFeedback()).isNull();
-        }
-
-        @Test
-        @DisplayName("긴 피드백 텍스트 저장 가능")
-        void long_feedback_text_allowed() {
-            // given
-            String longFeedback = "이번 주는 " + "정말 ".repeat(50) + "힘들었습니다.";
-
-            // when
-            AiFeedback feedback = AiFeedback.builder()
-                    .mainFailureReason("복합적인 원인")
-                    .overallFeedback(longFeedback)
-                    .build();
-
-            // then
-            assertThat(feedback.overallFeedback()).isEqualTo(longFeedback);
-        }
-    }
-
-    @Nested
-    @DisplayName("Record 불변성 테스트")
-    class ImmutabilityTest {
-
-        @Test
-        @DisplayName("Record는 불변이므로 동일한 값으로 생성된 객체는 equals가 true")
-        void records_are_immutable_and_equals() {
-            // given
-            AiFeedback feedback1 = AiFeedback.builder()
-                    .mainFailureReason("시간 부족")
-                    .overallFeedback("피드백")
-                    .build();
-
-            AiFeedback feedback2 = AiFeedback.builder()
-                    .mainFailureReason("시간 부족")
-                    .overallFeedback("피드백")
-                    .build();
-
-            // then
-            assertThat(feedback1).isEqualTo(feedback2);
-            assertThat(feedback1.hashCode()).isEqualTo(feedback2.hashCode());
         }
     }
 }
