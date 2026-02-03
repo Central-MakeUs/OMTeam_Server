@@ -18,7 +18,7 @@ public record MonthlyPatternResponse(
         @Schema(description = "요일별 통계 목록")
         List<DayOfWeekStatistics> dayOfWeekStats,
 
-        @Schema(description = "AI 피드백")
+        @Schema(description = "AI 피드백 (월간 요일)")
         AiFeedback aiFeedback
 ) {
 
@@ -45,7 +45,7 @@ public record MonthlyPatternResponse(
     ) {
     }
 
-    @Schema(description = "AI 피드백")
+    @Schema(name = "MonthlyAiFeedback", description = "AI 피드백 (월간 요일)")
     @Builder
     public record AiFeedback(
             @Schema(description = "요일별 피드백 제목", example = "화요일에 집중해보세요")

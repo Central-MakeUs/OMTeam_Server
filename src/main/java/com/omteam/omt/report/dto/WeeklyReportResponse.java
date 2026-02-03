@@ -34,7 +34,7 @@ public record WeeklyReportResponse(
         @Schema(description = "실패 원인 순위 (상위 3개)")
         List<FailureReasonRank> topFailureReasons,
 
-        @Schema(description = "AI 피드백")
+        @Schema(description = "AI 피드백 (주간)")
         AiFeedback aiFeedback
 ) {
 
@@ -95,7 +95,7 @@ public record WeeklyReportResponse(
             int count
     ) {}
 
-    @Schema(description = "AI 피드백")
+    @Schema(name = "WeeklyAiFeedback", description = "AI 피드백 (주간)")
     @Builder
     public record AiFeedback(
             @Schema(description = "이번주 실패 원인 순위 (AI 카테고리화)")
