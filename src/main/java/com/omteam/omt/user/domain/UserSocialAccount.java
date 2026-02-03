@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,7 +23,10 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "user_social_account")
+@Table(name = "user_social_account",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"provider", "provider_user_id"})
+        })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -58,5 +62,9 @@ public class UserSocialAccount {
     @CreatedDate
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    public void updateUser(User newUser) {
+        this.user = newUser;
+    }
 }
 
