@@ -32,20 +32,15 @@ public class UserProvisioningService {
      */
     @Transactional
     public User findOrCreateUser(SocialProvider provider, String providerUserId, String email) {
-        Optional<UserSocialAccount> existingSocialAccount =
-                socialAccountRepository.findByProviderAndProviderUserId(provider, providerUserId);
-
-        if (existingSocialAccount.isPresent()) {
-            UserSocialAccount socialAccount = existingSocialAccount.get();
-            User user = socialAccount.getUser();
-
-            if (user.isActive()) {
-                return user;
-            }
-            return reactivateWithNewUser(socialAccount, email);
-        }
-
-        return createNewUser(provider, providerUserId, email);
+        return socialAccountRepository.findByProviderAndProviderUserId(provider, providerUserId)
+                .map(socialAccount -> {
+                    User user = socialAccount.getUser();
+                    if (user.isActive()) {
+                        return user;
+                    }
+                    return reactivateWithNewUser(socialAccount, email);
+                })
+                .orElseGet(() -> createNewUser(provider, providerUserId, email));
     }
 
     private User reactivateWithNewUser(UserSocialAccount socialAccount, String email) {
