@@ -3,6 +3,9 @@ package com.omteam.omt.report.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omteam.omt.common.exception.BusinessException;
+import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.Mission;
 import com.omteam.omt.mission.domain.MissionResult;
@@ -376,8 +379,6 @@ class WeeklyReportServiceTest {
             assertThat(response.aiFeedback().weeklyFeedback()).isEqualTo("이번주는 잘하셨어요.");
             assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isEqualTo("화요일에 집중해보세요");
             assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isEqualTo("화요일에 미션 수행률이 낮았습니다.");
-            assertThat(response.aiFeedback().mainFailureReason()).isEqualTo("시간 부족");
-            assertThat(response.aiFeedback().overallFeedback()).isEqualTo("이번 주 피드백입니다.");
         }
 
         @Test
@@ -398,8 +399,6 @@ class WeeklyReportServiceTest {
             assertThat(response.aiFeedback().weeklyFeedback()).isNull();
             assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isNull();
             assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isEqualTo("아직 AI 분석 결과가 생성되지 않았습니다.");
-            assertThat(response.aiFeedback().mainFailureReason()).isNull();
-            assertThat(response.aiFeedback().overallFeedback()).isEqualTo("아직 AI 분석 결과가 생성되지 않았습니다.");
         }
 
         @Test
@@ -433,7 +432,7 @@ class WeeklyReportServiceTest {
                     ));
 
             // when
-            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, monday);
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
             assertThat(response.aiFeedback().failureReasonRanking()).hasSize(2);

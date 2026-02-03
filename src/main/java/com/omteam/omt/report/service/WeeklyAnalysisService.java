@@ -180,16 +180,12 @@ public class WeeklyAnalysisService {
         return WeeklyAiAnalysis.builder()
                 .user(user)
                 .weekStartDate(weekStartDate)
-                // 새로운 필드
                 .failureReasonRankingJson(failureRankingJson)
                 .weeklyFeedback(response.getWeeklyFeedback())
                 .dayOfWeekFeedbackTitle(response.getDayOfWeekFeedback() != null
                         ? response.getDayOfWeekFeedback().getTitle() : null)
                 .dayOfWeekFeedbackContent(response.getDayOfWeekFeedback() != null
                         ? response.getDayOfWeekFeedback().getContent() : null)
-                // 하위 호환성
-                .mainFailureReason(response.getMainFailureReason())
-                .overallFeedback(response.getOverallFeedback())
                 .build();
     }
 }

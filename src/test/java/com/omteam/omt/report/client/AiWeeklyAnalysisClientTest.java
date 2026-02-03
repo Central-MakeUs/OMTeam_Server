@@ -72,8 +72,6 @@ class AiWeeklyAnalysisClientTest {
         );
 
         AiWeeklyAnalysisResponse expectedResponse = new AiWeeklyAnalysisResponse();
-        expectedResponse.setMainFailureReason("시간 부족");
-        expectedResponse.setOverallFeedback("이번 주 피드백입니다.");
 
         given(aiServerProperties.getBaseUrl()).willReturn("http://localhost:8000");
         given(aiServerProperties.getTimeoutSeconds()).willReturn(30);
@@ -90,8 +88,8 @@ class AiWeeklyAnalysisClientTest {
         AiWeeklyAnalysisResponse response = aiWeeklyAnalysisClient.analyzeWeeklyMissions(request);
 
         // then
-        assertThat(response.getMainFailureReason()).isEqualTo("시간 부족");
-        assertThat(response.getOverallFeedback()).isEqualTo("이번 주 피드백입니다.");
+        assertThat(response).isNotNull();
+        assertThat(response).isEqualTo(expectedResponse);
     }
 
     @Test
