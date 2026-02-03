@@ -20,10 +20,6 @@ public class AiWeeklyAnalysisResponse {
     // 3. 지난 한달 요일별 결과 기반 피드백 (제목 + 본문)
     private DayOfWeekFeedback dayOfWeekFeedback;
 
-    // 하위 호환성 유지
-    private String mainFailureReason;
-    private String overallFeedback;
-
     @Getter
     @Setter
     @NoArgsConstructor

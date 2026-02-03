@@ -90,8 +90,6 @@ class WeeklyAnalysisServiceTest {
             given(userContextService.buildContext(anyLong())).willReturn(mockUserContext);
 
             AiWeeklyAnalysisResponse aiResponse = new AiWeeklyAnalysisResponse();
-            aiResponse.setMainFailureReason("테스트");
-            aiResponse.setOverallFeedback("피드백");
             given(aiWeeklyAnalysisClient.analyzeWeeklyMissions(any())).willReturn(aiResponse);
 
             // when
@@ -123,8 +121,6 @@ class WeeklyAnalysisServiceTest {
             given(userContextService.buildContext(anyLong())).willReturn(mockUserContext);
 
             AiWeeklyAnalysisResponse aiResponse = new AiWeeklyAnalysisResponse();
-            aiResponse.setMainFailureReason("테스트");
-            aiResponse.setOverallFeedback("피드백");
 
             // 첫 번째 사용자 실패, 두 번째 사용자 성공
             given(aiWeeklyAnalysisClient.analyzeWeeklyMissions(any()))
@@ -202,8 +198,6 @@ class WeeklyAnalysisServiceTest {
             given(userContextService.buildContext(1L)).willReturn(mockUserContext);
 
             AiWeeklyAnalysisResponse aiResponse = new AiWeeklyAnalysisResponse();
-            aiResponse.setMainFailureReason("시간 부족");
-            aiResponse.setOverallFeedback("피드백");
             given(aiWeeklyAnalysisClient.analyzeWeeklyMissions(any())).willReturn(aiResponse);
 
             // when
@@ -238,8 +232,7 @@ class WeeklyAnalysisServiceTest {
             given(userContextService.buildContext(1L)).willReturn(mockUserContext);
 
             AiWeeklyAnalysisResponse aiResponse = new AiWeeklyAnalysisResponse();
-            aiResponse.setMainFailureReason("시간 부족");
-            aiResponse.setOverallFeedback("종합 피드백");
+            aiResponse.setWeeklyFeedback("이번주 피드백");
             given(aiWeeklyAnalysisClient.analyzeWeeklyMissions(any())).willReturn(aiResponse);
 
             // when
@@ -253,8 +246,7 @@ class WeeklyAnalysisServiceTest {
             WeeklyAiAnalysis savedAnalysis = analysisCaptor.getValue();
             assertThat(savedAnalysis.getUser()).isEqualTo(user);
             assertThat(savedAnalysis.getWeekStartDate()).isEqualTo(monday);
-            assertThat(savedAnalysis.getMainFailureReason()).isEqualTo("시간 부족");
-            assertThat(savedAnalysis.getOverallFeedback()).isEqualTo("종합 피드백");
+            assertThat(savedAnalysis.getWeeklyFeedback()).isEqualTo("이번주 피드백");
         }
     }
 }
