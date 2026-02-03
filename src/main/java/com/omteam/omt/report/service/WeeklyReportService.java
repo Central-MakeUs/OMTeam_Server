@@ -53,6 +53,9 @@ public class WeeklyReportService {
         double thisWeekRate = calculateSuccessRate(thisWeekResults, effectiveStart, today, weekEnd);
         double lastWeekRate = calculateSuccessRate(lastWeekResults, lastWeekStart, lastWeekEnd, lastWeekEnd);
 
+        // 2. 성공 횟수 계산
+        long successCount = calculateSuccessCount(thisWeekResults, today, weekEnd);
+
         // 2. 요일별 결과
         List<DailyResult> dailyResults = buildDailyResults(effectiveStart, today, weekEnd, thisWeekResults);
 
@@ -70,6 +73,7 @@ public class WeeklyReportService {
                 .weekEndDate(weekEnd)
                 .thisWeekSuccessRate(thisWeekRate)
                 .lastWeekSuccessRate(lastWeekRate)
+                .thisWeekSuccessCount(successCount)
                 .dailyResults(dailyResults)
                 .typeSuccessCounts(typeCounts)
                 .topFailureReasons(failureRanks)
@@ -113,16 +117,22 @@ public class WeeklyReportService {
             return 0.0;
         }
 
-        long successCount = results.stream()
-                .filter(r -> r.getResult() == MissionResult.SUCCESS)
-                .filter(r -> !r.getMissionDate().isAfter(effectiveEnd))
-                .count();
+        long successCount = calculateSuccessCount(results, endDate, weekEnd);
 
         return Math.round((double) successCount / totalDays * 1000) / 10.0;
     }
 
+    private long calculateSuccessCount(List<DailyMissionResult> results, LocalDate endDate, LocalDate weekEnd) {
+        LocalDate effectiveEnd = endDate.isBefore(weekEnd) ? endDate : weekEnd;
+
+        return results.stream()
+                .filter(r -> r.getResult() == MissionResult.SUCCESS)
+                .filter(r -> !r.getMissionDate().isAfter(effectiveEnd))
+                .count();
+    }
+
     private List<DailyResult> buildDailyResults(LocalDate startDate, LocalDate today,
-                                                 LocalDate weekEnd, List<DailyMissionResult> results) {
+                                                LocalDate weekEnd, List<DailyMissionResult> results) {
         Map<LocalDate, DailyMissionResult> resultMap = results.stream()
                 .collect(Collectors.toMap(DailyMissionResult::getMissionDate, r -> r, (a, b) -> a));
 

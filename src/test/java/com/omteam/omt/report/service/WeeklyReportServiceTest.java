@@ -85,6 +85,7 @@ class WeeklyReportServiceTest {
 
             // then
             assertThat(response.thisWeekSuccessRate()).isEqualTo(71.4); // 5/7 = 71.4%
+            assertThat(response.thisWeekSuccessCount()).isEqualTo(5);
         }
 
         @Test
@@ -134,6 +135,7 @@ class WeeklyReportServiceTest {
             // then
             assertThat(response.thisWeekSuccessRate()).isEqualTo(0.0);
             assertThat(response.lastWeekSuccessRate()).isEqualTo(0.0);
+            assertThat(response.thisWeekSuccessCount()).isEqualTo(0);
         }
     }
 
