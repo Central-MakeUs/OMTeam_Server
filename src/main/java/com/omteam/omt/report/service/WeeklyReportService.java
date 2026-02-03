@@ -1,5 +1,7 @@
 package com.omteam.omt.report.service;
 
+import com.omteam.omt.common.exception.BusinessException;
+import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
@@ -33,8 +35,8 @@ public class WeeklyReportService {
     private final DailyMissionResultRepository missionResultRepository;
     private final WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
 
-    public WeeklyReportResponse getWeeklyReport(Long userId, LocalDate weekStartDate) {
-        LocalDate effectiveStart = resolveWeekStartDate(weekStartDate);
+    public WeeklyReportResponse getWeeklyReport(Long userId, Integer year, Integer month, Integer weekOfMonth) {
+        LocalDate effectiveStart = resolveWeekStartDate(year, month, weekOfMonth);
         LocalDate weekEnd = effectiveStart.plusDays(6);
         LocalDate today = LocalDate.now();
 
@@ -50,6 +52,9 @@ public class WeeklyReportService {
         // 1. 성공률 계산
         double thisWeekRate = calculateSuccessRate(thisWeekResults, effectiveStart, today, weekEnd);
         double lastWeekRate = calculateSuccessRate(lastWeekResults, lastWeekStart, lastWeekEnd, lastWeekEnd);
+
+        // 2. 성공 횟수 계산
+        long successCount = calculateSuccessCount(thisWeekResults, today, weekEnd);
 
         // 2. 요일별 결과
         List<DailyResult> dailyResults = buildDailyResults(effectiveStart, today, weekEnd, thisWeekResults);
@@ -68,6 +73,7 @@ public class WeeklyReportService {
                 .weekEndDate(weekEnd)
                 .thisWeekSuccessRate(thisWeekRate)
                 .lastWeekSuccessRate(lastWeekRate)
+                .thisWeekSuccessCount(successCount)
                 .dailyResults(dailyResults)
                 .typeSuccessCounts(typeCounts)
                 .topFailureReasons(failureRanks)
@@ -75,11 +81,31 @@ public class WeeklyReportService {
                 .build();
     }
 
-    private LocalDate resolveWeekStartDate(LocalDate weekStartDate) {
-        if (weekStartDate == null) {
+    private LocalDate resolveWeekStartDate(Integer year, Integer month, Integer weekOfMonth) {
+        if (year == null || month == null || weekOfMonth == null) {
             return LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         }
-        return weekStartDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+
+        if (weekOfMonth < 1) {
+            throw new BusinessException(ErrorCode.INVALID_WEEK_OF_MONTH);
+        }
+
+        // 해당 월의 첫 번째 월요일 계산
+        LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
+        LocalDate firstMonday = firstDayOfMonth.with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY));
+
+        // 해당 월의 마지막 날
+        LocalDate lastDayOfMonth = firstDayOfMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+        // 요청한 주차의 월요일 계산
+        LocalDate targetMonday = firstMonday.plusDays((long) (weekOfMonth - 1) * 7);
+
+        // 해당 월요일이 해당 월을 벗어나면 예외
+        if (targetMonday.isAfter(lastDayOfMonth)) {
+            throw new BusinessException(ErrorCode.INVALID_WEEK_OF_MONTH);
+        }
+
+        return targetMonday;
     }
 
     private double calculateSuccessRate(List<DailyMissionResult> results,
@@ -91,16 +117,22 @@ public class WeeklyReportService {
             return 0.0;
         }
 
-        long successCount = results.stream()
-                .filter(r -> r.getResult() == MissionResult.SUCCESS)
-                .filter(r -> !r.getMissionDate().isAfter(effectiveEnd))
-                .count();
+        long successCount = calculateSuccessCount(results, endDate, weekEnd);
 
         return Math.round((double) successCount / totalDays * 1000) / 10.0;
     }
 
+    private long calculateSuccessCount(List<DailyMissionResult> results, LocalDate endDate, LocalDate weekEnd) {
+        LocalDate effectiveEnd = endDate.isBefore(weekEnd) ? endDate : weekEnd;
+
+        return results.stream()
+                .filter(r -> r.getResult() == MissionResult.SUCCESS)
+                .filter(r -> !r.getMissionDate().isAfter(effectiveEnd))
+                .count();
+    }
+
     private List<DailyResult> buildDailyResults(LocalDate startDate, LocalDate today,
-                                                 LocalDate weekEnd, List<DailyMissionResult> results) {
+                                                LocalDate weekEnd, List<DailyMissionResult> results) {
         Map<LocalDate, DailyMissionResult> resultMap = results.stream()
                 .collect(Collectors.toMap(DailyMissionResult::getMissionDate, r -> r, (a, b) -> a));
 

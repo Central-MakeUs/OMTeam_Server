@@ -61,8 +61,6 @@ class WeeklyReportControllerTest {
         assertThat(result.data()).isNotNull();
         assertThat(result.data().targetDate()).isEqualTo(targetDate);
         assertThat(result.data().feedbackText()).isEqualTo("오늘도 열심히 운동하셨네요!");
-        assertThat(result.data().encouragement().title()).isEqualTo("잘하고 계세요!");
-        assertThat(result.data().encouragement().message()).isEqualTo("꾸준히 노력하는 모습이 멋집니다.");
 
         then(dailyAnalysisService).should().getDailyFeedback(principal.userId(), targetDate);
     }
@@ -131,10 +129,6 @@ class WeeklyReportControllerTest {
         return DailyFeedbackResponse.builder()
                 .targetDate(targetDate)
                 .feedbackText("오늘도 열심히 운동하셨네요!")
-                .encouragement(DailyFeedbackResponse.EncouragementMessageResponse.builder()
-                        .title("잘하고 계세요!")
-                        .message("꾸준히 노력하는 모습이 멋집니다.")
-                        .build())
                 .build();
     }
 }

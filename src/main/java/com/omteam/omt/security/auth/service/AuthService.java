@@ -58,7 +58,24 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+        if (!user.isActive()) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_WITHDRAWN);
+        }
+
         return createLoginResponse(user);
+    }
+
+    @Transactional
+    public void withdraw(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!user.isActive()) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_WITHDRAWN);
+        }
+
+        user.withdraw();
+        refreshTokenService.deleteRefreshToken(userId);
     }
 
     private OAuthClient findOAuthClient(SocialProvider provider) {

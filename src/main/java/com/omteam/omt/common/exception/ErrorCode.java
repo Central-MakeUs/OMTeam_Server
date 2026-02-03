@@ -28,6 +28,7 @@ public enum ErrorCode {
     ONBOARDING_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "U003", "온보딩을 완료해주세요"),
     ONBOARDING_ALREADY_COMPLETED(HttpStatus.CONFLICT, "U004", "이미 온보딩이 완료되었습니다"),
     ONBOARDING_NOT_FOUND(HttpStatus.NOT_FOUND, "U005", "온보딩 정보를 찾을 수 없습니다"),
+    USER_ALREADY_WITHDRAWN(HttpStatus.BAD_REQUEST, "U006", "이미 탈퇴한 사용자입니다"),
 
     // Mission (M)
     MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "미션을 찾을 수 없습니다"),
@@ -49,7 +50,8 @@ public enum ErrorCode {
     CHAT_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "CH002", "채팅 세션을 찾을 수 없습니다"),
 
     // Report (R)
-    DAILY_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 날짜의 피드백을 찾을 수 없습니다");
+    DAILY_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 날짜의 피드백을 찾을 수 없습니다"),
+    INVALID_WEEK_OF_MONTH(HttpStatus.BAD_REQUEST, "R002", "해당 월에 존재하지 않는 주차입니다");
 
     private final HttpStatus status;
     private final String code;
