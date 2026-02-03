@@ -63,3 +63,4 @@ data/
 ### Docker ###
 docker-compose.override.yml
 *.pid
+docker-compose.local.yml
