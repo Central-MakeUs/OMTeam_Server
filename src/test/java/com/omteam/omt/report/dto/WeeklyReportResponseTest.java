@@ -65,6 +65,7 @@ class WeeklyReportResponseTest {
                     .weekEndDate(weekEnd)
                     .thisWeekSuccessRate(71.4)
                     .lastWeekSuccessRate(57.1)
+                    .thisWeekSuccessCount(5)
                     .dailyResults(dailyResults)
                     .typeSuccessCounts(typeCounts)
                     .topFailureReasons(failureRanks)
@@ -76,6 +77,7 @@ class WeeklyReportResponseTest {
             assertThat(response.weekEndDate()).isEqualTo(weekEnd);
             assertThat(response.thisWeekSuccessRate()).isEqualTo(71.4);
             assertThat(response.lastWeekSuccessRate()).isEqualTo(57.1);
+            assertThat(response.thisWeekSuccessCount()).isEqualTo(5);
             assertThat(response.dailyResults()).hasSize(1);
             assertThat(response.typeSuccessCounts()).hasSize(1);
             assertThat(response.topFailureReasons()).hasSize(1);
@@ -91,6 +93,7 @@ class WeeklyReportResponseTest {
                     .weekEndDate(LocalDate.of(2024, 1, 21))
                     .thisWeekSuccessRate(0.0)
                     .lastWeekSuccessRate(0.0)
+                    .thisWeekSuccessCount(0)
                     .dailyResults(List.of())
                     .typeSuccessCounts(List.of())
                     .topFailureReasons(List.of())
@@ -113,6 +116,7 @@ class WeeklyReportResponseTest {
                     .weekEndDate(LocalDate.of(2024, 1, 21))
                     .thisWeekSuccessRate(0.0)
                     .lastWeekSuccessRate(100.0)
+                    .thisWeekSuccessCount(0)
                     .dailyResults(List.of())
                     .typeSuccessCounts(List.of())
                     .topFailureReasons(List.of())

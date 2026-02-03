@@ -22,6 +22,9 @@ public record WeeklyReportResponse(
         @Schema(description = "지난 주 성공률 (%)", example = "57.1")
         double lastWeekSuccessRate,
 
+        @Schema(description = "이번 주 성공 횟수", example = "3")
+        long thisWeekSuccessCount,
+
         @Schema(description = "요일별 미션 결과 목록")
         List<DailyResult> dailyResults,
 
