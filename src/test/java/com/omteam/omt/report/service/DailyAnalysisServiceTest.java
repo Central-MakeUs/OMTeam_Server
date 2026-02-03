@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.*;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.report.domain.DailyAnalysis;
-import com.omteam.omt.report.domain.EncouragementMessage;
 import com.omteam.omt.report.dto.DailyFeedbackResponse;
 import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.user.domain.User;
@@ -52,20 +51,11 @@ class DailyAnalysisServiceTest {
     @DisplayName("getDailyFeedback_Success - 정상 조회 성공")
     void getDailyFeedback_Success() {
         // given
-        EncouragementMessage praiseMessage = EncouragementMessage.builder()
-                .title("잘하고 계세요!")
-                .message("꾸준히 노력하는 모습이 멋집니다.")
-                .build();
-
         DailyAnalysis dailyAnalysis = DailyAnalysis.builder()
                 .id(1L)
                 .user(testUser)
                 .feedbackText("오늘도 열심히 운동하셨네요!")
                 .targetDate(targetDate)
-                .praise(praiseMessage)
-                .retry(null)
-                .normal(null)
-                .push(null)
                 .build();
 
         given(dailyAnalysisRepository.findByUserUserIdAndTargetDate(1L, targetDate))
@@ -78,7 +68,6 @@ class DailyAnalysisServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.targetDate()).isEqualTo(targetDate);
         assertThat(response.feedbackText()).isEqualTo("오늘도 열심히 운동하셨네요!");
-        assertThat(response.encouragement()).isNotNull();
 
         then(dailyAnalysisRepository).should().findByUserUserIdAndTargetDate(1L, targetDate);
     }
@@ -108,10 +97,6 @@ class DailyAnalysisServiceTest {
                 .user(testUser)
                 .feedbackText("오늘의 피드백")
                 .targetDate(today)
-                .praise(null)
-                .retry(null)
-                .normal(null)
-                .push(null)
                 .build();
 
         given(dailyAnalysisRepository.findByUserUserIdAndTargetDate(1L, today))
