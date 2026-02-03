@@ -48,11 +48,11 @@ public record MonthlyPatternResponse(
     @Schema(description = "AI 피드백")
     @Builder
     public record AiFeedback(
-            @Schema(description = "분석 요약", example = "월요일에 가장 잘 수행하고 있어요! (성공률 85%)")
-            String summary,
+            @Schema(description = "요일별 피드백 제목", example = "화요일에 집중해보세요")
+            String dayOfWeekFeedbackTitle,
 
-            @Schema(description = "추천 사항", example = "현재 패턴을 유지하면서 꾸준히 진행해보세요!")
-            String recommendation
+            @Schema(description = "요일별 피드백 내용")
+            String dayOfWeekFeedbackContent
     ) {
     }
 }
