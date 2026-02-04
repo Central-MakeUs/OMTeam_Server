@@ -13,7 +13,7 @@ services:
       - OAUTH_GOOGLE_IOS_CLIENT_ID=${OAUTH_GOOGLE_IOS_CLIENT_ID}
       - OAUTH_KAKAO_CLIENT_ID=${OAUTH_KAKAO_CLIENT_ID}
       - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
-      - AI_SERVER_URL=http://omt-ai:8000
+      - AI_SERVER_BASE_URL=http://omt-ai:8000
       - SPRING_DATA_REDIS_HOST=omt-redis
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
@@ -31,9 +31,25 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2G
+          memory: 1G
 
-  # MySQL is not used in prod (using RDS instead)
-  mysql:
-    profiles:
-      - never
+  nginx:
+    image: nginx:1.25
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/www:/var/www/certbot
+      - ./certs:/etc/letsencrypt
+    depends_on:
+      - omt-app
+    restart: always
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certs:/etc/letsencrypt
