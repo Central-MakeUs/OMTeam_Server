@@ -182,8 +182,21 @@ jobs:
             docker image prune -f
 
             echo "서비스 상태 확인 중..."
-            sleep 30
-            curl -f http://localhost:8080/actuator/health || exit 1
+            for i in {1..20}; do
+              status=$(docker inspect --format='{{.State.Health.Status}}' omt-app 2>/dev/null || echo "starting")
+              if [ "$status" = "healthy" ]; then
+                echo "omt-app is healthy"
+                break
+              fi
+              echo "Waiting for omt-app... ($status)"
+              sleep 10
+            done
+
+            if [ "$status" != "healthy" ]; then
+              echo "omt-app health check failed"
+              docker logs omt-app --tail 50
+              exit 1
+            fi
 
             echo "배포가 정상적으로 완료되었습니다."
 
