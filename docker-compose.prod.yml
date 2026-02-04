@@ -47,6 +47,8 @@ services:
     depends_on:
       - omt-app
     restart: always
+    networks:
+      - omt-network
 
   certbot:
     image: certbot/certbot
