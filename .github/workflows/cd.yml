@@ -124,9 +124,9 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            rm -rf /home/${{ secrets.EC2_USERNAME }}/omt/nginx
-            rm -f /home/${{ secrets.EC2_USERNAME }}/omt/docker-compose.yml
-            rm -f /home/${{ secrets.EC2_USERNAME }}/omt/docker-compose.prod.yml
+            sudo rm -rf /home/${{ secrets.EC2_USERNAME }}/omt/nginx
+            sudo rm -f /home/${{ secrets.EC2_USERNAME }}/omt/docker-compose.yml
+            sudo rm -f /home/${{ secrets.EC2_USERNAME }}/omt/docker-compose.prod.yml
 
       - name: EC2로 배포 파일 전송
         uses: appleboy/scp-action@v0.1.7
