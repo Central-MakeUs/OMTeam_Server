@@ -30,6 +30,8 @@ jwt:
   secret: test-jwt-secret-key-must-be-at-least-32-characters-long
   access-token-expire-seconds: 300
   refresh-token-expire-seconds: 1209600
+  issuer: omt-server
+  audience: omt-client
 
 server:
   env: test

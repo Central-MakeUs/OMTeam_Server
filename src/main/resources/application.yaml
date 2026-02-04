@@ -36,6 +36,8 @@ jwt:
   secret: ${JWT_SECRET}
   access-token-expire-seconds: ${JWT_ACCESS_EXPIRE:300}
   refresh-token-expire-seconds: ${JWT_REFRESH_EXPIRE:1209600}
+  issuer: ${JWT_ISSUER:omt-server}
+  audience: ${JWT_AUDIENCE:omt-client}
 
 ai-server:
   base-url: ${AI_SERVER_BASE_URL:http://localhost:8000}
