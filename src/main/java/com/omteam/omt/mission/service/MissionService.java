@@ -23,8 +23,7 @@ import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
 import com.omteam.omt.mission.repository.MissionRepository;
 import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.domain.UserOnboarding;
-import com.omteam.omt.user.repository.UserOnboardingRepository;
-import com.omteam.omt.user.repository.UserRepository;
+import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +42,7 @@ public class MissionService {
     private final MissionRepository missionRepository;
     private final DailyRecommendedMissionRepository recommendedMissionRepository;
     private final DailyMissionResultRepository missionResultRepository;
-    private final UserRepository userRepository;
-    private final UserOnboardingRepository userOnboardingRepository;
+    private final UserQueryService userQueryService;
     private final AiMissionClient aiMissionClient;
     private final CharacterService characterService;
 
@@ -52,7 +50,7 @@ public class MissionService {
 
     public DailyMissionRecommendResponse recommendDailyMissions(Long userId) {
         LocalDate today = LocalDate.now();
-        User user = findUserById(userId);
+        User user = userQueryService.getUser(userId);
 
         // 오늘 이미 완료된 미션이 있으면 추천 불가
         validateNoMissionResultToday(userId, today);
@@ -100,7 +98,7 @@ public class MissionService {
         validateNoMissionResultTodayForComplete(userId, today);
 
         DailyRecommendedMission inProgressMission = getInProgressMissionOrThrow(userId, today);
-        User user = findUserById(userId);
+        User user = userQueryService.getUser(userId);
 
         DailyMissionResult missionResult = DailyMissionResult.builder()
                 .missionDate(today)
@@ -198,11 +196,6 @@ public class MissionService {
                 mission.getUser().getUserId(), mission.getMission().getId(), targetDate);
     }
 
-    private User findUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-    }
-
     private void expireExistingRecommendations(Long userId, LocalDate date) {
         recommendedMissionRepository
                 .findByUserUserIdAndMissionDateAndStatusNot(userId, date, RecommendedMissionStatus.EXPIRED)
@@ -212,8 +205,7 @@ public class MissionService {
     }
 
     private AiMissionRecommendRequest buildAiRequest(Long userId) {
-        UserOnboarding onboarding = userOnboardingRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
 
         LocalDate weekAgo = LocalDate.now().minusDays(RECENT_HISTORY_DAYS);
 

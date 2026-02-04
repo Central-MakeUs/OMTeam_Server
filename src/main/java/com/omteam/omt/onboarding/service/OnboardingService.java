@@ -9,7 +9,7 @@ import com.omteam.omt.user.domain.UserNotificationSetting;
 import com.omteam.omt.user.domain.UserOnboarding;
 import com.omteam.omt.user.repository.UserNotificationSettingRepository;
 import com.omteam.omt.user.repository.UserOnboardingRepository;
-import com.omteam.omt.user.repository.UserRepository;
+import com.omteam.omt.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,14 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class OnboardingService {
 
-    private final UserRepository userRepository;
+    private final UserQueryService userQueryService;
     private final UserOnboardingRepository userOnboardingRepository;
     private final UserNotificationSettingRepository userNotificationSettingRepository;
 
     @Transactional
     public OnboardingResponse createOnboarding(Long userId, OnboardingRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userQueryService.getUser(userId);
 
         if (user.isOnboardingCompleted()) {
             throw new BusinessException(ErrorCode.ONBOARDING_ALREADY_COMPLETED);
@@ -59,15 +58,13 @@ public class OnboardingService {
 
     @Transactional
     public OnboardingResponse updateOnboarding(Long userId, OnboardingRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userQueryService.getUser(userId);
 
         if (!user.isOnboardingCompleted()) {
             throw new BusinessException(ErrorCode.ONBOARDING_NOT_COMPLETED);
         }
 
-        UserOnboarding onboarding = userOnboardingRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
 
         UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
@@ -95,15 +92,13 @@ public class OnboardingService {
 
     @Transactional(readOnly = true)
     public OnboardingResponse getOnboarding(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userQueryService.getUser(userId);
 
         if (!user.isOnboardingCompleted()) {
             throw new BusinessException(ErrorCode.ONBOARDING_NOT_COMPLETED);
         }
 
-        UserOnboarding onboarding = userOnboardingRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
 
         UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
