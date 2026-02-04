@@ -19,7 +19,7 @@ import com.omteam.omt.common.ai.service.UserContextService;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.user.domain.User;
-import com.omteam.omt.user.repository.UserRepository;
+import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -39,7 +39,7 @@ public class ChatService {
 
     private final ChatSessionRepository sessionRepository;
     private final ChatMessageRepository messageRepository;
-    private final UserRepository userRepository;
+    private final UserQueryService userQueryService;
     private final UserContextService userContextService;
     private final AiChatClient aiChatClient;
     private final ObjectMapper objectMapper;
@@ -85,8 +85,7 @@ public class ChatService {
      */
     @Transactional
     public ChatMessageResponse sendMessage(Long userId, ChatMessageRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = userQueryService.getUser(userId);
 
         // 1. 활성 세션 조회 또는 생성
         ChatSession session = sessionRepository.findByUserUserIdAndIsActiveTrue(userId)
