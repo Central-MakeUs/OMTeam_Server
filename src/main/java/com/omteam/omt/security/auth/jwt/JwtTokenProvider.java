@@ -9,8 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -40,6 +42,8 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
+                    .requireIssuer(jwtProperties.getIssuer())
+                    .requireAudience(jwtProperties.getAudience())
                     .verifyWith(getSigningKey())
                     .build()
                     .parseSignedClaims(token);
@@ -50,13 +54,19 @@ public class JwtTokenProvider {
     }
 
     public Long getUserId(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
-        return Long.parseLong(claims.getSubject());
+        try {
+            Claims claims = Jwts.parser()
+                    .requireIssuer(jwtProperties.getIssuer())
+                    .requireAudience(jwtProperties.getAudience())
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return Long.parseLong(claims.getSubject());
+        } catch (NumberFormatException e) {
+            log.warn("JWT subject를 Long으로 변환할 수 없습니다: {}", e.getMessage());
+            return null;
+        }
     }
 
     private String createToken(Long userId, long expireSeconds) {
@@ -64,6 +74,8 @@ public class JwtTokenProvider {
         Date expiry = new Date(now.getTime() + expireSeconds * 1000);
 
         return Jwts.builder()
+                .issuer(jwtProperties.getIssuer())
+                .audience().add(jwtProperties.getAudience()).and()
                 .subject(String.valueOf(userId))
                 .issuedAt(now)
                 .expiration(expiry)
