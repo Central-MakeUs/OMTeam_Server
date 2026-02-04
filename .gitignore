@@ -45,6 +45,7 @@ out/
 ### Environment & Secrets ###
 .env
 .env.*
+!.env.example
 *.key
 *.pem
 *.crt
@@ -63,4 +64,3 @@ data/
 ### Docker ###
 docker-compose.override.yml
 *.pid
-docker-compose.local.yml

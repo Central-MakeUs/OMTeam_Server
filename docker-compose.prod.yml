@@ -1,26 +1,25 @@
-# Production override - use with: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+# Production override
+# 사용: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 services:
   omt-app:
     image: ${ECR_REGISTRY}/omt-app:${IMAGE_TAG:-latest}
+    build: !reset null
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=${RDS_URL}
-      - SPRING_DATASOURCE_USERNAME=${RDS_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${RDS_PASSWORD}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=${SPRING_DATA_REDIS_HOST:-omt-redis}
+      - SPRING_DATA_REDIS_PORT=${SPRING_DATA_REDIS_PORT:-6379}
       - JWT_SECRET=${JWT_SECRET}
-      - OAUTH_GOOGLE_ANDROID_CLIENT_ID=${OAUTH_GOOGLE_ANDROID_CLIENT_ID}
+      - JWT_ACCESS_EXPIRE=${JWT_ACCESS_EXPIRE:-300}
+      - JWT_REFRESH_EXPIRE=${JWT_REFRESH_EXPIRE:-1209600}
       - OAUTH_GOOGLE_IOS_CLIENT_ID=${OAUTH_GOOGLE_IOS_CLIENT_ID}
+      - OAUTH_GOOGLE_ANDROID_CLIENT_ID=${OAUTH_GOOGLE_ANDROID_CLIENT_ID}
       - OAUTH_KAKAO_CLIENT_ID=${OAUTH_KAKAO_CLIENT_ID}
       - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
-      - AI_SERVER_BASE_URL=http://omt-ai:8000
-      - SPRING_DATA_REDIS_HOST=omt-redis
-      - SPRING_DATA_REDIS_PORT=6379
-    depends_on:
-      omt-ai:
-        condition: service_started
-      redis:
-        condition: service_healthy
+      - AI_SERVER_BASE_URL=${AI_SERVER_BASE_URL:-http://omt-ai:8000}
     deploy:
       resources:
         limits:
@@ -28,6 +27,7 @@ services:
 
   omt-ai:
     image: ${ECR_REGISTRY}/omt-ai:${IMAGE_TAG:-latest}
+    build: !reset null
     deploy:
       resources:
         limits:

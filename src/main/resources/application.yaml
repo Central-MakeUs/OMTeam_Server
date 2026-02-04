@@ -1,18 +1,39 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/omt?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: ${SPRING_DATA_REDIS_HOST:omt-redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        jdbc:
+          time_zone: Asia/Seoul
+
+oauth:
+  google:
+    ios-client-id: ${OAUTH_GOOGLE_IOS_CLIENT_ID}
+    android-client-id: ${OAUTH_GOOGLE_ANDROID_CLIENT_ID}
+  kakao:
+    client-id: ${OAUTH_KAKAO_CLIENT_ID}
+  apple:
+    client-id: ${OAUTH_APPLE_CLIENT_ID}
+    public-key-uri: https://appleid.apple.com/auth/keys
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expire-seconds: ${JWT_ACCESS_EXPIRE:300}
+  refresh-token-expire-seconds: ${JWT_REFRESH_EXPIRE:1209600}
 
 ai-server:
   base-url: ${AI_SERVER_BASE_URL:http://localhost:8000}
   timeout-seconds: ${AI_SERVER_TIMEOUT:30}
-

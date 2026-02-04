@@ -1,3 +1,7 @@
+# OMT Server Docker Compose
+# 로컬: docker compose up -d
+# 배포: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
 services:
   # OMT App Server (Spring Boot)
   omt-app:
@@ -5,19 +9,23 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     container_name: omt-app
+    ports:
+      - "${APP_PORT:-8080}:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/omt?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul}
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-omt}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-omt1234}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:mysql://host.docker.internal:3306/omt_local_db}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-root}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=${SPRING_DATA_REDIS_HOST:-omt-redis}
+      - SPRING_DATA_REDIS_PORT=${SPRING_DATA_REDIS_PORT:-6379}
       - JWT_SECRET=${JWT_SECRET}
+      - JWT_ACCESS_EXPIRE=${JWT_ACCESS_EXPIRE:-300}
+      - JWT_REFRESH_EXPIRE=${JWT_REFRESH_EXPIRE:-1209600}
       - OAUTH_GOOGLE_IOS_CLIENT_ID=${OAUTH_GOOGLE_IOS_CLIENT_ID}
       - OAUTH_GOOGLE_ANDROID_CLIENT_ID=${OAUTH_GOOGLE_ANDROID_CLIENT_ID}
       - OAUTH_KAKAO_CLIENT_ID=${OAUTH_KAKAO_CLIENT_ID}
       - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
-      - AI_SERVER_BASE_URL=http://omt-ai:8000
-      - SPRING_DATA_REDIS_HOST=omt-redis
-      - SPRING_DATA_REDIS_PORT=6379
+      - AI_SERVER_BASE_URL=${AI_SERVER_BASE_URL:-http://omt-ai:8000}
     depends_on:
       omt-ai:
         condition: service_started
@@ -50,7 +58,7 @@ services:
       - UPSTAGE_API_KEY=${UPSTAGE_API_KEY}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
-      - LANGFUSE_HOST=${LANGFUSE_HOST}
+      - LANGFUSE_HOST=${LANGFUSE_HOST:-https://cloud.langfuse.com}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -65,7 +73,7 @@ services:
         limits:
           memory: 1G
 
-  # Redis (Optional - for caching/session)
+  # Redis (for caching/session)
   redis:
     image: redis:7-alpine
     container_name: omt-redis
@@ -81,9 +89,6 @@ services:
     restart: unless-stopped
     networks:
       - omt-network
-    profiles:
-      - dev
-      - prod
 
 networks:
   omt-network:

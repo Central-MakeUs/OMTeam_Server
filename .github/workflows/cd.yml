@@ -161,9 +161,9 @@ jobs:
             OAUTH_GOOGLE_ANDROID_CLIENT_ID=${{ secrets.OAUTH_GOOGLE_ANDROID_CLIENT_ID }}
             OAUTH_KAKAO_CLIENT_ID=${{ secrets.OAUTH_KAKAO_CLIENT_ID }}
             OAUTH_APPLE_CLIENT_ID=${{ secrets.OAUTH_APPLE_CLIENT_ID }}
-            RDS_URL=${{ secrets.RDS_URL }}
-            RDS_USERNAME=${{ secrets.RDS_USERNAME }}
-            RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
+            SPRING_DATASOURCE_URL=${{ secrets.RDS_URL }}
+            SPRING_DATASOURCE_USERNAME=${{ secrets.RDS_USERNAME }}
+            SPRING_DATASOURCE_PASSWORD=${{ secrets.RDS_PASSWORD }}
             ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             UPSTAGE_API_KEY=${{ secrets.UPSTAGE_API_KEY }}
