@@ -123,7 +123,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml,docker-compose.prod.yml,scripts/deploy.sh"
+          source: "docker-compose.yml,docker-compose.prod.yml,scripts/deploy.sh,nginx/"
           target: /home/${{ secrets.EC2_USERNAME }}/omt
           strip_components: 0
 
@@ -135,6 +135,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/${{ secrets.EC2_USERNAME }}/omt
+
+            # certbot 및 certs 디렉토리 생성
+            mkdir -p certbot/www certs
 
             # .env 파일 생성
             cat > .env << 'ENVEOF'
