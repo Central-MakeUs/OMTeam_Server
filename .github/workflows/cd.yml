@@ -117,6 +117,17 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: EC2 기존 배포 파일 정리
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            rm -rf /home/${{ secrets.EC2_USERNAME }}/omt/nginx
+            rm -f /home/${{ secrets.EC2_USERNAME }}/omt/docker-compose.yml
+            rm -f /home/${{ secrets.EC2_USERNAME }}/omt/docker-compose.prod.yml
+
       - name: EC2로 배포 파일 전송
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -126,6 +137,7 @@ jobs:
           source: "docker-compose.yml,docker-compose.prod.yml,scripts/deploy.sh,nginx/"
           target: /home/${{ secrets.EC2_USERNAME }}/omt
           strip_components: 0
+          overwrite: true
 
       - name: SSH로 EC2 배포 실행
         uses: appleboy/ssh-action@v1.0.3
