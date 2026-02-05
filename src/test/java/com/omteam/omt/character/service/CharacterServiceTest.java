@@ -14,7 +14,7 @@ import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
 import com.omteam.omt.user.domain.UserCharacter;
-import com.omteam.omt.user.repository.UserCharacterRepository;
+import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CharacterServiceTest {
 
     @Mock
-    UserCharacterRepository characterRepository;
+    UserQueryService userQueryService;
     @Mock
     DailyAnalysisRepository dailyAnalysisRepository;
     @Mock
@@ -43,7 +43,7 @@ class CharacterServiceTest {
     @BeforeEach
     void setUp() {
         characterService = new CharacterService(
-                characterRepository,
+                userQueryService,
                 dailyAnalysisRepository,
                 missionResultRepository,
                 recommendedMissionRepository
@@ -55,7 +55,7 @@ class CharacterServiceTest {
     void recordMissionSuccess_increases_count() {
         // given
         UserCharacter character = createCharacter(1, 5);
-        given(characterRepository.findById(userId)).willReturn(Optional.of(character));
+        given(userQueryService.getUserCharacter(userId)).willReturn(character);
 
         // when
         characterService.recordMissionSuccess(userId);
@@ -69,7 +69,7 @@ class CharacterServiceTest {
     void recordMissionSuccess_level_up_at_30() {
         // given
         UserCharacter character = createCharacter(1, 29);
-        given(characterRepository.findById(userId)).willReturn(Optional.of(character));
+        given(userQueryService.getUserCharacter(userId)).willReturn(character);
 
         // when
         characterService.recordMissionSuccess(userId);
@@ -83,7 +83,7 @@ class CharacterServiceTest {
     @DisplayName("미션 성공 기록 실패 - 사용자 없음")
     void recordMissionSuccess_fail_user_not_found() {
         // given
-        given(characterRepository.findById(userId)).willReturn(Optional.empty());
+        given(userQueryService.getUserCharacter(userId)).willThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> characterService.recordMissionSuccess(userId))
@@ -100,7 +100,7 @@ class CharacterServiceTest {
         DailyAnalysis dailyAnalysis = createDailyAnalysis();
         DailyMissionResult yesterdayResult = createMissionResult(MissionResult.SUCCESS);
 
-        given(characterRepository.findById(userId)).willReturn(Optional.of(character));
+        given(userQueryService.getUserCharacter(userId)).willReturn(character);
         given(dailyAnalysisRepository.findByUserUserIdAndTargetDate(eq(userId), any(LocalDate.class)))
                 .willReturn(Optional.of(dailyAnalysis));
         given(missionResultRepository.findByUserUserIdAndMissionDate(eq(userId), any(LocalDate.class)))
@@ -123,7 +123,7 @@ class CharacterServiceTest {
         // given
         UserCharacter character = createCharacter(1, 10);
 
-        given(characterRepository.findById(userId)).willReturn(Optional.of(character));
+        given(userQueryService.getUserCharacter(userId)).willReturn(character);
         given(dailyAnalysisRepository.findByUserUserIdAndTargetDate(eq(userId), any(LocalDate.class)))
                 .willReturn(Optional.empty());
 
@@ -139,7 +139,7 @@ class CharacterServiceTest {
     @DisplayName("캐릭터 정보 조회 실패 - 사용자 없음")
     void getCharacterInfo_fail_user_not_found() {
         // given
-        given(characterRepository.findById(userId)).willReturn(Optional.empty());
+        given(userQueryService.getUserCharacter(userId)).willThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> characterService.getCharacterInfo(userId))

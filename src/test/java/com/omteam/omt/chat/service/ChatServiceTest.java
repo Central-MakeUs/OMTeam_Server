@@ -21,7 +21,7 @@ import com.omteam.omt.common.ai.service.UserContextService;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.user.domain.User;
-import com.omteam.omt.user.repository.UserRepository;
+import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +42,7 @@ class ChatServiceTest {
     @Mock
     ChatMessageRepository messageRepository;
     @Mock
-    UserRepository userRepository;
+    UserQueryService userQueryService;
     @Mock
     UserContextService userContextService;
     @Mock
@@ -62,7 +62,7 @@ class ChatServiceTest {
         chatService = new ChatService(
                 sessionRepository,
                 messageRepository,
-                userRepository,
+                userQueryService,
                 userContextService,
                 aiChatClient,
                 objectMapper,
@@ -173,7 +173,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("안녕하세요! 무엇을 도와드릴까요?", null, false);
         ChatMessage savedAssistantMessage = createChatMessage(1L, ChatMessageRole.ASSISTANT, "안녕하세요! 무엇을 도와드릴까요?");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.empty());
         given(sessionRepository.save(any(ChatSession.class))).willReturn(newSession);
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
@@ -206,7 +206,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("그럴 수 있어요. 어떤 부분이 힘든가요?", null, false);
         ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT, "그럴 수 있어요. 어떤 부분이 힘든가요?");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
@@ -237,7 +237,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("시간이 부족하시군요. 짧은 운동을 추천해드릴게요.", null, false);
         ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT, "시간이 부족하시군요. 짧은 운동을 추천해드릴게요.");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
@@ -272,7 +272,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("도움이 되셨길 바랍니다. 좋은 하루 되세요!", null, true);
         ChatMessage savedAssistantMessage = createTerminalChatMessage(2L, ChatMessageRole.ASSISTANT, "도움이 되셨길 바랍니다. 좋은 하루 되세요!");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
@@ -303,7 +303,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("다른 도움이 필요하신가요?", null, false);
         ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT, "다른 도움이 필요하신가요?");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
@@ -334,7 +334,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("천만에요! 좋은 하루 되세요!", null, true);
         ChatMessage savedAssistantMessage = createTerminalChatMessage(2L, ChatMessageRole.ASSISTANT, "천만에요! 좋은 하루 되세요!");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
@@ -365,7 +365,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("어떤 운동을 원하시나요?", null, false);
         ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT, "어떤 운동을 원하시나요?");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
@@ -391,7 +391,7 @@ class ChatServiceTest {
                 .text(null)
                 .build();
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
 
         // when & then
@@ -412,7 +412,7 @@ class ChatServiceTest {
                 .text("   ")
                 .build();
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
 
         // when & then
@@ -433,7 +433,7 @@ class ChatServiceTest {
                 .value(null)
                 .build();
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
 
         // when & then
@@ -452,7 +452,7 @@ class ChatServiceTest {
                 .text("안녕하세요")
                 .build();
 
-        given(userRepository.findById(userId)).willReturn(Optional.empty());
+        given(userQueryService.getUser(userId)).willThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         // when & then
         assertThatThrownBy(() -> chatService.sendMessage(userId, request))
