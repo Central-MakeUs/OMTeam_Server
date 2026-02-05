@@ -303,7 +303,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("다른 도움이 필요하신가요?", null, false);
         ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT, "다른 도움이 필요하신가요?");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
@@ -334,7 +334,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("천만에요! 좋은 하루 되세요!", null, true);
         ChatMessage savedAssistantMessage = createTerminalChatMessage(2L, ChatMessageRole.ASSISTANT, "천만에요! 좋은 하루 되세요!");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
@@ -365,7 +365,7 @@ class ChatServiceTest {
         AiChatResponse aiResponse = createAiChatResponse("어떤 운동을 원하시나요?", null, false);
         ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT, "어떤 운동을 원하시나요?");
 
-        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
         given(userContextService.buildContext(userId)).willReturn(createUserContext());
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
