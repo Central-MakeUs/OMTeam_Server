@@ -55,7 +55,7 @@ public class UserContextService {
                 .findByUserUserIdAndMissionDateBetween(userId, startDate, endDate);
 
         if (recentResults.isEmpty()) {
-            return null;
+            return 0.0;
         }
 
         long successCount = recentResults.stream()
