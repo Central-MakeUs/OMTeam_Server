@@ -1,5 +1,7 @@
 package com.omteam.omt.report.service;
 
+import com.omteam.omt.common.ai.dto.UserContext;
+import com.omteam.omt.common.ai.service.UserContextService;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.report.client.AiDailyAnalysisClient;
@@ -31,6 +33,7 @@ public class DailyAnalysisService {
     private final DailyAnalysisRepository dailyAnalysisRepository;
     private final DailyMissionResultRepository missionResultRepository;
     private final UserRepository userRepository;
+    private final UserContextService userContextService;
 
     /**
      * 모든 활성 사용자에 대해 오늘의 격려 메시지를 생성한다.
@@ -79,9 +82,12 @@ public class DailyAnalysisService {
     }
 
     private AiDailyAnalysisRequest buildRequest(Long userId, LocalDate targetDate, DailyMissionResult yesterdayResult) {
+        UserContext userContext = userContextService.buildContext(userId);
+
         AiDailyAnalysisRequest.AiDailyAnalysisRequestBuilder builder = AiDailyAnalysisRequest.builder()
                 .userId(userId)
-                .targetDate(targetDate.toString());
+                .targetDate(targetDate.toString())
+                .userContext(userContext);
 
         if (yesterdayResult != null) {
             builder.todayMission(AiDailyAnalysisRequest.TodayMission.builder()

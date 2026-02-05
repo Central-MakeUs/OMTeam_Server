@@ -3,6 +3,9 @@ package com.omteam.omt.report.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omteam.omt.common.ai.dto.UserContext;
+import com.omteam.omt.common.ai.service.UserContextService;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
@@ -40,6 +43,12 @@ class WeeklyAnalysisServiceTest {
     @Mock
     AiWeeklyAnalysisClient aiWeeklyAnalysisClient;
 
+    @Mock
+    UserContextService userContextService;
+
+    @Mock
+    ObjectMapper objectMapper;
+
     WeeklyAnalysisService weeklyAnalysisService;
 
     final LocalDate monday = LocalDate.of(2024, 1, 15);
@@ -50,7 +59,9 @@ class WeeklyAnalysisServiceTest {
                 userRepository,
                 missionResultRepository,
                 weeklyAiAnalysisRepository,
-                aiWeeklyAnalysisClient
+                aiWeeklyAnalysisClient,
+                userContextService,
+                objectMapper
         );
     }
 
@@ -65,15 +76,20 @@ class WeeklyAnalysisServiceTest {
             User user1 = User.builder().userId(1L).build();
             User user2 = User.builder().userId(2L).build();
 
+            UserContext mockUserContext = UserContext.builder()
+                    .nickname("테스트 사용자")
+                    .appGoal("건강 증진")
+                    .currentLevel(1)
+                    .build();
+
             given(userRepository.findAllByDeletedAtIsNull()).willReturn(List.of(user1, user2));
             given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(anyLong(), any()))
                     .willReturn(Optional.empty());
             given(missionResultRepository.findByUserUserIdAndMissionDateBetween(anyLong(), any(), any()))
                     .willReturn(List.of());
+            given(userContextService.buildContext(anyLong())).willReturn(mockUserContext);
 
             AiWeeklyAnalysisResponse aiResponse = new AiWeeklyAnalysisResponse();
-            aiResponse.setMainFailureReason("테스트");
-            aiResponse.setOverallFeedback("피드백");
             given(aiWeeklyAnalysisClient.analyzeWeeklyMissions(any())).willReturn(aiResponse);
 
             // when
@@ -91,15 +107,20 @@ class WeeklyAnalysisServiceTest {
             User user1 = User.builder().userId(1L).build();
             User user2 = User.builder().userId(2L).build();
 
+            UserContext mockUserContext = UserContext.builder()
+                    .nickname("테스트 사용자")
+                    .appGoal("건강 증진")
+                    .currentLevel(1)
+                    .build();
+
             given(userRepository.findAllByDeletedAtIsNull()).willReturn(List.of(user1, user2));
             given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(anyLong(), any()))
                     .willReturn(Optional.empty());
             given(missionResultRepository.findByUserUserIdAndMissionDateBetween(anyLong(), any(), any()))
                     .willReturn(List.of());
+            given(userContextService.buildContext(anyLong())).willReturn(mockUserContext);
 
             AiWeeklyAnalysisResponse aiResponse = new AiWeeklyAnalysisResponse();
-            aiResponse.setMainFailureReason("테스트");
-            aiResponse.setOverallFeedback("피드백");
 
             // 첫 번째 사용자 실패, 두 번째 사용자 성공
             given(aiWeeklyAnalysisClient.analyzeWeeklyMissions(any()))
@@ -147,6 +168,12 @@ class WeeklyAnalysisServiceTest {
             User user = User.builder().userId(1L).build();
             LocalDate weekEnd = monday.plusDays(6);
 
+            UserContext mockUserContext = UserContext.builder()
+                    .nickname("테스트 사용자")
+                    .appGoal("건강 증진")
+                    .currentLevel(1)
+                    .build();
+
             List<DailyMissionResult> results = List.of(
                     DailyMissionResult.builder()
                             .missionDate(monday)
@@ -168,10 +195,9 @@ class WeeklyAnalysisServiceTest {
                     .willReturn(Optional.empty());
             given(missionResultRepository.findByUserUserIdAndMissionDateBetween(1L, monday, weekEnd))
                     .willReturn(results);
+            given(userContextService.buildContext(1L)).willReturn(mockUserContext);
 
             AiWeeklyAnalysisResponse aiResponse = new AiWeeklyAnalysisResponse();
-            aiResponse.setMainFailureReason("시간 부족");
-            aiResponse.setOverallFeedback("피드백");
             given(aiWeeklyAnalysisClient.analyzeWeeklyMissions(any())).willReturn(aiResponse);
 
             // when
@@ -193,14 +219,20 @@ class WeeklyAnalysisServiceTest {
             User user = User.builder().userId(1L).build();
             LocalDate weekEnd = monday.plusDays(6);
 
+            UserContext mockUserContext = UserContext.builder()
+                    .nickname("테스트 사용자")
+                    .appGoal("건강 증진")
+                    .currentLevel(1)
+                    .build();
+
             given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(1L, monday))
                     .willReturn(Optional.empty());
             given(missionResultRepository.findByUserUserIdAndMissionDateBetween(1L, monday, weekEnd))
                     .willReturn(List.of());
+            given(userContextService.buildContext(1L)).willReturn(mockUserContext);
 
             AiWeeklyAnalysisResponse aiResponse = new AiWeeklyAnalysisResponse();
-            aiResponse.setMainFailureReason("시간 부족");
-            aiResponse.setOverallFeedback("종합 피드백");
+            aiResponse.setWeeklyFeedback("이번주 피드백");
             given(aiWeeklyAnalysisClient.analyzeWeeklyMissions(any())).willReturn(aiResponse);
 
             // when
@@ -214,8 +246,7 @@ class WeeklyAnalysisServiceTest {
             WeeklyAiAnalysis savedAnalysis = analysisCaptor.getValue();
             assertThat(savedAnalysis.getUser()).isEqualTo(user);
             assertThat(savedAnalysis.getWeekStartDate()).isEqualTo(monday);
-            assertThat(savedAnalysis.getMainFailureReason()).isEqualTo("시간 부족");
-            assertThat(savedAnalysis.getOverallFeedback()).isEqualTo("종합 피드백");
+            assertThat(savedAnalysis.getWeeklyFeedback()).isEqualTo("이번주 피드백");
         }
     }
 }
