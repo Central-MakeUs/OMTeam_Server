@@ -3,6 +3,7 @@ package com.omteam.omt.report.client;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.config.properties.AiServerProperties;
@@ -54,16 +55,23 @@ class AiWeeklyAnalysisClientTest {
     @DisplayName("AI 서버 호출 성공 시 응답 반환")
     void analyzeWeeklyMissions_success() {
         // given
+        UserContext mockUserContext = UserContext.builder()
+                .nickname("테스트 사용자")
+                .appGoal("건강 증진")
+                .currentLevel(1)
+                .build();
+
         AiWeeklyAnalysisRequest request = AiWeeklyAnalysisRequest.of(
                 1L,
+                mockUserContext,
                 LocalDate.of(2024, 1, 15),
                 LocalDate.of(2024, 1, 21),
-                List.of("시간 부족", "피로")
+                List.of("시간 부족", "피로"),
+                List.of(),
+                List.of()
         );
 
         AiWeeklyAnalysisResponse expectedResponse = new AiWeeklyAnalysisResponse();
-        expectedResponse.setMainFailureReason("시간 부족");
-        expectedResponse.setOverallFeedback("이번 주 피드백입니다.");
 
         given(aiServerProperties.getBaseUrl()).willReturn("http://localhost:8000");
         given(aiServerProperties.getTimeoutSeconds()).willReturn(30);
@@ -80,18 +88,27 @@ class AiWeeklyAnalysisClientTest {
         AiWeeklyAnalysisResponse response = aiWeeklyAnalysisClient.analyzeWeeklyMissions(request);
 
         // then
-        assertThat(response.getMainFailureReason()).isEqualTo("시간 부족");
-        assertThat(response.getOverallFeedback()).isEqualTo("이번 주 피드백입니다.");
+        assertThat(response).isNotNull();
+        assertThat(response).isEqualTo(expectedResponse);
     }
 
     @Test
     @DisplayName("AI 서버 응답 오류 시 AI_SERVER_ERROR 예외 발생")
     void analyzeWeeklyMissions_serverError() {
         // given
+        UserContext mockUserContext = UserContext.builder()
+                .nickname("테스트 사용자")
+                .appGoal("건강 증진")
+                .currentLevel(1)
+                .build();
+
         AiWeeklyAnalysisRequest request = AiWeeklyAnalysisRequest.of(
                 1L,
+                mockUserContext,
                 LocalDate.of(2024, 1, 15),
                 LocalDate.of(2024, 1, 21),
+                List.of(),
+                List.of(),
                 List.of()
         );
 
@@ -116,10 +133,19 @@ class AiWeeklyAnalysisClientTest {
     @DisplayName("AI 서버 연결 오류 시 AI_SERVER_CONNECTION_ERROR 예외 발생")
     void analyzeWeeklyMissions_connectionError() {
         // given
+        UserContext mockUserContext = UserContext.builder()
+                .nickname("테스트 사용자")
+                .appGoal("건강 증진")
+                .currentLevel(1)
+                .build();
+
         AiWeeklyAnalysisRequest request = AiWeeklyAnalysisRequest.of(
                 1L,
+                mockUserContext,
                 LocalDate.of(2024, 1, 15),
                 LocalDate.of(2024, 1, 21),
+                List.of(),
+                List.of(),
                 List.of()
         );
 

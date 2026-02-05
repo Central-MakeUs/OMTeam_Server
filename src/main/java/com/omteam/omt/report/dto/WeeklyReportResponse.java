@@ -34,7 +34,7 @@ public record WeeklyReportResponse(
         @Schema(description = "실패 원인 순위 (상위 3개)")
         List<FailureReasonRank> topFailureReasons,
 
-        @Schema(description = "AI 피드백")
+        @Schema(description = "AI 피드백 (주간)")
         AiFeedback aiFeedback
 ) {
 
@@ -95,13 +95,26 @@ public record WeeklyReportResponse(
             int count
     ) {}
 
-    @Schema(description = "AI 피드백")
+    @Schema(name = "WeeklyAiFeedback", description = "AI 피드백 (주간)")
     @Builder
     public record AiFeedback(
-            @Schema(description = "주요 실패 원인", example = "시간 부족")
-            String mainFailureReason,
+            @Schema(description = "이번주 실패 원인 순위 (AI 카테고리화)")
+            List<AiFailureReasonRank> failureReasonRanking,
 
-            @Schema(description = "종합 피드백", example = "이번 주는 업무가 많아 운동 시간 확보가 어려웠습니다.")
-            String overallFeedback
+            @Schema(description = "이번주 결과에 대한 피드백")
+            String weeklyFeedback
+    ) {}
+
+    @Schema(description = "AI 분석 실패 원인 순위")
+    @Builder
+    public record AiFailureReasonRank(
+            @Schema(description = "순위", example = "1")
+            int rank,
+
+            @Schema(description = "카테고리 (AI가 분류)", example = "시간 부족")
+            String category,
+
+            @Schema(description = "발생 횟수", example = "3")
+            int count
     ) {}
 }

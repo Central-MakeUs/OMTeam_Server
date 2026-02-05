@@ -22,7 +22,7 @@ public class AiChatClient {
     private final WebClient webClient;
     private final AiServerProperties aiServerProperties;
 
-    private static final String CHAT_ENDPOINT = "/ai/chat";
+    private static final String CHAT_ENDPOINT = "/ai/chat/messages";
 
     public AiChatResponse sendMessage(AiChatRequest request) {
         try {

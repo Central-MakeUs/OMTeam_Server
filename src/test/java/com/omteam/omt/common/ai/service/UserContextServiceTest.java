@@ -163,7 +163,7 @@ class UserContextServiceTest {
     }
 
     @Test
-    @DisplayName("미션 결과가 없는 경우 성공률 null 반환")
+    @DisplayName("미션 결과가 없는 경우 성공률 0.0 반환")
     void calculateSuccessRate_no_results() {
         // given
         User user = createUser("테스트유저");
@@ -178,7 +178,7 @@ class UserContextServiceTest {
         UserContext context = userContextService.buildContext(userId);
 
         // then
-        assertThat(context.getRecentMissionSuccessRate()).isNull();
+        assertThat(context.getRecentMissionSuccessRate()).isEqualTo(0.0);
     }
 
     @Test

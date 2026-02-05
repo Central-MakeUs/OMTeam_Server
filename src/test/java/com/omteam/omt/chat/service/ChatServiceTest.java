@@ -47,6 +47,8 @@ class ChatServiceTest {
     UserContextService userContextService;
     @Mock
     AiChatClient aiChatClient;
+    @Mock
+    ChatTerminationDetector terminationDetector;
 
     ChatService chatService;
     ObjectMapper objectMapper;
@@ -63,7 +65,8 @@ class ChatServiceTest {
                 userRepository,
                 userContextService,
                 aiChatClient,
-                objectMapper
+                objectMapper,
+                terminationDetector
         );
     }
 
@@ -275,6 +278,7 @@ class ChatServiceTest {
         given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
         given(messageRepository.save(any(ChatMessage.class))).willReturn(savedUserMessage, savedAssistantMessage);
         given(aiChatClient.sendMessage(any(AiChatRequest.class))).willReturn(aiResponse);
+        given(terminationDetector.detectTerminationIntent(request)).willReturn(false);
 
         // when
         ChatMessageResponse response = chatService.sendMessage(userId, request);
@@ -282,6 +286,98 @@ class ChatServiceTest {
         // then
         assertThat(response.isTerminal()).isTrue();
         verify(existingSession).end();
+    }
+
+    @Test
+    @DisplayName("메시지 전송 - 서버 측 종료 의도 감지 시 세션 종료 (AI isTerminal=false)")
+    void sendMessage_server_detected_termination_ends_session() {
+        // given
+        User user = createUser();
+        ChatSession existingSession = createChatSession(true);
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .type(ChatInputType.TEXT)
+                .text("종료")
+                .build();
+
+        ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "종료");
+        AiChatResponse aiResponse = createAiChatResponse("다른 도움이 필요하신가요?", null, false);
+        ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT, "다른 도움이 필요하신가요?");
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
+        given(userContextService.buildContext(userId)).willReturn(createUserContext());
+        given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
+        given(messageRepository.save(any(ChatMessage.class))).willReturn(savedUserMessage, savedAssistantMessage);
+        given(aiChatClient.sendMessage(any(AiChatRequest.class))).willReturn(aiResponse);
+        given(terminationDetector.detectTerminationIntent(request)).willReturn(true);
+
+        // when
+        chatService.sendMessage(userId, request);
+
+        // then
+        verify(existingSession).end();
+        verify(terminationDetector).detectTerminationIntent(request);
+    }
+
+    @Test
+    @DisplayName("메시지 전송 - AI와 서버 모두 종료 감지 시 세션 종료")
+    void sendMessage_both_ai_and_server_detect_termination() {
+        // given
+        User user = createUser();
+        ChatSession existingSession = createChatSession(true);
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .type(ChatInputType.TEXT)
+                .text("고마워")
+                .build();
+
+        ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "고마워");
+        AiChatResponse aiResponse = createAiChatResponse("천만에요! 좋은 하루 되세요!", null, true);
+        ChatMessage savedAssistantMessage = createTerminalChatMessage(2L, ChatMessageRole.ASSISTANT, "천만에요! 좋은 하루 되세요!");
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
+        given(userContextService.buildContext(userId)).willReturn(createUserContext());
+        given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
+        given(messageRepository.save(any(ChatMessage.class))).willReturn(savedUserMessage, savedAssistantMessage);
+        given(aiChatClient.sendMessage(any(AiChatRequest.class))).willReturn(aiResponse);
+        given(terminationDetector.detectTerminationIntent(request)).willReturn(true);
+
+        // when
+        ChatMessageResponse response = chatService.sendMessage(userId, request);
+
+        // then
+        assertThat(response.isTerminal()).isTrue();
+        verify(existingSession).end();
+    }
+
+    @Test
+    @DisplayName("메시지 전송 - 종료 의도가 없으면 세션 유지")
+    void sendMessage_no_termination_keeps_session_active() {
+        // given
+        User user = createUser();
+        ChatSession existingSession = createChatSession(true);
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .type(ChatInputType.TEXT)
+                .text("운동 방법 알려줘")
+                .build();
+
+        ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "운동 방법 알려줘");
+        AiChatResponse aiResponse = createAiChatResponse("어떤 운동을 원하시나요?", null, false);
+        ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT, "어떤 운동을 원하시나요?");
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
+        given(userContextService.buildContext(userId)).willReturn(createUserContext());
+        given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId)).willReturn(List.of());
+        given(messageRepository.save(any(ChatMessage.class))).willReturn(savedUserMessage, savedAssistantMessage);
+        given(aiChatClient.sendMessage(any(AiChatRequest.class))).willReturn(aiResponse);
+        given(terminationDetector.detectTerminationIntent(request)).willReturn(false);
+
+        // when
+        chatService.sendMessage(userId, request);
+
+        // then
+        verify(existingSession, never()).end();
     }
 
     @Test

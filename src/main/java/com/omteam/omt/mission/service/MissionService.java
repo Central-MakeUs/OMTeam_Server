@@ -1,6 +1,8 @@
 package com.omteam.omt.mission.service;
 
 import com.omteam.omt.character.service.CharacterService;
+import com.omteam.omt.common.ai.dto.UserContext;
+import com.omteam.omt.common.ai.service.UserContextService;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.client.AiMissionClient;
@@ -47,6 +49,7 @@ public class MissionService {
     private final UserOnboardingRepository userOnboardingRepository;
     private final AiMissionClient aiMissionClient;
     private final CharacterService characterService;
+    private final UserContextService userContextService;
 
     private static final int RECENT_HISTORY_DAYS = 7;
 
@@ -212,6 +215,8 @@ public class MissionService {
     }
 
     private AiMissionRecommendRequest buildAiRequest(Long userId) {
+        UserContext userContext = userContextService.buildContext(userId);
+
         UserOnboarding onboarding = userOnboardingRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
 
@@ -248,6 +253,7 @@ public class MissionService {
 
         return AiMissionRecommendRequest.builder()
                 .userId(userId)
+                .userContext(userContext)
                 .onboarding(onboardingData)
                 .recentMissionHistory(missionHistories)
                 .weeklyFailureReasons(weeklyFailureReasons)

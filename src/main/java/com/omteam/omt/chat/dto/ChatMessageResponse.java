@@ -51,20 +51,20 @@ public class ChatMessageResponse {
         private String value;
     }
 
-    public static ChatMessageResponse from(ChatMessage message, ObjectMapper objectMapper) {
+    public static ChatMessageResponse from(ChatMessage message, ObjectMapper objectMapper, boolean isTerminal) {
         return ChatMessageResponse.builder()
                 .messageId(message.getId())
                 .role(message.getRole())
                 .content(message.getContent())
                 .options(parseOptions(message.getOptions(), objectMapper))
-                .isTerminal(message.isTerminal())
+                .isTerminal(message.isTerminal() || isTerminal)
                 .createdAt(message.getCreatedAt())
                 .build();
     }
 
     public static List<ChatMessageResponse> fromList(List<ChatMessage> messages, ObjectMapper objectMapper) {
         return messages.stream()
-                .map(msg -> ChatMessageResponse.from(msg, objectMapper))
+                .map(msg -> ChatMessageResponse.from(msg, objectMapper, false))
                 .toList();
     }
 
