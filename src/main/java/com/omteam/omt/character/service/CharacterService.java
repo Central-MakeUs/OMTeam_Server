@@ -5,15 +5,13 @@ import com.omteam.omt.report.domain.DailyAnalysis;
 import com.omteam.omt.report.domain.EncouragementIntent;
 import com.omteam.omt.report.domain.EncouragementMessage;
 import com.omteam.omt.report.repository.DailyAnalysisRepository;
-import com.omteam.omt.common.exception.BusinessException;
-import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.RecommendedMissionStatus;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
 import com.omteam.omt.user.domain.UserCharacter;
-import com.omteam.omt.user.repository.UserCharacterRepository;
+import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +30,7 @@ public class CharacterService {
             .message("작은 시작이 큰 변화를 만들어요.")
             .build();
 
-    private final UserCharacterRepository characterRepository;
+    private final UserQueryService userQueryService;
     private final DailyAnalysisRepository encouragementSetRepository;
     private final DailyMissionResultRepository missionResultRepository;
     private final DailyRecommendedMissionRepository recommendedMissionRepository;
@@ -42,8 +40,7 @@ public class CharacterService {
      */
     @Transactional
     public void recordMissionSuccess(Long userId) {
-        UserCharacter character = characterRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        UserCharacter character = userQueryService.getUserCharacter(userId);
 
         character.recordMissionSuccess();
         log.info("미션 성공 기록: userId={}, level={}, successCount={}",
@@ -55,8 +52,7 @@ public class CharacterService {
      */
     @Transactional(readOnly = true)
     public CharacterResponse getCharacterInfo(Long userId) {
-        UserCharacter character = characterRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        UserCharacter character = userQueryService.getUserCharacter(userId);
 
         LocalDate today = LocalDate.now();
         EncouragementMessage encouragement = getEncouragementMessage(userId, today);
