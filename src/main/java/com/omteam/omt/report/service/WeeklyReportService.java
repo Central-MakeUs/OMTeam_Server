@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
+import com.omteam.omt.report.client.dto.AiWeeklyAnalysisResponse;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
@@ -243,13 +244,13 @@ public class WeeklyReportService {
             return List.of();
         }
         try {
-            List<Map<String, Object>> rawList = objectMapper.readValue(json,
-                    new TypeReference<List<Map<String, Object>>>() {});
+            List<AiWeeklyAnalysisResponse.FailureReasonRank> rawList = objectMapper.readValue(json,
+                    new TypeReference<List<AiWeeklyAnalysisResponse.FailureReasonRank>>() {});
             return rawList.stream()
-                    .map(map -> AiFailureReasonRank.builder()
-                            .rank(((Number) map.get("rank")).intValue())
-                            .category((String) map.get("category"))
-                            .count(((Number) map.get("count")).intValue())
+                    .map(rankData -> AiFailureReasonRank.builder()
+                            .rank(rankData.getRank())
+                            .category(rankData.getCategory())
+                            .count(rankData.getCount())
                             .build())
                     .toList();
         } catch (JsonProcessingException e) {

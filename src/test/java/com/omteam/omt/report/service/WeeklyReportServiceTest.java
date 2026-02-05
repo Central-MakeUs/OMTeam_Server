@@ -11,6 +11,7 @@ import com.omteam.omt.mission.domain.Mission;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
+import com.omteam.omt.report.client.dto.AiWeeklyAnalysisResponse;
 import com.omteam.omt.report.domain.WeeklyAiAnalysis;
 import com.omteam.omt.report.dto.WeeklyReportResponse;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyStatus;
@@ -415,8 +416,8 @@ class WeeklyReportServiceTest {
                     .willReturn(Optional.of(analysis));
             given(objectMapper.readValue(eq(rankingJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
                     .willReturn(List.of(
-                            java.util.Map.of("rank", 1, "category", "시간 부족", "count", 3),
-                            java.util.Map.of("rank", 2, "category", "피로", "count", 2)
+                            createFailureReasonRank(1, "시간 부족", 3),
+                            createFailureReasonRank(2, "피로", 2)
                     ));
 
             // when
@@ -536,5 +537,14 @@ class WeeklyReportServiceTest {
                 .failureReason(failureReason)
                 .mission(mission)
                 .build();
+    }
+
+    private AiWeeklyAnalysisResponse.FailureReasonRank createFailureReasonRank(int rank, String category, int count) {
+        AiWeeklyAnalysisResponse.FailureReasonRank failureReasonRank =
+                new AiWeeklyAnalysisResponse.FailureReasonRank();
+        failureReasonRank.setRank(rank);
+        failureReasonRank.setCategory(category);
+        failureReasonRank.setCount(count);
+        return failureReasonRank;
     }
 }
