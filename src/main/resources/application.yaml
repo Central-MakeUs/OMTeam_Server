@@ -28,6 +28,7 @@ oauth:
     android-client-id: ${OAUTH_GOOGLE_ANDROID_CLIENT_ID}
   kakao:
     client-id: ${OAUTH_KAKAO_CLIENT_ID}
+    test-client-id: ${OAUTH_KAKAO_TEST_CLIENT_ID}
   apple:
     client-id: ${OAUTH_APPLE_CLIENT_ID}
     public-key-uri: https://appleid.apple.com/auth/keys
