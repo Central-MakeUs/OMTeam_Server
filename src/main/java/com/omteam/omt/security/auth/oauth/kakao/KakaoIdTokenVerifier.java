@@ -24,7 +24,7 @@ public class KakaoIdTokenVerifier extends AbstractIdTokenVerifier {
 
     @Override
     protected List<String> getAllowedAudiences() {
-        return List.of(oAuthProperties.getKakao().getClientId());
+        return oAuthProperties.getKakao().getAllClientIds();
     }
 
     @Override
