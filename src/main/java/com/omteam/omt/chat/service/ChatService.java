@@ -43,6 +43,7 @@ public class ChatService {
     private final UserContextService userContextService;
     private final AiChatClient aiChatClient;
     private final ObjectMapper objectMapper;
+    private final ChatTerminationDetector terminationDetector;
 
     /**
      * 채팅 내역 조회 (커서 기반 페이지네이션)
@@ -103,13 +104,17 @@ public class ChatService {
         // 4. AI 응답 저장
         ChatMessage assistantMessage = saveAssistantMessage(session, aiResponse);
 
-        // 5. 대화 종료 시 세션 종료
-        if (aiResponse.isTerminal()) {
+        // 5. 대화 종료 시 세션 종료 (AI 응답 또는 서버 측 종료 의도 감지)
+        boolean serverDetectedTerminal = terminationDetector.detectTerminationIntent(request);
+        boolean isTerminal = aiResponse.isTerminal() || serverDetectedTerminal;
+
+        if (isTerminal) {
             session.end();
-            log.info("채팅 세션 종료: userId={}, sessionId={}", userId, session.getId());
+            log.info("채팅 세션 종료: userId={}, sessionId={}, aiTerminal={}, serverDetected={}",
+                    userId, session.getId(), aiResponse.isTerminal(), serverDetectedTerminal);
         }
 
-        return ChatMessageResponse.from(assistantMessage, objectMapper);
+        return ChatMessageResponse.from(assistantMessage, objectMapper, isTerminal);
     }
 
     private ChatSession createNewSession(User user) {
