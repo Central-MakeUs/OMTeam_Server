@@ -63,8 +63,8 @@ public class JwtTokenProvider {
                     .parseSignedClaims(token)
                     .getPayload();
             return Long.parseLong(claims.getSubject());
-        } catch (JwtException | NumberFormatException e) {
-            log.warn("JWT 토큰에서 userId를 추출하는 데 실패했습니다: {}", e.getMessage());
+        } catch (NumberFormatException e) {
+            log.warn("JWT subject를 Long으로 변환할 수 없습니다: {}", e.getMessage());
             return null;
         }
     }
