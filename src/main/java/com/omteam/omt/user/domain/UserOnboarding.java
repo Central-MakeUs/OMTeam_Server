@@ -80,4 +80,29 @@ public class UserOnboarding {
         this.preferredExerciseText = preferredExerciseText;
         this.lifestyleType = lifestyleType;
     }
+
+    public void updateAppGoal(String appGoalText) {
+        this.appGoalText = appGoalText;
+    }
+
+    public void updateWorkTimeType(WorkTimeType workTimeType) {
+        this.workTimeType = workTimeType;
+    }
+
+    public void updateAvailableTime(LocalTime availableStartTime, LocalTime availableEndTime) {
+        this.availableStartTime = availableStartTime;
+        this.availableEndTime = availableEndTime;
+    }
+
+    public void updateMinExerciseMinutes(int minExerciseMinutes) {
+        this.minExerciseMinutes = minExerciseMinutes;
+    }
+
+    public void updatePreferredExercise(String preferredExerciseText) {
+        this.preferredExerciseText = preferredExerciseText;
+    }
+
+    public void updateLifestyleType(LifestyleType lifestyleType) {
+        this.lifestyleType = lifestyleType;
+    }
 }

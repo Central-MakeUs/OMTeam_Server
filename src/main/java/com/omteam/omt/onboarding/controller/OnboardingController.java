@@ -3,14 +3,26 @@ package com.omteam.omt.onboarding.controller;
 import com.omteam.omt.common.response.ApiResponse;
 import com.omteam.omt.onboarding.dto.OnboardingRequest;
 import com.omteam.omt.onboarding.dto.OnboardingResponse;
+import com.omteam.omt.onboarding.dto.request.UpdateAppGoalRequest;
+import com.omteam.omt.onboarding.dto.request.UpdateAvailableTimeRequest;
+import com.omteam.omt.onboarding.dto.request.UpdateLifestyleRequest;
+import com.omteam.omt.onboarding.dto.request.UpdateMinExerciseMinutesRequest;
+import com.omteam.omt.onboarding.dto.request.UpdateNicknameRequest;
+import com.omteam.omt.onboarding.dto.request.UpdateNotificationSettingRequest;
+import com.omteam.omt.onboarding.dto.request.UpdatePreferredExerciseRequest;
+import com.omteam.omt.onboarding.dto.request.UpdateSingleNotificationRequest;
+import com.omteam.omt.onboarding.dto.request.UpdateWorkTimeRequest;
 import com.omteam.omt.onboarding.service.OnboardingService;
 import com.omteam.omt.security.principal.UserPrincipal;
+import com.omteam.omt.user.domain.NotificationType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,6 +75,142 @@ public class OnboardingController {
     ) {
         return ApiResponse.success(
                 onboardingService.getOnboarding(userPrincipal.userId())
+        );
+    }
+
+    @Operation(
+            summary = "닉네임 수정",
+            description = "사용자의 닉네임을 수정합니다."
+    )
+    @PatchMapping("/nickname")
+    public ApiResponse<OnboardingResponse> updateNickname(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody UpdateNicknameRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updateNickname(userPrincipal.userId(), request.getNickname())
+        );
+    }
+
+    @Operation(
+            summary = "앱 사용 목적 수정",
+            description = "사용자의 앱 사용 목적을 수정합니다."
+    )
+    @PatchMapping("/app-goal")
+    public ApiResponse<OnboardingResponse> updateAppGoal(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody UpdateAppGoalRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updateAppGoal(userPrincipal.userId(), request.getAppGoalText())
+        );
+    }
+
+    @Operation(
+            summary = "근무 시간 유형 수정",
+            description = "사용자의 근무 시간 유형을 수정합니다."
+    )
+    @PatchMapping("/work-time")
+    public ApiResponse<OnboardingResponse> updateWorkTime(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody UpdateWorkTimeRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updateWorkTimeType(userPrincipal.userId(), request.getWorkTimeType())
+        );
+    }
+
+    @Operation(
+            summary = "운동 가능 시간대 수정",
+            description = "사용자의 운동 가능 시간대를 수정합니다."
+    )
+    @PatchMapping("/available-time")
+    public ApiResponse<OnboardingResponse> updateAvailableTime(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody UpdateAvailableTimeRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updateAvailableTime(
+                        userPrincipal.userId(),
+                        request.getAvailableStartTime(),
+                        request.getAvailableEndTime()
+                )
+        );
+    }
+
+    @Operation(
+            summary = "최소 운동 시간 수정",
+            description = "사용자의 최소 운동 시간을 수정합니다."
+    )
+    @PatchMapping("/min-exercise-minutes")
+    public ApiResponse<OnboardingResponse> updateMinExerciseMinutes(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody UpdateMinExerciseMinutesRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updateMinExerciseMinutes(userPrincipal.userId(), request.getMinExerciseMinutes())
+        );
+    }
+
+    @Operation(
+            summary = "선호 운동 수정",
+            description = "사용자의 선호 운동을 수정합니다."
+    )
+    @PatchMapping("/preferred-exercise")
+    public ApiResponse<OnboardingResponse> updatePreferredExercise(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody UpdatePreferredExerciseRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updatePreferredExercise(userPrincipal.userId(), request.getPreferredExerciseText())
+        );
+    }
+
+    @Operation(
+            summary = "생활 패턴 수정",
+            description = "사용자의 생활 패턴을 수정합니다."
+    )
+    @PatchMapping("/lifestyle")
+    public ApiResponse<OnboardingResponse> updateLifestyle(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody UpdateLifestyleRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updateLifestyleType(userPrincipal.userId(), request.getLifestyleType())
+        );
+    }
+
+    @Operation(
+            summary = "알림 설정 전체 수정",
+            description = "사용자의 모든 알림 설정을 수정합니다."
+    )
+    @PatchMapping("/notification")
+    public ApiResponse<OnboardingResponse> updateNotificationSetting(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody UpdateNotificationSettingRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updateNotificationSetting(
+                        userPrincipal.userId(),
+                        request.getRemindEnabled(),
+                        request.getCheckinEnabled(),
+                        request.getReviewEnabled()
+                )
+        );
+    }
+
+    @Operation(
+            summary = "개별 알림 설정 수정",
+            description = "특정 알림 타입의 설정을 수정합니다. (REMIND, CHECKIN, REVIEW)"
+    )
+    @PatchMapping("/notification/{type}")
+    public ApiResponse<OnboardingResponse> updateSingleNotification(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable NotificationType type,
+            @Valid @RequestBody UpdateSingleNotificationRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updateSingleNotification(userPrincipal.userId(), type, request.getEnabled())
         );
     }
 }

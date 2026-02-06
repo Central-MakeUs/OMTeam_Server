@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+import jakarta.validation.constraints.Size;
 import java.time.LocalTime;
 
 import lombok.NoArgsConstructor;
@@ -22,6 +23,7 @@ import lombok.Getter;
 public class OnboardingRequest {
 
     @NotBlank(message = "닉네임은 필수입니다")
+    @Size(max = 8, message = "닉네임은 최대 8글자까지 가능합니다")
     private String nickname;
 
     @NotBlank(message = "앱 사용 목적은 필수입니다")

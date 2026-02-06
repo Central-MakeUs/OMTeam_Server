@@ -4,12 +4,16 @@ import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.onboarding.dto.OnboardingRequest;
 import com.omteam.omt.onboarding.dto.OnboardingResponse;
+import com.omteam.omt.user.domain.LifestyleType;
+import com.omteam.omt.user.domain.NotificationType;
 import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.domain.UserNotificationSetting;
 import com.omteam.omt.user.domain.UserOnboarding;
+import com.omteam.omt.user.domain.WorkTimeType;
 import com.omteam.omt.user.repository.UserNotificationSettingRepository;
 import com.omteam.omt.user.repository.UserOnboardingRepository;
 import com.omteam.omt.user.service.UserQueryService;
+import java.time.LocalTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,6 +107,94 @@ public class OnboardingService {
         UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
 
+        return OnboardingResponse.of(user, onboarding, notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updateNickname(Long userId, String nickname) {
+        User user = validateOnboardingCompleted(userId);
+        user.updateNickname(nickname);
+        return buildOnboardingResponse(userId, user);
+    }
+
+    @Transactional
+    public OnboardingResponse updateAppGoal(Long userId, String appGoalText) {
+        User user = validateOnboardingCompleted(userId);
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
+        onboarding.updateAppGoal(appGoalText);
+        return buildOnboardingResponse(userId, user);
+    }
+
+    @Transactional
+    public OnboardingResponse updateWorkTimeType(Long userId, WorkTimeType workTimeType) {
+        User user = validateOnboardingCompleted(userId);
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
+        onboarding.updateWorkTimeType(workTimeType);
+        return buildOnboardingResponse(userId, user);
+    }
+
+    @Transactional
+    public OnboardingResponse updateAvailableTime(Long userId, LocalTime availableStartTime, LocalTime availableEndTime) {
+        User user = validateOnboardingCompleted(userId);
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
+        onboarding.updateAvailableTime(availableStartTime, availableEndTime);
+        return buildOnboardingResponse(userId, user);
+    }
+
+    @Transactional
+    public OnboardingResponse updateMinExerciseMinutes(Long userId, int minExerciseMinutes) {
+        User user = validateOnboardingCompleted(userId);
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
+        onboarding.updateMinExerciseMinutes(minExerciseMinutes);
+        return buildOnboardingResponse(userId, user);
+    }
+
+    @Transactional
+    public OnboardingResponse updatePreferredExercise(Long userId, String preferredExerciseText) {
+        User user = validateOnboardingCompleted(userId);
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
+        onboarding.updatePreferredExercise(preferredExerciseText);
+        return buildOnboardingResponse(userId, user);
+    }
+
+    @Transactional
+    public OnboardingResponse updateLifestyleType(Long userId, LifestyleType lifestyleType) {
+        User user = validateOnboardingCompleted(userId);
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
+        onboarding.updateLifestyleType(lifestyleType);
+        return buildOnboardingResponse(userId, user);
+    }
+
+    @Transactional
+    public OnboardingResponse updateNotificationSetting(Long userId, boolean remindEnabled, boolean checkinEnabled, boolean reviewEnabled) {
+        User user = validateOnboardingCompleted(userId);
+        UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
+        notificationSetting.update(remindEnabled, checkinEnabled, reviewEnabled);
+        return buildOnboardingResponse(userId, user);
+    }
+
+    @Transactional
+    public OnboardingResponse updateSingleNotification(Long userId, NotificationType type, boolean enabled) {
+        User user = validateOnboardingCompleted(userId);
+        UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
+        notificationSetting.updateNotification(type, enabled);
+        return buildOnboardingResponse(userId, user);
+    }
+
+    private User validateOnboardingCompleted(Long userId) {
+        User user = userQueryService.getUser(userId);
+        if (!user.isOnboardingCompleted()) {
+            throw new BusinessException(ErrorCode.ONBOARDING_NOT_COMPLETED);
+        }
+        return user;
+    }
+
+    private OnboardingResponse buildOnboardingResponse(Long userId, User user) {
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
+        UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
         return OnboardingResponse.of(user, onboarding, notificationSetting);
     }
 }
