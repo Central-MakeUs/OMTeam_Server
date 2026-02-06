@@ -5,11 +5,13 @@ import com.omteam.omt.user.domain.WorkTimeType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import jakarta.validation.constraints.Size;
 import java.time.LocalTime;
+import java.util.List;
 
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -56,8 +58,9 @@ public class OnboardingRequest {
     @Positive(message = "최소 운동 시간은 양수여야 합니다")
     private int minExerciseMinutes;
 
-    @NotBlank(message = "선호 운동은 필수입니다")
-    private String preferredExerciseText;
+    @Schema(description = "선호 운동", example = "[\"스트레칭\", \"요가\"]")
+    @NotEmpty(message = "선호 운동은 필수입니다")
+    private List<String> preferredExercises;
 
     @Schema(
             description = """

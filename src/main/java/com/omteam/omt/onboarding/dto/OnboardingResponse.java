@@ -6,6 +6,7 @@ import com.omteam.omt.user.domain.UserNotificationSetting;
 import com.omteam.omt.user.domain.UserOnboarding;
 import com.omteam.omt.user.domain.WorkTimeType;
 import java.time.LocalTime;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,7 +20,7 @@ public class OnboardingResponse {
     private LocalTime availableStartTime;
     private LocalTime availableEndTime;
     private int minExerciseMinutes;
-    private String preferredExerciseText;
+    private List<String> preferredExercises;
     private LifestyleType lifestyleType;
     private boolean remindEnabled;
     private boolean checkinEnabled;
@@ -37,7 +38,7 @@ public class OnboardingResponse {
                 .availableStartTime(onboarding.getAvailableStartTime())
                 .availableEndTime(onboarding.getAvailableEndTime())
                 .minExerciseMinutes(onboarding.getMinExerciseMinutes())
-                .preferredExerciseText(onboarding.getPreferredExerciseText())
+                .preferredExercises(onboarding.getPreferredExercises())
                 .lifestyleType(onboarding.getLifestyleType())
                 .remindEnabled(notificationSetting.isRemindEnabled())
                 .checkinEnabled(notificationSetting.isCheckinEnabled())

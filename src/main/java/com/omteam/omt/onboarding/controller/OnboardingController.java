@@ -162,7 +162,7 @@ public class OnboardingController {
             @Valid @RequestBody UpdatePreferredExerciseRequest request
     ) {
         return ApiResponse.success(
-                onboardingService.updatePreferredExercise(userPrincipal.userId(), request.getPreferredExerciseText())
+                onboardingService.updatePreferredExercise(userPrincipal.userId(), request.getPreferredExercises())
         );
     }
 

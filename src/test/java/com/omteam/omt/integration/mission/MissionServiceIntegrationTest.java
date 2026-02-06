@@ -66,7 +66,7 @@ class MissionServiceIntegrationTest extends IntegrationTestBase {
                 .availableStartTime(LocalTime.of(18, 0))
                 .availableEndTime(LocalTime.of(21, 0))
                 .minExerciseMinutes(30)
-                .preferredExerciseText("스트레칭, 걷기")
+                .preferredExercises(List.of("스트레칭", "걷기"))
                 .lifestyleType(LifestyleType.REGULAR_DAYTIME)
                 .build());
     }

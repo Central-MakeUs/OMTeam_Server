@@ -14,6 +14,7 @@ import com.omteam.omt.user.repository.UserNotificationSettingRepository;
 import com.omteam.omt.user.repository.UserOnboardingRepository;
 import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +44,7 @@ public class OnboardingService {
                 .availableStartTime(request.getAvailableStartTime())
                 .availableEndTime(request.getAvailableEndTime())
                 .minExerciseMinutes(request.getMinExerciseMinutes())
-                .preferredExerciseText(request.getPreferredExerciseText())
+                .preferredExercises(request.getPreferredExercises())
                 .lifestyleType(request.getLifestyleType())
                 .build();
 
@@ -81,7 +82,7 @@ public class OnboardingService {
                 request.getAvailableStartTime(),
                 request.getAvailableEndTime(),
                 request.getMinExerciseMinutes(),
-                request.getPreferredExerciseText(),
+                request.getPreferredExercises(),
                 request.getLifestyleType()
         );
 
@@ -150,10 +151,10 @@ public class OnboardingService {
     }
 
     @Transactional
-    public OnboardingResponse updatePreferredExercise(Long userId, String preferredExerciseText) {
+    public OnboardingResponse updatePreferredExercise(Long userId, List<String> preferredExercises) {
         User user = validateOnboardingCompleted(userId);
         UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
-        onboarding.updatePreferredExercise(preferredExerciseText);
+        onboarding.updatePreferredExercise(preferredExercises);
         return buildOnboardingResponse(userId, user);
     }
 
