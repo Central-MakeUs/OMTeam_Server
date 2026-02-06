@@ -2,6 +2,7 @@ package com.omteam.omt.report.controller;
 
 import com.omteam.omt.common.response.ApiResponse;
 import com.omteam.omt.mission.service.MissionService;
+import com.omteam.omt.report.dto.BatchProcessResult;
 import com.omteam.omt.report.dto.TriggerAnalysisResponse;
 import com.omteam.omt.report.service.DailyAnalysisService;
 import com.omteam.omt.report.service.WeeklyAnalysisService;
@@ -72,12 +73,13 @@ public class AdminAnalysisController {
         LocalDate date = (targetDate != null) ? targetDate : LocalDate.now();
 
         log.info("[Admin] 전체 사용자 일일 분석 수동 트리거: targetDate={}", date);
-        int successCount = dailyAnalysisService.generateDailyEncouragementForAllUsers(date);
+        BatchProcessResult result = dailyAnalysisService.generateDailyEncouragementForAllUsers(date);
 
         return ApiResponse.success(
                 TriggerAnalysisResponse.of(
-                        successCount, successCount,
-                        String.format("%s 일일 분석이 %d명의 사용자에 대해 생성되었습니다.", date, successCount)
+                        result.totalCount(), result.successCount(),
+                        String.format("%s 일일 분석이 %d명 중 %d명의 사용자에 대해 생성되었습니다.",
+                                date, result.totalCount(), result.successCount())
                 )
         );
     }
@@ -121,11 +123,13 @@ public class AdminAnalysisController {
         LocalDate startDate = (weekStartDate != null) ? weekStartDate : getLastWeekMonday();
 
         log.info("[Admin] 전체 사용자 주간 분석 수동 트리거: weekStartDate={}", startDate);
-        weeklyAnalysisService.generateWeeklyAnalysisForAllUsers(startDate);
+        BatchProcessResult result = weeklyAnalysisService.generateWeeklyAnalysisForAllUsers(startDate);
 
         return ApiResponse.success(
-                TriggerAnalysisResponse.singleSuccess(
-                        String.format("%s 주차 주간 분석이 전체 사용자에 대해 생성되었습니다.", startDate)
+                TriggerAnalysisResponse.of(
+                        result.totalCount(), result.successCount(),
+                        String.format("%s 주차 주간 분석이 %d명 중 %d명의 사용자에 대해 생성되었습니다.",
+                                startDate, result.totalCount(), result.successCount())
                 )
         );
     }
@@ -155,8 +159,7 @@ public class AdminAnalysisController {
 
     private LocalDate getLastWeekMonday() {
         return LocalDate.now()
-                .with(TemporalAdjusters.previous(DayOfWeek.MONDAY))
-                .minusWeeks(1)
-                .with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY));
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                .minusWeeks(1);
     }
 }

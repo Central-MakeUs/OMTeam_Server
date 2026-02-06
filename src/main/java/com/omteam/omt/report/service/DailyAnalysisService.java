@@ -11,6 +11,7 @@ import com.omteam.omt.report.client.dto.EncouragementCandidate;
 import com.omteam.omt.report.domain.DailyAnalysis;
 import com.omteam.omt.report.domain.EncouragementIntent;
 import com.omteam.omt.report.domain.EncouragementMessage;
+import com.omteam.omt.report.dto.BatchProcessResult;
 import com.omteam.omt.report.dto.DailyFeedbackResponse;
 import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.mission.domain.DailyMissionResult;
@@ -39,7 +40,7 @@ public class DailyAnalysisService {
      * 모든 활성 사용자에 대해 오늘의 격려 메시지를 생성한다.
      */
     @Transactional
-    public int generateDailyEncouragementForAllUsers(LocalDate targetDate) {
+    public BatchProcessResult generateDailyEncouragementForAllUsers(LocalDate targetDate) {
         List<User> activeUsers = userRepository.findAll().stream()
                 .filter(User::isActive)
                 .filter(User::isOnboardingCompleted)
@@ -54,7 +55,7 @@ public class DailyAnalysisService {
                 log.error("격려 메시지 생성 실패: userId={}", user.getUserId(), e);
             }
         }
-        return successCount;
+        return BatchProcessResult.of(activeUsers.size(), successCount);
     }
 
     /**

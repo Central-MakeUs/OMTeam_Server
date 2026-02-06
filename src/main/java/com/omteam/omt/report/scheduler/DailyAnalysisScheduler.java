@@ -1,5 +1,6 @@
 package com.omteam.omt.report.scheduler;
 
+import com.omteam.omt.report.dto.BatchProcessResult;
 import com.omteam.omt.report.service.DailyAnalysisService;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,9 @@ public class DailyAnalysisScheduler {
         log.info("데일리 분석 스케줄러 시작: targetDate={}", today);
 
         try {
-            int successCount = dailyAnalysisService.generateDailyEncouragementForAllUsers(today);
-            log.info("데일리 분석 스케줄러 완료: successCount={}", successCount);
+            BatchProcessResult result = dailyAnalysisService.generateDailyEncouragementForAllUsers(today);
+            log.info("데일리 분석 스케줄러 완료: total={}, success={}, failed={}",
+                    result.totalCount(), result.successCount(), result.failedCount());
         } catch (Exception e) {
             log.error("데일리 분석 스케줄러 오류", e);
         }
