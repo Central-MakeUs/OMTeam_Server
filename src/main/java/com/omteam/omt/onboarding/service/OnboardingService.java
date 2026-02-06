@@ -113,89 +113,77 @@ public class OnboardingService {
 
     @Transactional
     public OnboardingResponse updateNickname(Long userId, String nickname) {
-        User user = validateOnboardingCompleted(userId);
-        user.updateNickname(nickname);
-        return buildOnboardingResponse(userId, user);
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.user.updateNickname(nickname);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
     @Transactional
     public OnboardingResponse updateAppGoal(Long userId, String appGoalText) {
-        User user = validateOnboardingCompleted(userId);
-        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
-        onboarding.updateAppGoal(appGoalText);
-        return buildOnboardingResponse(userId, user);
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateAppGoal(appGoalText);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
     @Transactional
     public OnboardingResponse updateWorkTimeType(Long userId, WorkTimeType workTimeType) {
-        User user = validateOnboardingCompleted(userId);
-        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
-        onboarding.updateWorkTimeType(workTimeType);
-        return buildOnboardingResponse(userId, user);
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateWorkTimeType(workTimeType);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
     @Transactional
     public OnboardingResponse updateAvailableTime(Long userId, LocalTime availableStartTime, LocalTime availableEndTime) {
-        User user = validateOnboardingCompleted(userId);
-        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
-        onboarding.updateAvailableTime(availableStartTime, availableEndTime);
-        return buildOnboardingResponse(userId, user);
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateAvailableTime(availableStartTime, availableEndTime);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
     @Transactional
     public OnboardingResponse updateMinExerciseMinutes(Long userId, int minExerciseMinutes) {
-        User user = validateOnboardingCompleted(userId);
-        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
-        onboarding.updateMinExerciseMinutes(minExerciseMinutes);
-        return buildOnboardingResponse(userId, user);
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateMinExerciseMinutes(minExerciseMinutes);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
     @Transactional
     public OnboardingResponse updatePreferredExercise(Long userId, List<String> preferredExercises) {
-        User user = validateOnboardingCompleted(userId);
-        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
-        onboarding.updatePreferredExercise(preferredExercises);
-        return buildOnboardingResponse(userId, user);
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updatePreferredExercise(preferredExercises);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
     @Transactional
     public OnboardingResponse updateLifestyleType(Long userId, LifestyleType lifestyleType) {
-        User user = validateOnboardingCompleted(userId);
-        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
-        onboarding.updateLifestyleType(lifestyleType);
-        return buildOnboardingResponse(userId, user);
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateLifestyleType(lifestyleType);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
     @Transactional
     public OnboardingResponse updateNotificationSetting(Long userId, boolean remindEnabled, boolean checkinEnabled, boolean reviewEnabled) {
-        User user = validateOnboardingCompleted(userId);
-        UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
-        notificationSetting.update(remindEnabled, checkinEnabled, reviewEnabled);
-        return buildOnboardingResponse(userId, user);
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.notificationSetting.update(remindEnabled, checkinEnabled, reviewEnabled);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
     @Transactional
     public OnboardingResponse updateSingleNotification(Long userId, NotificationType type, boolean enabled) {
-        User user = validateOnboardingCompleted(userId);
-        UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
-        notificationSetting.updateNotification(type, enabled);
-        return buildOnboardingResponse(userId, user);
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.notificationSetting.updateNotification(type, enabled);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
-    private User validateOnboardingCompleted(Long userId) {
+    private OnboardingContext fetchOnboardingContext(Long userId) {
         User user = userQueryService.getUser(userId);
         if (!user.isOnboardingCompleted()) {
             throw new BusinessException(ErrorCode.ONBOARDING_NOT_COMPLETED);
         }
-        return user;
-    }
-
-    private OnboardingResponse buildOnboardingResponse(Long userId, User user) {
         UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
         UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
-        return OnboardingResponse.of(user, onboarding, notificationSetting);
+        return new OnboardingContext(user, onboarding, notificationSetting);
     }
+
+    private record OnboardingContext(User user, UserOnboarding onboarding, UserNotificationSetting notificationSetting) {}
 }
