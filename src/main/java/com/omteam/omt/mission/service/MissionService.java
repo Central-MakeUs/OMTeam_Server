@@ -238,7 +238,7 @@ public class MissionService {
                 onboarding.getAvailableStartTime(),
                 onboarding.getAvailableEndTime(),
                 onboarding.getMinExerciseMinutes(),
-                onboarding.getPreferredExerciseText(),
+                onboarding.getPreferredExercises(),
                 onboarding.getLifestyleType()
         );
 

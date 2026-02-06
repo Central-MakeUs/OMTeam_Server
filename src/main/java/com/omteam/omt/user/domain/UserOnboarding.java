@@ -1,6 +1,8 @@
 package com.omteam.omt.user.domain;
 
+import com.omteam.omt.common.converter.StringListConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -12,6 +14,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,8 +56,9 @@ public class UserOnboarding {
     @Column(nullable = false)
     private int minExerciseMinutes;
 
-    @Column(nullable = false)
-    private String preferredExerciseText;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter.class)
+    private List<String> preferredExercises;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -69,7 +73,7 @@ public class UserOnboarding {
             LocalTime availableStartTime,
             LocalTime availableEndTime,
             int minExerciseMinutes,
-            String preferredExerciseText,
+            List<String> preferredExercises,
             LifestyleType lifestyleType
     ) {
         this.appGoalText = appGoalText;
@@ -77,7 +81,32 @@ public class UserOnboarding {
         this.availableStartTime = availableStartTime;
         this.availableEndTime = availableEndTime;
         this.minExerciseMinutes = minExerciseMinutes;
-        this.preferredExerciseText = preferredExerciseText;
+        this.preferredExercises = preferredExercises;
+        this.lifestyleType = lifestyleType;
+    }
+
+    public void updateAppGoal(String appGoalText) {
+        this.appGoalText = appGoalText;
+    }
+
+    public void updateWorkTimeType(WorkTimeType workTimeType) {
+        this.workTimeType = workTimeType;
+    }
+
+    public void updateAvailableTime(LocalTime availableStartTime, LocalTime availableEndTime) {
+        this.availableStartTime = availableStartTime;
+        this.availableEndTime = availableEndTime;
+    }
+
+    public void updateMinExerciseMinutes(int minExerciseMinutes) {
+        this.minExerciseMinutes = minExerciseMinutes;
+    }
+
+    public void updatePreferredExercise(List<String> preferredExercises) {
+        this.preferredExercises = preferredExercises;
+    }
+
+    public void updateLifestyleType(LifestyleType lifestyleType) {
         this.lifestyleType = lifestyleType;
     }
 }

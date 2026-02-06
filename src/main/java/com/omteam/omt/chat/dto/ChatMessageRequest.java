@@ -1,5 +1,6 @@
 package com.omteam.omt.chat.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.omteam.omt.chat.domain.ChatInputType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ public class ChatMessageRequest {
     /**
      * 채팅 시작 요청인지 확인 (빈 요청)
      */
+    @JsonIgnore
     public boolean isStartRequest() {
         return type == null;
     }

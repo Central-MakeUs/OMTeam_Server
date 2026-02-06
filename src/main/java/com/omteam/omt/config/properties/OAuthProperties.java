@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class OAuthProperties {
 
     private GoogleProvider google = new GoogleProvider();
-    private Provider kakao = new Provider();
+    private KakaoProvider kakao = new KakaoProvider();
     private AppleProvider apple = new AppleProvider();
 
     @Getter
@@ -32,6 +32,20 @@ public class OAuthProperties {
 
         public List<String> getAllClientIds() {
             return Stream.of(iosClientId, androidClientId)
+                    .filter(Objects::nonNull)
+                    .filter(id -> !id.isEmpty())
+                    .toList();
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class KakaoProvider {
+        private String clientId;
+        private String testClientId;
+
+        public List<String> getAllClientIds() {
+            return Stream.of(clientId, testClientId)
                     .filter(Objects::nonNull)
                     .filter(id -> !id.isEmpty())
                     .toList();

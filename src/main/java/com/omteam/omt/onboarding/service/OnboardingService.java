@@ -4,12 +4,17 @@ import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.onboarding.dto.OnboardingRequest;
 import com.omteam.omt.onboarding.dto.OnboardingResponse;
+import com.omteam.omt.user.domain.LifestyleType;
+import com.omteam.omt.user.domain.NotificationType;
 import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.domain.UserNotificationSetting;
 import com.omteam.omt.user.domain.UserOnboarding;
+import com.omteam.omt.user.domain.WorkTimeType;
 import com.omteam.omt.user.repository.UserNotificationSettingRepository;
 import com.omteam.omt.user.repository.UserOnboardingRepository;
 import com.omteam.omt.user.service.UserQueryService;
+import java.time.LocalTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +44,7 @@ public class OnboardingService {
                 .availableStartTime(request.getAvailableStartTime())
                 .availableEndTime(request.getAvailableEndTime())
                 .minExerciseMinutes(request.getMinExerciseMinutes())
-                .preferredExerciseText(request.getPreferredExerciseText())
+                .preferredExercises(request.getPreferredExercises())
                 .lifestyleType(request.getLifestyleType())
                 .build();
 
@@ -77,7 +82,7 @@ public class OnboardingService {
                 request.getAvailableStartTime(),
                 request.getAvailableEndTime(),
                 request.getMinExerciseMinutes(),
-                request.getPreferredExerciseText(),
+                request.getPreferredExercises(),
                 request.getLifestyleType()
         );
 
@@ -105,4 +110,80 @@ public class OnboardingService {
 
         return OnboardingResponse.of(user, onboarding, notificationSetting);
     }
+
+    @Transactional
+    public OnboardingResponse updateNickname(Long userId, String nickname) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.user.updateNickname(nickname);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updateAppGoal(Long userId, String appGoalText) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateAppGoal(appGoalText);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updateWorkTimeType(Long userId, WorkTimeType workTimeType) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateWorkTimeType(workTimeType);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updateAvailableTime(Long userId, LocalTime availableStartTime, LocalTime availableEndTime) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateAvailableTime(availableStartTime, availableEndTime);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updateMinExerciseMinutes(Long userId, int minExerciseMinutes) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateMinExerciseMinutes(minExerciseMinutes);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updatePreferredExercise(Long userId, List<String> preferredExercises) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updatePreferredExercise(preferredExercises);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updateLifestyleType(Long userId, LifestyleType lifestyleType) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateLifestyleType(lifestyleType);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updateNotificationSetting(Long userId, boolean remindEnabled, boolean checkinEnabled, boolean reviewEnabled) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.notificationSetting.update(remindEnabled, checkinEnabled, reviewEnabled);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updateSingleNotification(Long userId, NotificationType type, boolean enabled) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.notificationSetting.updateNotification(type, enabled);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    private OnboardingContext fetchOnboardingContext(Long userId) {
+        User user = userQueryService.getUser(userId);
+        if (!user.isOnboardingCompleted()) {
+            throw new BusinessException(ErrorCode.ONBOARDING_NOT_COMPLETED);
+        }
+        UserOnboarding onboarding = userQueryService.getUserOnboarding(userId);
+        UserNotificationSetting notificationSetting = userNotificationSettingRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ONBOARDING_NOT_FOUND));
+        return new OnboardingContext(user, onboarding, notificationSetting);
+    }
+
+    private record OnboardingContext(User user, UserOnboarding onboarding, UserNotificationSetting notificationSetting) {}
 }

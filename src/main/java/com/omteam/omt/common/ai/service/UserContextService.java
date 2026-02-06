@@ -42,7 +42,7 @@ public class UserContextService {
                 .recentMissionSuccessRate(calculateSuccessRate(userId))
                 .currentLevel(characterOpt.map(UserCharacter::getLevel).orElse(1))
                 .successCount(characterOpt.map(UserCharacter::getSuccessCount).orElse(0))
-                .preferredExercise(onboardingOpt.map(UserOnboarding::getPreferredExerciseText).orElse(null))
+                .preferredExercises(onboardingOpt.map(UserOnboarding::getPreferredExercises).orElse(null))
                 .lifestyleType(onboardingOpt.map(UserOnboarding::getLifestyleType).map(Enum::name).orElse(null))
                 .build();
     }
