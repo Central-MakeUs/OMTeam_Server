@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ class UserContextServiceTest {
     void buildContext_success_with_all_data() {
         // given
         User user = createUser("테스트유저");
-        UserOnboarding onboarding = createOnboarding(user, "건강 관리", "요가, 스트레칭", LifestyleType.REGULAR_DAYTIME);
+        UserOnboarding onboarding = createOnboarding(user, "건강 관리", List.of("요가", "스트레칭"), LifestyleType.REGULAR_DAYTIME);
         UserCharacter character = createCharacter(2, 35);
         List<DailyMissionResult> results = createMissionResults(5, 2); // 5 성공, 2 실패
 
@@ -74,7 +75,7 @@ class UserContextServiceTest {
         // then
         assertThat(context.getNickname()).isEqualTo("테스트유저");
         assertThat(context.getAppGoal()).isEqualTo("건강 관리");
-        assertThat(context.getPreferredExercise()).isEqualTo("요가, 스트레칭");
+        assertThat(context.getPreferredExercises()).containsExactly("요가", "스트레칭");
         assertThat(context.getLifestyleType()).isEqualTo("REGULAR_DAYTIME");
         assertThat(context.getCurrentLevel()).isEqualTo(2);
         assertThat(context.getSuccessCount()).isEqualTo(35);
@@ -100,7 +101,7 @@ class UserContextServiceTest {
         // then
         assertThat(context.getNickname()).isEqualTo("테스트유저");
         assertThat(context.getAppGoal()).isNull();
-        assertThat(context.getPreferredExercise()).isNull();
+        assertThat(context.getPreferredExercises()).isNull();
         assertThat(context.getLifestyleType()).isNull();
         assertThat(context.getCurrentLevel()).isEqualTo(1);
         assertThat(context.getSuccessCount()).isEqualTo(10);
@@ -111,7 +112,7 @@ class UserContextServiceTest {
     void buildContext_without_character() {
         // given
         User user = createUser("테스트유저");
-        UserOnboarding onboarding = createOnboarding(user, "체중 감량", "걷기", LifestyleType.IRREGULAR_OVERTIME);
+        UserOnboarding onboarding = createOnboarding(user, "체중 감량", List.of("걷기"), LifestyleType.IRREGULAR_OVERTIME);
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.of(onboarding));
@@ -226,7 +227,7 @@ class UserContextServiceTest {
     void buildContext_with_null_lifestyleType() {
         // given
         User user = createUser("테스트유저");
-        UserOnboarding onboarding = createOnboarding(user, "근력 증가", "웨이트", null);
+        UserOnboarding onboarding = createOnboarding(user, "근력 증가", List.of("웨이트"), null);
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.of(onboarding));
@@ -239,7 +240,7 @@ class UserContextServiceTest {
 
         // then
         assertThat(context.getAppGoal()).isEqualTo("근력 증가");
-        assertThat(context.getPreferredExercise()).isEqualTo("웨이트");
+        assertThat(context.getPreferredExercises()).containsExactly("웨이트");
         assertThat(context.getLifestyleType()).isNull();
     }
 
@@ -256,12 +257,12 @@ class UserContextServiceTest {
                 .build();
     }
 
-    private UserOnboarding createOnboarding(User user, String appGoalText, String preferredExerciseText, LifestyleType lifestyleType) {
+    private UserOnboarding createOnboarding(User user, String appGoalText, List<String> preferredExercises, LifestyleType lifestyleType) {
         return UserOnboarding.builder()
                 .userId(userId)
                 .user(user)
                 .appGoalText(appGoalText)
-                .preferredExerciseText(preferredExerciseText)
+                .preferredExercises(preferredExercises)
                 .lifestyleType(lifestyleType)
                 .build();
     }

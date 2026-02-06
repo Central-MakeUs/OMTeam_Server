@@ -7,7 +7,6 @@ import com.omteam.omt.user.domain.LifestyleType;
 import com.omteam.omt.user.domain.WorkTimeType;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Arrays;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,7 +38,7 @@ public class AiMissionRecommendRequest {
                 LocalTime availableStartTime,
                 LocalTime availableEndTime,
                 int minExerciseMinutes,
-                String preferredExerciseText,
+                List<String> preferredExercises,
                 LifestyleType lifestyleType
         ) {
             return OnboardingData.builder()
@@ -48,7 +47,7 @@ public class AiMissionRecommendRequest {
                     .availableStartTime(availableStartTime.toString())
                     .availableEndTime(availableEndTime.toString())
                     .minExerciseMinutes(minExerciseMinutes)
-                    .preferredExercises(Arrays.stream(preferredExerciseText.split(",")).map(String::trim).toList())
+                    .preferredExercises(preferredExercises)
                     .lifestyleType(lifestyleType)
                     .build();
         }

@@ -51,4 +51,12 @@ public class UserNotificationSetting {
         this.checkinEnabled = checkinEnabled;
         this.reviewEnabled = reviewEnabled;
     }
+
+    public void updateNotification(NotificationType type, boolean enabled) {
+        switch (type) {
+            case REMIND -> this.remindEnabled = enabled;
+            case CHECKIN -> this.checkinEnabled = enabled;
+            case REVIEW -> this.reviewEnabled = enabled;
+        }
+    }
 }

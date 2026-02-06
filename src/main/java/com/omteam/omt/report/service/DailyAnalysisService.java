@@ -11,6 +11,7 @@ import com.omteam.omt.report.client.dto.EncouragementCandidate;
 import com.omteam.omt.report.domain.DailyAnalysis;
 import com.omteam.omt.report.domain.EncouragementIntent;
 import com.omteam.omt.report.domain.EncouragementMessage;
+import com.omteam.omt.report.dto.BatchProcessResult;
 import com.omteam.omt.report.dto.DailyFeedbackResponse;
 import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.mission.domain.DailyMissionResult;
@@ -39,7 +40,7 @@ public class DailyAnalysisService {
      * 모든 활성 사용자에 대해 오늘의 격려 메시지를 생성한다.
      */
     @Transactional
-    public int generateDailyEncouragementForAllUsers(LocalDate targetDate) {
+    public BatchProcessResult generateDailyEncouragementForAllUsers(LocalDate targetDate) {
         List<User> activeUsers = userRepository.findAll().stream()
                 .filter(User::isActive)
                 .filter(User::isOnboardingCompleted)
@@ -54,7 +55,7 @@ public class DailyAnalysisService {
                 log.error("격려 메시지 생성 실패: userId={}", user.getUserId(), e);
             }
         }
-        return successCount;
+        return BatchProcessResult.of(activeUsers.size(), successCount);
     }
 
     /**
@@ -67,12 +68,11 @@ public class DailyAnalysisService {
             return;
         }
 
-        LocalDate yesterday = targetDate.minusDays(1);
-        DailyMissionResult yesterdayResult = missionResultRepository
-                .findByUserUserIdAndMissionDate(user.getUserId(), yesterday)
+        DailyMissionResult targetDateResult = missionResultRepository
+                .findByUserUserIdAndMissionDate(user.getUserId(), targetDate)
                 .orElse(null);
 
-        AiDailyAnalysisRequest request = buildRequest(user.getUserId(), targetDate, yesterdayResult);
+        AiDailyAnalysisRequest request = buildRequest(user.getUserId(), targetDate, targetDateResult);
         AiDailyAnalysisResponse response = aiDailyAnalysisClient.requestDailyAnalysis(request);
 
         DailyAnalysis dailyAnalysis = buildDailyAnalysis(user, targetDate, response);
@@ -81,7 +81,7 @@ public class DailyAnalysisService {
         log.info("데일리 분석 결과 생성 완료: userId={}, targetDate={}", user.getUserId(), targetDate);
     }
 
-    private AiDailyAnalysisRequest buildRequest(Long userId, LocalDate targetDate, DailyMissionResult yesterdayResult) {
+    private AiDailyAnalysisRequest buildRequest(Long userId, LocalDate targetDate, DailyMissionResult targetDateResult) {
         UserContext userContext = userContextService.buildContext(userId);
 
         AiDailyAnalysisRequest.AiDailyAnalysisRequestBuilder builder = AiDailyAnalysisRequest.builder()
@@ -89,12 +89,12 @@ public class DailyAnalysisService {
                 .targetDate(targetDate.toString())
                 .userContext(userContext);
 
-        if (yesterdayResult != null) {
+        if (targetDateResult != null) {
             builder.todayMission(AiDailyAnalysisRequest.TodayMission.builder()
-                    .missionType(yesterdayResult.getMission().getType())
-                    .difficulty(yesterdayResult.getMission().getDifficulty())
-                    .result(yesterdayResult.getResult())
-                    .failureReason(yesterdayResult.getFailureReason())
+                    .missionType(targetDateResult.getMission().getType())
+                    .difficulty(targetDateResult.getMission().getDifficulty())
+                    .status(targetDateResult.getResult().name())
+                    .failureReason(targetDateResult.getFailureReason())
                     .build());
         }
 

@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -73,7 +74,7 @@ class DailyAnalysisServiceIntegrationTest extends IntegrationTestBase {
                 .availableStartTime(LocalTime.of(18, 0))
                 .availableEndTime(LocalTime.of(21, 0))
                 .minExerciseMinutes(30)
-                .preferredExerciseText("스트레칭, 걷기")
+                .preferredExercises(List.of("스트레칭", "걷기"))
                 .lifestyleType(LifestyleType.REGULAR_DAYTIME)
                 .build());
     }
