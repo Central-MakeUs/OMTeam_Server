@@ -56,24 +56,21 @@ public class AiMissionRecommendRequest {
     @Getter
     @Builder
     public static class MissionHistory {
-        private String date;
         private MissionType missionType;
-        private int difficulty;
-        private MissionResult result;
+        private String status;
+        private String performedDate;
         private String failureReason;
 
         public static MissionHistory of(
                 LocalDate date,
                 MissionType missionType,
-                int difficulty,
                 MissionResult result,
                 String failureReason
         ) {
             return MissionHistory.builder()
-                    .date(date.toString())
+                    .performedDate(date.toString())
                     .missionType(missionType)
-                    .difficulty(difficulty)
-                    .result(result)
+                    .status(result.name())
                     .failureReason(failureReason)
                     .build();
         }
