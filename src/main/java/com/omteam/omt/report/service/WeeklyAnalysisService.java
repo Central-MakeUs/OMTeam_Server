@@ -11,6 +11,7 @@ import com.omteam.omt.report.client.AiWeeklyAnalysisClient;
 import com.omteam.omt.report.client.dto.AiWeeklyAnalysisRequest;
 import com.omteam.omt.report.client.dto.AiWeeklyAnalysisResponse;
 import com.omteam.omt.report.domain.WeeklyAiAnalysis;
+import com.omteam.omt.report.dto.BatchProcessResult;
 import com.omteam.omt.report.repository.WeeklyAiAnalysisRepository;
 import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.repository.UserRepository;
@@ -40,7 +41,7 @@ public class WeeklyAnalysisService {
     private final UserContextService userContextService;
     private final ObjectMapper objectMapper;
 
-    public void generateWeeklyAnalysisForAllUsers(LocalDate weekStartDate) {
+    public BatchProcessResult generateWeeklyAnalysisForAllUsers(LocalDate weekStartDate) {
         LocalDate weekEndDate = weekStartDate.plusDays(6);
 
         List<User> activeUsers = userRepository.findAllByDeletedAtIsNull();
@@ -48,7 +49,6 @@ public class WeeklyAnalysisService {
                 weekStartDate, weekEndDate, activeUsers.size());
 
         int successCount = 0;
-        int failCount = 0;
 
         for (User user : activeUsers) {
             try {
@@ -56,11 +56,11 @@ public class WeeklyAnalysisService {
                 successCount++;
             } catch (Exception e) {
                 log.error("사용자 {} 주간 분석 실패: {}", user.getUserId(), e.getMessage());
-                failCount++;
             }
         }
 
-        log.info("주간 분석 완료: 성공={}, 실패={}", successCount, failCount);
+        log.info("주간 분석 완료: 성공={}, 실패={}", successCount, activeUsers.size() - successCount);
+        return BatchProcessResult.of(activeUsers.size(), successCount);
     }
 
     @Transactional

@@ -1,5 +1,6 @@
 package com.omteam.omt.report.client.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
@@ -8,6 +9,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AiDailyAnalysisRequest {
 
     private Long userId;
