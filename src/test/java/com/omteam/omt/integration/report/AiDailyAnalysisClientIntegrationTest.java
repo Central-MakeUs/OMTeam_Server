@@ -213,7 +213,7 @@ class AiDailyAnalysisClientIntegrationTest extends IntegrationTestBase {
                 .todayMission(AiDailyAnalysisRequest.TodayMission.builder()
                         .missionType(MissionType.EXERCISE)
                         .difficulty(3)
-                        .result(MissionResult.FAILURE)
+                        .status(MissionResult.FAILURE.name())
                         .failureReason("시간 부족")
                         .build())
                 .build();
@@ -233,7 +233,7 @@ class AiDailyAnalysisClientIntegrationTest extends IntegrationTestBase {
                 .todayMission(AiDailyAnalysisRequest.TodayMission.builder()
                         .missionType(MissionType.EXERCISE)
                         .difficulty(2)
-                        .result(MissionResult.SUCCESS)
+                        .status(MissionResult.SUCCESS.name())
                         .failureReason(null)
                         .build())
                 .build();

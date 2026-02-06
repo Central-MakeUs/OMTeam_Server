@@ -68,12 +68,11 @@ public class DailyAnalysisService {
             return;
         }
 
-        LocalDate yesterday = targetDate.minusDays(1);
-        DailyMissionResult yesterdayResult = missionResultRepository
-                .findByUserUserIdAndMissionDate(user.getUserId(), yesterday)
+        DailyMissionResult targetDateResult = missionResultRepository
+                .findByUserUserIdAndMissionDate(user.getUserId(), targetDate)
                 .orElse(null);
 
-        AiDailyAnalysisRequest request = buildRequest(user.getUserId(), targetDate, yesterdayResult);
+        AiDailyAnalysisRequest request = buildRequest(user.getUserId(), targetDate, targetDateResult);
         AiDailyAnalysisResponse response = aiDailyAnalysisClient.requestDailyAnalysis(request);
 
         DailyAnalysis dailyAnalysis = buildDailyAnalysis(user, targetDate, response);
@@ -82,7 +81,7 @@ public class DailyAnalysisService {
         log.info("데일리 분석 결과 생성 완료: userId={}, targetDate={}", user.getUserId(), targetDate);
     }
 
-    private AiDailyAnalysisRequest buildRequest(Long userId, LocalDate targetDate, DailyMissionResult yesterdayResult) {
+    private AiDailyAnalysisRequest buildRequest(Long userId, LocalDate targetDate, DailyMissionResult targetDateResult) {
         UserContext userContext = userContextService.buildContext(userId);
 
         AiDailyAnalysisRequest.AiDailyAnalysisRequestBuilder builder = AiDailyAnalysisRequest.builder()
@@ -90,12 +89,12 @@ public class DailyAnalysisService {
                 .targetDate(targetDate.toString())
                 .userContext(userContext);
 
-        if (yesterdayResult != null) {
+        if (targetDateResult != null) {
             builder.todayMission(AiDailyAnalysisRequest.TodayMission.builder()
-                    .missionType(yesterdayResult.getMission().getType())
-                    .difficulty(yesterdayResult.getMission().getDifficulty())
-                    .result(yesterdayResult.getResult())
-                    .failureReason(yesterdayResult.getFailureReason())
+                    .missionType(targetDateResult.getMission().getType())
+                    .difficulty(targetDateResult.getMission().getDifficulty())
+                    .status(targetDateResult.getResult().name())
+                    .failureReason(targetDateResult.getFailureReason())
                     .build());
         }
 

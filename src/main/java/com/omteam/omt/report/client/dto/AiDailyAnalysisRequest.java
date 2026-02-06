@@ -24,7 +24,7 @@ public class AiDailyAnalysisRequest {
     public static class TodayMission {
         private MissionType missionType;
         private int difficulty;
-        private MissionResult result;
+        private String status;
         private String failureReason;
     }
 }

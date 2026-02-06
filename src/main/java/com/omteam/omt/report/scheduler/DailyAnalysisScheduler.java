@@ -21,11 +21,11 @@ public class DailyAnalysisScheduler {
      */
     @Scheduled(cron = "0 30 0 * * *")
     public void generateDailyEncouragement() {
-        LocalDate today = LocalDate.now();
-        log.info("데일리 분석 스케줄러 시작: targetDate={}", today);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        log.info("데일리 분석 스케줄러 시작: targetDate={}", yesterday);
 
         try {
-            BatchProcessResult result = dailyAnalysisService.generateDailyEncouragementForAllUsers(today);
+            BatchProcessResult result = dailyAnalysisService.generateDailyEncouragementForAllUsers(yesterday);
             log.info("데일리 분석 스케줄러 완료: total={}, success={}, failed={}",
                     result.totalCount(), result.successCount(), result.failedCount());
         } catch (Exception e) {
