@@ -209,6 +209,18 @@ class DateRangeUtilsTest {
         }
 
         @Test
+        @DisplayName("음수 days를 요청하면 예외가 발생한다")
+        void givenNegativeDays_throwsException() {
+            // given & when & then
+            assertThatThrownBy(() -> DateRangeUtils.getRecentDaysRange(-1))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(ex -> {
+                        BusinessException be = (BusinessException) ex;
+                        assertThat(be.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
+                    });
+        }
+
+        @Test
         @DisplayName("90일 범위를 요청하면 90일 전부터 오늘까지의 범위를 반환한다")
         void given90Days_returns90DaysRange() {
             // given

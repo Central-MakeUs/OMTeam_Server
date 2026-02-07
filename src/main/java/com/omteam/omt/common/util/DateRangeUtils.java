@@ -36,6 +36,9 @@ public final class DateRangeUtils {
      * 오늘 기준으로 최근 N일 범위를 반환한다.
      */
     public static DateRange getRecentDaysRange(int days) {
+        if (days < 0) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "days는 음수일 수 없습니다.");
+        }
         LocalDate today = LocalDate.now();
         return new DateRange(today.minusDays(days), today);
     }
