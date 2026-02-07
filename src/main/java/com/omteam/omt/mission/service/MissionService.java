@@ -221,7 +221,6 @@ public class MissionService {
                 .map(result -> MissionHistory.of(
                         result.getMissionDate(),
                         result.getMission().getType(),
-                        result.getMission().getDifficulty(),
                         result.getResult(),
                         result.getFailureReason()
                 ))

@@ -100,13 +100,14 @@ public class ChatService {
         AiChatRequest aiRequest = buildAiRequest(userId, session, request);
         AiChatResponse aiResponse = aiChatClient.sendMessage(aiRequest);
 
-        // 4. AI 응답 저장
-        ChatMessage assistantMessage = saveAssistantMessage(session, aiResponse);
-
-        // 5. 대화 종료 시 세션 종료 (AI 응답 또는 서버 측 종료 의도 감지)
+        // 4. 대화 종료 여부 판단 (AI 응답 또는 서버 측 종료 의도 감지)
         boolean serverDetectedTerminal = terminationDetector.detectTerminationIntent(request);
         boolean isTerminal = aiResponse.isTerminal() || serverDetectedTerminal;
 
+        // 5. AI 응답 저장 (combined isTerminal 값 사용)
+        ChatMessage assistantMessage = saveAssistantMessage(session, aiResponse, isTerminal);
+
+        // 6. 대화 종료 시 세션 종료
         if (isTerminal) {
             session.end();
             log.info("채팅 세션 종료: userId={}, sessionId={}, aiTerminal={}, serverDetected={}",
@@ -148,7 +149,7 @@ public class ChatService {
         }
     }
 
-    private ChatMessage saveAssistantMessage(ChatSession session, AiChatResponse aiResponse) {
+    private ChatMessage saveAssistantMessage(ChatSession session, AiChatResponse aiResponse, boolean isTerminal) {
         String optionsJson = convertOptionsToJson(aiResponse.getBotMessage().getOptions());
 
         ChatMessage assistantMessage = ChatMessage.builder()
@@ -156,7 +157,7 @@ public class ChatService {
                 .role(ChatMessageRole.ASSISTANT)
                 .content(aiResponse.getBotMessage().getText())
                 .options(optionsJson)
-                .isTerminal(aiResponse.isTerminal())
+                .isTerminal(isTerminal)
                 .build();
 
         return messageRepository.save(assistantMessage);
