@@ -171,6 +171,9 @@ jobs:
             LANGFUSE_SECRET_KEY=${{ secrets.LANGFUSE_SECRET_KEY }}
             LANGFUSE_PUBLIC_KEY=${{ secrets.LANGFUSE_PUBLIC_KEY }}
             LANGFUSE_HOST=${{ secrets.LANGFUSE_HOST }}
+            LANGSMITH_TRACING=true
+            LANGSMITH_API_KEY=${{ secrets.LANGSMITH_API_KEY }}
+            LANGSMITH_PROJECT=${{ secrets.LANGSMITH_PROJECT }}
             ENVEOF
 
             # 기존 컨테이너 중지
