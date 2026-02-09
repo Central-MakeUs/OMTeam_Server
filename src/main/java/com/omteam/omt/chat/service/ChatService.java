@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.chat.client.AiChatClient;
 import com.omteam.omt.chat.client.dto.AiChatRequest;
 import com.omteam.omt.chat.client.dto.AiChatResponse;
-import com.omteam.omt.chat.domain.ChatActionType;
 import com.omteam.omt.chat.domain.ChatInputType;
 import com.omteam.omt.chat.domain.ChatMessage;
 import com.omteam.omt.chat.domain.ChatMessageRole;
@@ -188,10 +187,9 @@ public class ChatService {
     private AiChatRequest buildAiRequest(Long userId, ChatSession session, ChatMessageRequest request) {
         UserContext userContext = userContextService.buildContext(userId);
 
-        // 현재 세션의 모든 메시지를 conversationHistory로 변환 (액션 메시지 제외)
+        // 현재 세션의 모든 메시지를 conversationHistory로 변환
         List<ChatMessage> sessionMessages = messageRepository.findBySessionIdOrderByCreatedAtAsc(session.getId());
         List<AiChatRequest.ConversationMessage> conversationHistory = sessionMessages.stream()
-                .filter(msg -> msg.getActionType() == null)
                 .map(this::convertToConversationMessage)
                 .toList();
 

@@ -63,10 +63,10 @@ public class ChatActionHandler {
         TodayMissionStatusResponse status = missionService.getTodayMissionStatus(userId);
 
         if (status.isHasCompletedMission()) {
-            return buildPlainMessage(session, "오늘의 미션 결과가 이미 등록되어 있어요!", ChatActionType.COMPLETE_MISSION);
+            return buildPlainMessage(session, "오늘의 미션 결과가 이미 등록되어 있어요!", null);
         }
         if (!status.isHasInProgressMission()) {
-            return buildPlainMessage(session, "진행 중인 미션이 없어요. 먼저 미션을 시작해주세요!", ChatActionType.COMPLETE_MISSION);
+            return buildPlainMessage(session, "진행 중인 미션이 없어요. 먼저 미션을 시작해주세요!", null);
         }
 
         List<ChatMessageResponse.Option> options = List.of(
@@ -82,10 +82,10 @@ public class ChatActionHandler {
             MissionResultRequest resultRequest = new MissionResultRequest();
             resultRequest.setResult(MissionResult.SUCCESS);
             missionService.completeMission(userId, resultRequest);
-            return buildPlainMessage(session, "미션을 성공적으로 완료했어요! 정말 대단해요!", ChatActionType.COMPLETE_MISSION);
+            return buildPlainMessage(session, "미션을 성공적으로 완료했어요! 정말 대단해요!", null);
         } catch (BusinessException e) {
             log.warn("미션 성공 처리 실패: userId={}, error={}", userId, e.getMessage());
-            return buildPlainMessage(session, toUserFriendlyMessage(e), ChatActionType.COMPLETE_MISSION);
+            return buildPlainMessage(session, toUserFriendlyMessage(e), null);
         }
     }
 
@@ -124,10 +124,10 @@ public class ChatActionHandler {
             resultRequest.setResult(MissionResult.FAILURE);
             resultRequest.setFailureReason(failureReason);
             missionService.completeMission(userId, resultRequest);
-            return buildPlainMessage(session, "실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!", ChatActionType.MISSION_FAILURE_REASON);
+            return buildPlainMessage(session, "실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!", null);
         } catch (BusinessException e) {
             log.warn("미션 실패 처리 실패: userId={}, error={}", userId, e.getMessage());
-            return buildPlainMessage(session, toUserFriendlyMessage(e), ChatActionType.MISSION_FAILURE_REASON);
+            return buildPlainMessage(session, toUserFriendlyMessage(e), null);
         }
     }
 

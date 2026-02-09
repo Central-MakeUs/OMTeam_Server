@@ -513,7 +513,7 @@ class ChatServiceTest {
     }
 
     @Test
-    @DisplayName("메시지 전송 - AI conversation history에서 action 메시지 필터링")
+    @DisplayName("메시지 전송 - AI conversation history에 모든 메시지 포함")
     void sendMessage_aiHistory_filtersActionMessages() {
         // given
         User user = createUser();
@@ -565,9 +565,11 @@ class ChatServiceTest {
         verify(aiChatClient).sendMessage(captor.capture());
 
         AiChatRequest aiRequest = captor.getValue();
-        // 액션 메시지 2개가 필터링되어 일반 메시지 1개만 남아야 함
-        assertThat(aiRequest.getConversationHistory()).hasSize(1);
+        // 액션 메시지를 포함한 모든 메시지가 AI 히스토리에 포함되어야 함
+        assertThat(aiRequest.getConversationHistory()).hasSize(3);
         assertThat(aiRequest.getConversationHistory().get(0).getText()).isEqualTo("안녕하세요!");
+        assertThat(aiRequest.getConversationHistory().get(1).getText()).isEqualTo("오늘 미션 결과를 등록할게요.");
+        assertThat(aiRequest.getConversationHistory().get(2).getText()).isEqualTo("SUCCESS");
     }
 
     @Test
