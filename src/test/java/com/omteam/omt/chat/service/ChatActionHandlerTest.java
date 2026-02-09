@@ -137,7 +137,8 @@ class ChatActionHandlerTest {
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .actionType(ChatActionType.COMPLETE_MISSION)
-                .value("SUCCESS")
+                .value("성공했어요!")
+                .optionValue("SUCCESS")
                 .build();
 
         TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
@@ -171,7 +172,8 @@ class ChatActionHandlerTest {
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .actionType(ChatActionType.COMPLETE_MISSION)
-                .value("FAILURE")
+                .value("실패했어요...")
+                .optionValue("FAILURE")
                 .build();
 
         given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
@@ -186,9 +188,9 @@ class ChatActionHandlerTest {
         assertThat(result.getContent()).isEqualTo("아쉽지만 괜찮아요! 다음에 더 잘할 수 있어요. 실패 사유를 알려주세요.");
         assertThat(result.getActionType()).isEqualTo(ChatActionType.COMPLETE_MISSION);
         assertThat(result.getOptions()).isNotNull();
-        assertThat(result.getOptions()).contains("시간 부족");
-        assertThat(result.getOptions()).contains("컨디션 불량");
-        assertThat(result.getOptions()).contains("동기 부족");
+        assertThat(result.getOptions()).contains("LACK_OF_TIME");
+        assertThat(result.getOptions()).contains("POOR_CONDITION");
+        assertThat(result.getOptions()).contains("LACK_OF_MOTIVATION");
         assertThat(result.getOptions()).contains("OTHER");
     }
 
@@ -199,7 +201,8 @@ class ChatActionHandlerTest {
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .actionType(ChatActionType.MISSION_FAILURE_REASON)
-                .value("시간 부족")
+                .value("시간이 부족했어요")
+                .optionValue("LACK_OF_TIME")
                 .build();
 
         TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
@@ -219,7 +222,7 @@ class ChatActionHandlerTest {
 
         MissionResultRequest captured = captor.getValue();
         assertThat(captured.getResult()).isEqualTo(MissionResult.FAILURE);
-        assertThat(captured.getFailureReason()).isEqualTo("시간 부족");
+        assertThat(captured.getFailureReason()).isEqualTo("LACK_OF_TIME");
 
         assertThat(result.getRole()).isEqualTo(ChatMessageRole.ASSISTANT);
         assertThat(result.getContent()).isEqualTo("실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!");
@@ -266,7 +269,8 @@ class ChatActionHandlerTest {
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .actionType(ChatActionType.MISSION_FAILURE_REASON)
-                .value("OTHER")
+                .value("기타 (직접 입력)")
+                .optionValue("OTHER")
                 .build();
 
         given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
@@ -289,7 +293,8 @@ class ChatActionHandlerTest {
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .actionType(ChatActionType.COMPLETE_MISSION)
-                .value("SUCCESS")
+                .value("성공했어요!")
+                .optionValue("SUCCESS")
                 .build();
 
         TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
@@ -317,7 +322,8 @@ class ChatActionHandlerTest {
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .actionType(ChatActionType.COMPLETE_MISSION)
-                .value("SUCCESS")
+                .value("성공했어요!")
+                .optionValue("SUCCESS")
                 .build();
 
         TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
@@ -345,7 +351,8 @@ class ChatActionHandlerTest {
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .actionType(ChatActionType.MISSION_FAILURE_REASON)
-                .value("시간 부족")
+                .value("시간이 부족했어요")
+                .optionValue("LACK_OF_TIME")
                 .build();
 
         TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
@@ -373,7 +380,8 @@ class ChatActionHandlerTest {
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .actionType(ChatActionType.MISSION_FAILURE_REASON)
-                .value("시간 부족")
+                .value("시간이 부족했어요")
+                .optionValue("LACK_OF_TIME")
                 .build();
 
         TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()

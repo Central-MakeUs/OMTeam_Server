@@ -23,8 +23,11 @@ public class ChatMessageRequest {
     )
     private ChatInputType type;
 
-    @Schema(description = "사용자 입력 값 (TEXT: 자유 텍스트, OPTION: 선택지 값)", example = "운동이 너무 힘들어요")
+    @Schema(description = "사용자 입력 값 (TEXT: 자유 텍스트, OPTION: 선택지 label). 채팅 내역에 표시됩니다.", example = "운동이 너무 힘들어요")
     private String value;
+
+    @Schema(description = "선택지의 기계값 (OPTION 타입일 때 서버 로직용). TEXT 입력 시 null", example = "SUCCESS")
+    private String optionValue;
 
     @Schema(
             description = "채팅 액션 타입. null이면 일반 AI 대화로 처리됩니다.",

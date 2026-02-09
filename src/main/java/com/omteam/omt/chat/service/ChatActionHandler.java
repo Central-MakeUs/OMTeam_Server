@@ -45,13 +45,13 @@ public class ChatActionHandler {
      * 3. value=FAILURE → 실패 사유 선택 프롬프트
      */
     private ChatMessage handleCompleteMission(ChatSession session, Long userId, ChatMessageRequest request) {
-        String value = request.getValue();
+        String optionValue = request.getOptionValue();
 
-        if (value == null || value.isEmpty()) {
+        if (optionValue == null || optionValue.isEmpty()) {
             return buildMissionCompletionMenu(session, userId);
         }
 
-        return switch (value.toUpperCase()) {
+        return switch (optionValue.toUpperCase()) {
             case "SUCCESS" -> handleMissionSuccess(session, userId);
             case "FAILURE" -> buildFailureReasonPrompt(session);
             default -> buildPlainMessage(session, "알 수 없는 입력입니다. 다시 시도해주세요.", ChatActionType.COMPLETE_MISSION);
@@ -87,9 +87,9 @@ public class ChatActionHandler {
 
     private ChatMessage buildFailureReasonPrompt(ChatSession session) {
         List<ChatMessageResponse.Option> options = List.of(
-                ChatMessageResponse.Option.builder().label("시간이 부족했어요").value("시간 부족").actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
-                ChatMessageResponse.Option.builder().label("컨디션이 안 좋았어요").value("컨디션 불량").actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
-                ChatMessageResponse.Option.builder().label("동기가 부족했어요").value("동기 부족").actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
+                ChatMessageResponse.Option.builder().label("시간이 부족했어요").value("LACK_OF_TIME").actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
+                ChatMessageResponse.Option.builder().label("컨디션이 안 좋았어요").value("POOR_CONDITION").actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
+                ChatMessageResponse.Option.builder().label("동기가 부족했어요").value("LACK_OF_MOTIVATION").actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
                 ChatMessageResponse.Option.builder().label("기타 (직접 입력)").value("OTHER").actionType(ChatActionType.MISSION_FAILURE_REASON).build()
         );
 
@@ -102,14 +102,16 @@ public class ChatActionHandler {
      * - value=텍스트 or text → 미션 실패 등록
      */
     private ChatMessage handleFailureReason(ChatSession session, Long userId, ChatMessageRequest request) {
+        String optionValue = request.getOptionValue();
         String value = request.getValue();
 
         // "기타" 선택 시 자유 입력 안내
-        if ("OTHER".equals(value)) {
+        if ("OTHER".equals(optionValue)) {
             return buildPlainMessage(session, "실패 사유를 자유롭게 입력해주세요.", ChatActionType.MISSION_FAILURE_REASON);
         }
 
-        String failureReason = value;
+        // 실패 사유: 옵션 선택이면 optionValue, 자유 텍스트면 value
+        String failureReason = optionValue != null ? optionValue : value;
 
         if (failureReason == null || failureReason.isBlank()) {
             return buildPlainMessage(session, "실패 사유를 입력해주세요.", ChatActionType.MISSION_FAILURE_REASON);
