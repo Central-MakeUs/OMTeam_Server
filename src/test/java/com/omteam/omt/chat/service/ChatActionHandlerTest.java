@@ -10,14 +10,11 @@ import com.omteam.omt.chat.domain.ChatMessageRole;
 import com.omteam.omt.chat.domain.ChatSession;
 import com.omteam.omt.chat.dto.ChatMessageRequest;
 import com.omteam.omt.chat.repository.ChatMessageRepository;
-import com.omteam.omt.common.exception.BusinessException;
-import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.dto.MissionResultRequest;
 import com.omteam.omt.mission.dto.TodayMissionStatusResponse;
 import com.omteam.omt.mission.service.MissionService;
 import com.omteam.omt.user.domain.User;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -143,6 +140,12 @@ class ChatActionHandlerTest {
                 .value("SUCCESS")
                 .build();
 
+        TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
+                .hasInProgressMission(true)
+                .hasCompletedMission(false)
+                .build();
+
+        given(missionService.getTodayMissionStatus(userId)).willReturn(status);
         given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -199,6 +202,12 @@ class ChatActionHandlerTest {
                 .value("시간 부족")
                 .build();
 
+        TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
+                .hasInProgressMission(true)
+                .hasCompletedMission(false)
+                .build();
+
+        given(missionService.getTodayMissionStatus(userId)).willReturn(status);
         given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -227,6 +236,12 @@ class ChatActionHandlerTest {
                 .value("날씨가 너무 추워서 운동하기 힘들었어요")
                 .build();
 
+        TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
+                .hasInProgressMission(true)
+                .hasCompletedMission(false)
+                .build();
+
+        given(missionService.getTodayMissionStatus(userId)).willReturn(status);
         given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -268,8 +283,8 @@ class ChatActionHandlerTest {
     }
 
     @Test
-    @DisplayName("미션 완료 액션 - 미션 서비스에서 예외 발생 시 사용자 친화적 에러 메시지 반환")
-    void handleAction_missionServiceThrowsException_returnsErrorMessage() {
+    @DisplayName("미션 완료 액션 - SUCCESS 값 전달 시 이미 완료된 미션이 있으면 에러 메시지 반환")
+    void handleAction_completeMission_success_missionAlreadyCompleted_returnsErrorMessage() {
         // given
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
@@ -277,31 +292,12 @@ class ChatActionHandlerTest {
                 .value("SUCCESS")
                 .build();
 
-        willThrow(new BusinessException(ErrorCode.MISSION_NOT_IN_PROGRESS))
-                .given(missionService).completeMission(eq(userId), any(MissionResultRequest.class));
-        given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
-
-        // when
-        ChatMessage result = chatActionHandler.handleAction(session, userId, request);
-
-        // then
-        assertThat(result.getRole()).isEqualTo(ChatMessageRole.ASSISTANT);
-        assertThat(result.getContent()).isEqualTo("진행 중인 미션이 없어요. 먼저 미션을 시작해주세요!");
-        assertThat(result.getActionType()).isNull();
-    }
-
-    @Test
-    @DisplayName("실패 사유 액션 - 미션 서비스에서 MISSION_RESULT_ALREADY_EXISTS 예외 발생 시 적절한 에러 메시지 반환")
-    void handleAction_failureReason_alreadyExists_returnsErrorMessage() {
-        // given
-        ChatSession session = createChatSession();
-        ChatMessageRequest request = ChatMessageRequest.builder()
-                .actionType(ChatActionType.MISSION_FAILURE_REASON)
-                .value("시간 부족")
+        TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
+                .hasCompletedMission(true)
+                .hasInProgressMission(true)
                 .build();
 
-        willThrow(new BusinessException(ErrorCode.MISSION_RESULT_ALREADY_EXISTS))
-                .given(missionService).completeMission(eq(userId), any(MissionResultRequest.class));
+        given(missionService.getTodayMissionStatus(userId)).willReturn(status);
         given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -311,6 +307,91 @@ class ChatActionHandlerTest {
         assertThat(result.getRole()).isEqualTo(ChatMessageRole.ASSISTANT);
         assertThat(result.getContent()).isEqualTo("오늘의 미션 결과가 이미 등록되어 있어요!");
         assertThat(result.getActionType()).isNull();
+        verify(missionService, never()).completeMission(anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("미션 완료 액션 - SUCCESS 값 전달 시 진행 중인 미션이 없으면 에러 메시지 반환")
+    void handleAction_completeMission_success_noInProgressMission_returnsErrorMessage() {
+        // given
+        ChatSession session = createChatSession();
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .actionType(ChatActionType.COMPLETE_MISSION)
+                .value("SUCCESS")
+                .build();
+
+        TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
+                .hasCompletedMission(false)
+                .hasInProgressMission(false)
+                .build();
+
+        given(missionService.getTodayMissionStatus(userId)).willReturn(status);
+        given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        ChatMessage result = chatActionHandler.handleAction(session, userId, request);
+
+        // then
+        assertThat(result.getRole()).isEqualTo(ChatMessageRole.ASSISTANT);
+        assertThat(result.getContent()).isEqualTo("진행 중인 미션이 없어요. 먼저 미션을 시작해주세요!");
+        assertThat(result.getActionType()).isNull();
+        verify(missionService, never()).completeMission(anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("실패 사유 액션 - 이미 완료된 미션이 있으면 에러 메시지 반환")
+    void handleAction_failureReason_missionAlreadyCompleted_returnsErrorMessage() {
+        // given
+        ChatSession session = createChatSession();
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .actionType(ChatActionType.MISSION_FAILURE_REASON)
+                .value("시간 부족")
+                .build();
+
+        TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
+                .hasCompletedMission(true)
+                .hasInProgressMission(true)
+                .build();
+
+        given(missionService.getTodayMissionStatus(userId)).willReturn(status);
+        given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        ChatMessage result = chatActionHandler.handleAction(session, userId, request);
+
+        // then
+        assertThat(result.getRole()).isEqualTo(ChatMessageRole.ASSISTANT);
+        assertThat(result.getContent()).isEqualTo("오늘의 미션 결과가 이미 등록되어 있어요!");
+        assertThat(result.getActionType()).isNull();
+        verify(missionService, never()).completeMission(anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("실패 사유 액션 - 진행 중인 미션이 없으면 에러 메시지 반환")
+    void handleAction_failureReason_noInProgressMission_returnsErrorMessage() {
+        // given
+        ChatSession session = createChatSession();
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .actionType(ChatActionType.MISSION_FAILURE_REASON)
+                .value("시간 부족")
+                .build();
+
+        TodayMissionStatusResponse status = TodayMissionStatusResponse.builder()
+                .hasCompletedMission(false)
+                .hasInProgressMission(false)
+                .build();
+
+        given(missionService.getTodayMissionStatus(userId)).willReturn(status);
+        given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        ChatMessage result = chatActionHandler.handleAction(session, userId, request);
+
+        // then
+        assertThat(result.getRole()).isEqualTo(ChatMessageRole.ASSISTANT);
+        assertThat(result.getContent()).isEqualTo("진행 중인 미션이 없어요. 먼저 미션을 시작해주세요!");
+        assertThat(result.getActionType()).isNull();
+        verify(missionService, never()).completeMission(anyLong(), any());
     }
 
     /* ======================== */

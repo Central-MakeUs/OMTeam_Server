@@ -9,7 +9,6 @@ import com.omteam.omt.chat.domain.ChatSession;
 import com.omteam.omt.chat.dto.ChatMessageRequest;
 import com.omteam.omt.chat.dto.ChatMessageResponse;
 import com.omteam.omt.chat.repository.ChatMessageRepository;
-import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.dto.MissionResultRequest;
 import com.omteam.omt.mission.dto.TodayMissionStatusResponse;
@@ -78,15 +77,15 @@ public class ChatActionHandler {
     }
 
     private ChatMessage handleMissionSuccess(ChatSession session, Long userId) {
-        try {
-            MissionResultRequest resultRequest = new MissionResultRequest();
-            resultRequest.setResult(MissionResult.SUCCESS);
-            missionService.completeMission(userId, resultRequest);
-            return buildPlainMessage(session, "미션을 성공적으로 완료했어요! 정말 대단해요!", null);
-        } catch (BusinessException e) {
-            log.warn("미션 성공 처리 실패: userId={}, error={}", userId, e.getMessage());
-            return buildPlainMessage(session, toUserFriendlyMessage(e), null);
+        ChatMessage validationError = validateMissionCompletable(session, userId);
+        if (validationError != null) {
+            return validationError;
         }
+
+        MissionResultRequest resultRequest = new MissionResultRequest();
+        resultRequest.setResult(MissionResult.SUCCESS);
+        missionService.completeMission(userId, resultRequest);
+        return buildPlainMessage(session, "미션을 성공적으로 완료했어요! 정말 대단해요!", null);
     }
 
     private ChatMessage buildFailureReasonPrompt(ChatSession session) {
@@ -119,16 +118,16 @@ public class ChatActionHandler {
             return buildPlainMessage(session, "실패 사유를 입력해주세요.", ChatActionType.MISSION_FAILURE_REASON);
         }
 
-        try {
-            MissionResultRequest resultRequest = new MissionResultRequest();
-            resultRequest.setResult(MissionResult.FAILURE);
-            resultRequest.setFailureReason(failureReason);
-            missionService.completeMission(userId, resultRequest);
-            return buildPlainMessage(session, "실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!", null);
-        } catch (BusinessException e) {
-            log.warn("미션 실패 처리 실패: userId={}, error={}", userId, e.getMessage());
-            return buildPlainMessage(session, toUserFriendlyMessage(e), null);
+        ChatMessage validationError = validateMissionCompletable(session, userId);
+        if (validationError != null) {
+            return validationError;
         }
+
+        MissionResultRequest resultRequest = new MissionResultRequest();
+        resultRequest.setResult(MissionResult.FAILURE);
+        resultRequest.setFailureReason(failureReason);
+        missionService.completeMission(userId, resultRequest);
+        return buildPlainMessage(session, "실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!", null);
     }
 
     private ChatMessage buildPlainMessage(ChatSession session, String content, ChatActionType actionType) {
@@ -161,11 +160,14 @@ public class ChatActionHandler {
         }
     }
 
-    private String toUserFriendlyMessage(BusinessException e) {
-        return switch (e.getErrorCode()) {
-            case MISSION_NOT_IN_PROGRESS -> "진행 중인 미션이 없어요. 먼저 미션을 시작해주세요!";
-            case MISSION_RESULT_ALREADY_EXISTS -> "오늘의 미션 결과가 이미 등록되어 있어요!";
-            default -> "처리 중 문제가 발생했어요. 다시 시도해주세요.";
-        };
+    private ChatMessage validateMissionCompletable(ChatSession session, Long userId) {
+        TodayMissionStatusResponse status = missionService.getTodayMissionStatus(userId);
+        if (status.isHasCompletedMission()) {
+            return buildPlainMessage(session, "오늘의 미션 결과가 이미 등록되어 있어요!", null);
+        }
+        if (!status.isHasInProgressMission()) {
+            return buildPlainMessage(session, "진행 중인 미션이 없어요. 먼저 미션을 시작해주세요!", null);
+        }
+        return null;
     }
 }
