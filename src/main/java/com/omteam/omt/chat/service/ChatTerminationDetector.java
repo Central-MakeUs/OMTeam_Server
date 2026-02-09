@@ -49,7 +49,7 @@ public class ChatTerminationDetector {
         }
 
         return switch (request.getType()) {
-            case TEXT -> detectFromText(request.getText());
+            case TEXT -> detectFromText(request.getValue());
             case OPTION -> detectFromOption(request.getValue());
         };
     }
