@@ -49,7 +49,7 @@ class ChatTerminationDetectorTest {
         void detectTerminationIntent_korean_keywords(String keyword) {
             ChatMessageRequest request = ChatMessageRequest.builder()
                     .type(ChatInputType.TEXT)
-                    .text(keyword)
+                    .value(keyword)
                     .build();
 
             assertThat(detector.detectTerminationIntent(request)).isTrue();
@@ -61,7 +61,7 @@ class ChatTerminationDetectorTest {
         void detectTerminationIntent_english_keywords(String keyword) {
             ChatMessageRequest request = ChatMessageRequest.builder()
                     .type(ChatInputType.TEXT)
-                    .text(keyword)
+                    .value(keyword)
                     .build();
 
             assertThat(detector.detectTerminationIntent(request)).isTrue();
@@ -86,7 +86,7 @@ class ChatTerminationDetectorTest {
         void detectTerminationIntent_patterns(String text) {
             ChatMessageRequest request = ChatMessageRequest.builder()
                     .type(ChatInputType.TEXT)
-                    .text(text)
+                    .value(text)
                     .build();
 
             assertThat(detector.detectTerminationIntent(request)).isTrue();
@@ -104,7 +104,7 @@ class ChatTerminationDetectorTest {
         void detectTerminationIntent_normal_conversation_returns_false(String text) {
             ChatMessageRequest request = ChatMessageRequest.builder()
                     .type(ChatInputType.TEXT)
-                    .text(text)
+                    .value(text)
                     .build();
 
             assertThat(detector.detectTerminationIntent(request)).isFalse();
@@ -117,7 +117,7 @@ class ChatTerminationDetectorTest {
         void detectTerminationIntent_empty_text_returns_false(String text) {
             ChatMessageRequest request = ChatMessageRequest.builder()
                     .type(ChatInputType.TEXT)
-                    .text(text)
+                    .value(text)
                     .build();
 
             assertThat(detector.detectTerminationIntent(request)).isFalse();
@@ -128,7 +128,7 @@ class ChatTerminationDetectorTest {
         void detectTerminationIntent_trims_whitespace() {
             ChatMessageRequest request = ChatMessageRequest.builder()
                     .type(ChatInputType.TEXT)
-                    .text("  종료  ")
+                    .value("  종료  ")
                     .build();
 
             assertThat(detector.detectTerminationIntent(request)).isTrue();

@@ -2,6 +2,7 @@ package com.omteam.omt.chat.dto;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omteam.omt.chat.domain.ChatActionType;
 import com.omteam.omt.chat.domain.ChatMessage;
 import com.omteam.omt.chat.domain.ChatMessageRole;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,6 +34,9 @@ public class ChatMessageResponse {
     @Schema(description = "선택지 목록 (ASSISTANT 메시지에만 존재)")
     private List<Option> options;
 
+    @Schema(description = "액션 타입 (null이면 일반 AI 대화 메시지)")
+    private ChatActionType actionType;
+
     @Schema(description = "대화 종료 메시지 여부", example = "false")
     private boolean isTerminal;
 
@@ -49,6 +53,9 @@ public class ChatMessageResponse {
 
         @Schema(description = "선택지 값", example = "EXERCISE_HARD")
         private String value;
+
+        @Schema(description = "액션 타입 (null이면 일반 AI 대화 옵션)")
+        private ChatActionType actionType;
     }
 
     public static ChatMessageResponse from(ChatMessage message, ObjectMapper objectMapper, boolean isTerminal) {
@@ -57,6 +64,7 @@ public class ChatMessageResponse {
                 .role(message.getRole())
                 .content(message.getContent())
                 .options(parseOptions(message.getOptions(), objectMapper))
+                .actionType(message.getActionType())
                 .isTerminal(message.isTerminal() || isTerminal)
                 .createdAt(message.getCreatedAt())
                 .build();
