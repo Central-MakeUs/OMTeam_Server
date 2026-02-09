@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.chat.client.AiChatClient;
 import com.omteam.omt.chat.client.dto.AiChatRequest;
 import com.omteam.omt.chat.client.dto.AiChatResponse;
+import com.omteam.omt.chat.domain.ChatActionType;
 import com.omteam.omt.chat.domain.ChatInputType;
 import com.omteam.omt.chat.domain.ChatMessage;
 import com.omteam.omt.chat.domain.ChatMessageRole;
@@ -49,6 +50,8 @@ class ChatServiceTest {
     AiChatClient aiChatClient;
     @Mock
     ChatTerminationDetector terminationDetector;
+    @Mock
+    ChatActionHandler chatActionHandler;
 
     ChatService chatService;
     ObjectMapper objectMapper;
@@ -66,7 +69,8 @@ class ChatServiceTest {
                 userContextService,
                 aiChatClient,
                 objectMapper,
-                terminationDetector
+                terminationDetector,
+                chatActionHandler
         );
     }
 
@@ -441,6 +445,129 @@ class ChatServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(ErrorCode.INVALID_CHAT_INPUT);
+    }
+
+    @Test
+    @DisplayName("메시지 전송 - Action 요청 시 ChatActionHandler에 위임하고 AI를 호출하지 않음")
+    void sendMessage_actionRequest_delegatesToActionHandler() {
+        // given
+        User user = createUser();
+        ChatSession existingSession = createChatSession(true);
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .actionType(ChatActionType.COMPLETE_MISSION)
+                .build();
+
+        ChatMessage actionResponse = ChatMessage.builder()
+                .id(1L)
+                .session(existingSession)
+                .role(ChatMessageRole.ASSISTANT)
+                .content("오늘 미션 결과를 등록할게요. 어떻게 되셨나요?")
+                .actionType(ChatActionType.COMPLETE_MISSION)
+                .isTerminal(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        given(userQueryService.getUser(userId)).willReturn(user);
+        given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
+        given(chatActionHandler.handleAction(eq(existingSession), eq(userId), eq(request))).willReturn(actionResponse);
+
+        // when
+        ChatMessageResponse response = chatService.sendMessage(userId, request);
+
+        // then
+        verify(chatActionHandler).handleAction(existingSession, userId, request);
+        verify(aiChatClient, never()).sendMessage(any());
+        assertThat(response.getContent()).isEqualTo("오늘 미션 결과를 등록할게요. 어떻게 되셨나요?");
+        assertThat(response.getActionType()).isEqualTo(ChatActionType.COMPLETE_MISSION);
+    }
+
+    @Test
+    @DisplayName("메시지 전송 - Action 시작 요청(type=null)은 사용자 메시지를 저장하지 않음")
+    void sendMessage_actionStartRequest_doesNotSaveUserMessage() {
+        // given
+        User user = createUser();
+        ChatSession existingSession = createChatSession(true);
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .actionType(ChatActionType.COMPLETE_MISSION)
+                .build(); // type=null → 액션 시작 요청
+
+        ChatMessage actionResponse = ChatMessage.builder()
+                .id(1L)
+                .session(existingSession)
+                .role(ChatMessageRole.ASSISTANT)
+                .content("오늘 미션 결과를 등록할게요. 어떻게 되셨나요?")
+                .actionType(ChatActionType.COMPLETE_MISSION)
+                .isTerminal(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        given(userQueryService.getUser(userId)).willReturn(user);
+        given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
+        given(chatActionHandler.handleAction(eq(existingSession), eq(userId), eq(request))).willReturn(actionResponse);
+
+        // when
+        chatService.sendMessage(userId, request);
+
+        // then
+        verify(messageRepository, never()).save(any(ChatMessage.class));
+    }
+
+    @Test
+    @DisplayName("메시지 전송 - AI conversation history에서 action 메시지 필터링")
+    void sendMessage_aiHistory_filtersActionMessages() {
+        // given
+        User user = createUser();
+        ChatSession existingSession = createChatSession(true);
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .type(ChatInputType.TEXT)
+                .text("안녕하세요")
+                .build();
+
+        // 세션에 일반 메시지와 액션 메시지가 섞여 있는 상황
+        ChatMessage normalMessage = createChatMessage(1L, ChatMessageRole.ASSISTANT, "안녕하세요!");
+        ChatMessage actionMessage = ChatMessage.builder()
+                .id(2L)
+                .session(existingSession)
+                .role(ChatMessageRole.ASSISTANT)
+                .content("오늘 미션 결과를 등록할게요.")
+                .actionType(ChatActionType.COMPLETE_MISSION)
+                .isTerminal(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        ChatMessage userActionMessage = ChatMessage.builder()
+                .id(3L)
+                .session(existingSession)
+                .role(ChatMessageRole.USER)
+                .inputType(ChatInputType.OPTION)
+                .content("SUCCESS")
+                .actionType(ChatActionType.COMPLETE_MISSION)
+                .isTerminal(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        AiChatResponse aiResponse = createAiChatResponse("어떤 운동을 원하시나요?", null, false);
+        ChatMessage savedAssistantMessage = createChatMessage(5L, ChatMessageRole.ASSISTANT, "어떤 운동을 원하시나요?");
+
+        given(userQueryService.getUser(userId)).willReturn(user);
+        given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
+        given(userContextService.buildContext(userId)).willReturn(createUserContext());
+        given(messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId))
+                .willReturn(List.of(normalMessage, actionMessage, userActionMessage));
+        given(messageRepository.save(any(ChatMessage.class))).willReturn(savedAssistantMessage);
+        given(aiChatClient.sendMessage(any(AiChatRequest.class))).willReturn(aiResponse);
+        given(terminationDetector.detectTerminationIntent(request)).willReturn(false);
+
+        // when
+        chatService.sendMessage(userId, request);
+
+        // then
+        ArgumentCaptor<AiChatRequest> captor = ArgumentCaptor.forClass(AiChatRequest.class);
+        verify(aiChatClient).sendMessage(captor.capture());
+
+        AiChatRequest aiRequest = captor.getValue();
+        // 액션 메시지 2개가 필터링되어 일반 메시지 1개만 남아야 함
+        assertThat(aiRequest.getConversationHistory()).hasSize(1);
+        assertThat(aiRequest.getConversationHistory().get(0).getText()).isEqualTo("안녕하세요!");
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.chat.client.AiChatClient;
 import com.omteam.omt.chat.client.dto.AiChatRequest;
 import com.omteam.omt.chat.client.dto.AiChatResponse;
+import com.omteam.omt.chat.domain.ChatActionType;
 import com.omteam.omt.chat.domain.ChatInputType;
 import com.omteam.omt.chat.domain.ChatMessage;
 import com.omteam.omt.chat.domain.ChatMessageRole;
@@ -44,6 +45,7 @@ public class ChatService {
     private final AiChatClient aiChatClient;
     private final ObjectMapper objectMapper;
     private final ChatTerminationDetector terminationDetector;
+    private final ChatActionHandler chatActionHandler;
 
     /**
      * 채팅 내역 조회 (커서 기반 페이지네이션)
@@ -82,6 +84,11 @@ public class ChatService {
 
     /**
      * 메시지 전송 (세션 자동 관리)
+     *
+     * 3-way 분기:
+     * 1. Action 요청 (actionType != null) → ChatActionHandler 위임 (AI 호출 X)
+     * 2. Start 요청 (type=null, actionType=null) → 기존 AI 채팅 시작
+     * 3. Regular 요청 (type!=null, actionType=null) → 기존 AI 채팅 흐름
      */
     @Transactional
     public ChatMessageResponse sendMessage(Long userId, ChatMessageRequest request) {
@@ -91,23 +98,42 @@ public class ChatService {
         ChatSession session = sessionRepository.findByUserUserIdAndIsActiveTrue(userId)
                 .orElseGet(() -> createNewSession(user));
 
-        // 2. 사용자 메시지 저장 (채팅 시작 요청이 아닌 경우)
+        // 2. Action 요청 (actionType != null) - 최우선 체크
+        if (request != null && request.isActionRequest()) {
+            return handleActionRequest(userId, session, request);
+        }
+
+        // 3. Start 요청 또는 Regular 요청 → 기존 AI 채팅 흐름
+        return callAiAndSaveResponse(userId, session, request);
+    }
+
+    private ChatMessageResponse handleActionRequest(Long userId, ChatSession session, ChatMessageRequest request) {
+        // 후속 액션(사용자 선택/입력)만 저장, 액션 시작 요청(type=null)은 저장하지 않음
+        if (request.getType() != null) {
+            saveUserMessage(session, request);
+        }
+        ChatMessage response = chatActionHandler.handleAction(session, userId, request);
+        return ChatMessageResponse.from(response, objectMapper, false);
+    }
+
+    private ChatMessageResponse callAiAndSaveResponse(Long userId, ChatSession session, ChatMessageRequest request) {
+        // 사용자 메시지 저장 (채팅 시작 요청이 아닌 경우)
         if (request != null && !request.isStartRequest()) {
             saveUserMessage(session, request);
         }
 
-        // 3. AI 서버 호출
+        // AI 서버 호출
         AiChatRequest aiRequest = buildAiRequest(userId, session, request);
         AiChatResponse aiResponse = aiChatClient.sendMessage(aiRequest);
 
-        // 4. 대화 종료 여부 판단 (AI 응답 또는 서버 측 종료 의도 감지)
+        // 대화 종료 여부 판단
         boolean serverDetectedTerminal = terminationDetector.detectTerminationIntent(request);
         boolean isTerminal = aiResponse.isTerminal() || serverDetectedTerminal;
 
-        // 5. AI 응답 저장 (combined isTerminal 값 사용)
+        // AI 응답 저장
         ChatMessage assistantMessage = saveAssistantMessage(session, aiResponse, isTerminal);
 
-        // 6. 대화 종료 시 세션 종료
+        // 대화 종료 시 세션 종료
         if (isTerminal) {
             session.end();
             log.info("채팅 세션 종료: userId={}, sessionId={}, aiTerminal={}, serverDetected={}",
@@ -133,6 +159,7 @@ public class ChatService {
                 .role(ChatMessageRole.USER)
                 .inputType(request.getType())
                 .content(request.getType() == ChatInputType.TEXT ? request.getText() : request.getValue())
+                .actionType(request.getActionType())
                 .build();
 
         messageRepository.save(userMessage);
@@ -166,9 +193,10 @@ public class ChatService {
     private AiChatRequest buildAiRequest(Long userId, ChatSession session, ChatMessageRequest request) {
         UserContext userContext = userContextService.buildContext(userId);
 
-        // 현재 세션의 모든 메시지를 conversationHistory로 변환
+        // 현재 세션의 모든 메시지를 conversationHistory로 변환 (액션 메시지 제외)
         List<ChatMessage> sessionMessages = messageRepository.findBySessionIdOrderByCreatedAtAsc(session.getId());
         List<AiChatRequest.ConversationMessage> conversationHistory = sessionMessages.stream()
+                .filter(msg -> msg.getActionType() == null)
                 .map(this::convertToConversationMessage)
                 .toList();
 

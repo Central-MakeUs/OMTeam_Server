@@ -56,6 +56,10 @@ public class ChatMessage {
     @Column(columnDefinition = "TEXT")
     private String options;  // JSON: [{"label":"...", "value":"..."}]
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "action_type")
+    private ChatActionType actionType;  // nullable - null이면 일반 AI 채팅 메시지
+
     @Column(name = "is_terminal", nullable = false)
     @Builder.Default
     private boolean isTerminal = false;  // 대화 종료 메시지 여부 (ASSISTANT만)
