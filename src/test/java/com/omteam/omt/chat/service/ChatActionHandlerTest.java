@@ -224,7 +224,7 @@ class ChatActionHandlerTest {
         ChatSession session = createChatSession();
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .actionType(ChatActionType.MISSION_FAILURE_REASON)
-                .text("날씨가 너무 추워서 운동하기 힘들었어요")
+                .value("날씨가 너무 추워서 운동하기 힘들었어요")
                 .build();
 
         given(messageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> invocation.getArgument(0));

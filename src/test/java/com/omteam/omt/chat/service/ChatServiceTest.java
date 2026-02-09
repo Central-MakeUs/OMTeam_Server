@@ -203,7 +203,7 @@ class ChatServiceTest {
         ChatSession existingSession = createChatSession(true);
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .type(ChatInputType.TEXT)
-                .text("운동이 힘들어요")
+                .value("운동이 힘들어요")
                 .build();
 
         ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "운동이 힘들어요");
@@ -269,7 +269,7 @@ class ChatServiceTest {
         ChatSession existingSession = createChatSession(true);
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .type(ChatInputType.TEXT)
-                .text("감사합니다")
+                .value("감사합니다")
                 .build();
 
         ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "감사합니다");
@@ -300,7 +300,7 @@ class ChatServiceTest {
         ChatSession existingSession = createChatSession(true);
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .type(ChatInputType.TEXT)
-                .text("종료")
+                .value("종료")
                 .build();
 
         ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "종료");
@@ -331,7 +331,7 @@ class ChatServiceTest {
         ChatSession existingSession = createChatSession(true);
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .type(ChatInputType.TEXT)
-                .text("고마워")
+                .value("고마워")
                 .build();
 
         ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "고마워");
@@ -362,7 +362,7 @@ class ChatServiceTest {
         ChatSession existingSession = createChatSession(true);
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .type(ChatInputType.TEXT)
-                .text("운동 방법 알려줘")
+                .value("운동 방법 알려줘")
                 .build();
 
         ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "운동 방법 알려줘");
@@ -392,7 +392,7 @@ class ChatServiceTest {
         ChatSession existingSession = createChatSession(true);
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .type(ChatInputType.TEXT)
-                .text(null)
+                .value(null)
                 .build();
 
         given(userQueryService.getUser(userId)).willReturn(user);
@@ -413,7 +413,7 @@ class ChatServiceTest {
         ChatSession existingSession = createChatSession(true);
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .type(ChatInputType.TEXT)
-                .text("   ")
+                .value("   ")
                 .build();
 
         given(userQueryService.getUser(userId)).willReturn(user);
@@ -520,7 +520,7 @@ class ChatServiceTest {
         ChatSession existingSession = createChatSession(true);
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .type(ChatInputType.TEXT)
-                .text("안녕하세요")
+                .value("안녕하세요")
                 .build();
 
         // 세션에 일반 메시지와 액션 메시지가 섞여 있는 상황
@@ -576,7 +576,7 @@ class ChatServiceTest {
         // given
         ChatMessageRequest request = ChatMessageRequest.builder()
                 .type(ChatInputType.TEXT)
-                .text("안녕하세요")
+                .value("안녕하세요")
                 .build();
 
         given(userQueryService.getUser(userId)).willThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));

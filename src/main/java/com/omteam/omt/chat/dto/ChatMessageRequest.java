@@ -23,10 +23,7 @@ public class ChatMessageRequest {
     )
     private ChatInputType type;
 
-    @Schema(description = "텍스트 입력 (type=TEXT일 때)", example = "운동이 너무 힘들어요")
-    private String text;
-
-    @Schema(description = "선택지 값 (type=OPTION일 때)", example = "TIME_SHORTAGE")
+    @Schema(description = "사용자 입력 값 (TEXT: 자유 텍스트, OPTION: 선택지 값)", example = "운동이 너무 힘들어요")
     private String value;
 
     @Schema(

@@ -158,7 +158,7 @@ public class ChatService {
                 .session(session)
                 .role(ChatMessageRole.USER)
                 .inputType(request.getType())
-                .content(request.getType() == ChatInputType.TEXT ? request.getText() : request.getValue())
+                .content(request.getValue())
                 .actionType(request.getActionType())
                 .build();
 
@@ -166,12 +166,7 @@ public class ChatService {
     }
 
     private void validateChatInput(ChatMessageRequest request) {
-        if (request.getType() == ChatInputType.TEXT &&
-                (request.getText() == null || request.getText().isBlank())) {
-            throw new BusinessException(ErrorCode.INVALID_CHAT_INPUT);
-        }
-        if (request.getType() == ChatInputType.OPTION &&
-                (request.getValue() == null || request.getValue().isBlank())) {
+        if (request.getValue() == null || request.getValue().isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_CHAT_INPUT);
         }
     }
@@ -204,7 +199,7 @@ public class ChatService {
         if (request != null && !request.isStartRequest()) {
             input = AiChatRequest.Input.builder()
                     .type(request.getType())
-                    .text(request.getType() == ChatInputType.TEXT ? request.getText() : null)
+                    .text(request.getType() == ChatInputType.TEXT ? request.getValue() : null)
                     .value(request.getType() == ChatInputType.OPTION ? request.getValue() : null)
                     .build();
         }

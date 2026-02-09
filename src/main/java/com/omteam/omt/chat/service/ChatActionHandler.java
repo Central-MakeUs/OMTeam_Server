@@ -107,15 +107,13 @@ public class ChatActionHandler {
      */
     private ChatMessage handleFailureReason(ChatSession session, Long userId, ChatMessageRequest request) {
         String value = request.getValue();
-        String text = request.getText();
 
         // "기타" 선택 시 자유 입력 안내
         if ("OTHER".equals(value)) {
             return buildPlainMessage(session, "실패 사유를 자유롭게 입력해주세요.", ChatActionType.MISSION_FAILURE_REASON);
         }
 
-        // 실패 사유 결정: text(자유 입력)가 있으면 text, 없으면 value(선택지)
-        String failureReason = (text != null && !text.isBlank()) ? text : value;
+        String failureReason = value;
 
         if (failureReason == null || failureReason.isBlank()) {
             return buildPlainMessage(session, "실패 사유를 입력해주세요.", ChatActionType.MISSION_FAILURE_REASON);
