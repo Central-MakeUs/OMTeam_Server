@@ -59,13 +59,10 @@ public class ChatActionHandler {
     }
 
     private ChatMessage buildMissionCompletionMenu(ChatSession session, Long userId) {
-        TodayMissionStatusResponse status = missionService.getTodayMissionStatus(userId);
 
-        if (status.isHasCompletedMission()) {
-            return buildPlainMessage(session, "오늘의 미션 결과가 이미 등록되어 있어요!", null);
-        }
-        if (!status.isHasInProgressMission()) {
-            return buildPlainMessage(session, "진행 중인 미션이 없어요. 먼저 미션을 시작해주세요!", null);
+        ChatMessage validationError = validateMissionCompletable(session, userId);
+        if (validationError != null) {
+            return validationError;
         }
 
         List<ChatMessageResponse.Option> options = List.of(
