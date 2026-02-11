@@ -14,6 +14,19 @@ public class AiChatResponse {
 
     private BotMessage botMessage;
     private State state;
+    @Builder.Default
+    private boolean fallback = false;
+
+    public static AiChatResponse timeoutFallback() {
+        return AiChatResponse.builder()
+                .botMessage(BotMessage.builder()
+                        .text("AI 서버 응답이 지연되고 있어요. 잠시 후 다시 시도해 주세요.")
+                        .options(List.of())
+                        .build())
+                .state(State.builder().isTerminal(false).build())
+                .fallback(true)
+                .build();
+    }
 
     @Getter
     @NoArgsConstructor

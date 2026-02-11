@@ -125,6 +125,18 @@ public class ChatService {
         AiChatRequest aiRequest = buildAiRequest(userId, session, request);
         AiChatResponse aiResponse = aiChatClient.sendMessage(aiRequest);
 
+        // fallback 응답이면 DB 저장 없이 직접 반환
+        if (aiResponse.isFallback()) {
+            log.info("AI 서버 fallback 응답 반환: userId={}, sessionId={}", userId, session.getId());
+            return ChatMessageResponse.builder()
+                    .messageId(null)
+                    .role(ChatMessageRole.ASSISTANT)
+                    .content(aiResponse.getBotMessage().getText())
+                    .options(List.of())
+                    .isTerminal(false)
+                    .build();
+        }
+
         // 대화 종료 여부 판단
         boolean serverDetectedTerminal = terminationDetector.detectTerminationIntent(request);
         boolean isTerminal = aiResponse.isTerminal() || serverDetectedTerminal;
