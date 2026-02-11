@@ -222,7 +222,7 @@ class ChatActionHandlerTest {
 
         MissionResultRequest captured = captor.getValue();
         assertThat(captured.getResult()).isEqualTo(MissionResult.FAILURE);
-        assertThat(captured.getFailureReason()).isEqualTo("LACK_OF_TIME");
+        assertThat(captured.getFailureReason()).isEqualTo("시간이 부족했어요");
 
         assertThat(result.getRole()).isEqualTo(ChatMessageRole.ASSISTANT);
         assertThat(result.getContent()).isEqualTo("실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!");
