@@ -1,10 +1,12 @@
 package com.omteam.omt.report.client;
 
-import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
-import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.config.properties.AiServerProperties;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,24 +22,39 @@ public class AiDailyAnalysisClient {
 
     private final WebClient webClient;
     private final AiServerProperties aiServerProperties;
+    private final CircuitBreaker aiServerCircuitBreaker;
 
     private static final String DAILY_ANALYSIS_ENDPOINT = "/ai/analysis/daily";
 
     public AiDailyAnalysisResponse requestDailyAnalysis(AiDailyAnalysisRequest request) {
         try {
-            return webClient.post()
-                    .uri(aiServerProperties.getBaseUrl() + DAILY_ANALYSIS_ENDPOINT)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(AiDailyAnalysisResponse.class)
-                    .timeout(Duration.ofSeconds(aiServerProperties.getTimeoutSeconds()))
-                    .block();
+            return aiServerCircuitBreaker.executeSupplier(() -> {
+                try {
+                    return webClient.post()
+                            .uri(aiServerProperties.getBaseUrl() + DAILY_ANALYSIS_ENDPOINT)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(request)
+                            .retrieve()
+                            .bodyToMono(AiDailyAnalysisResponse.class)
+                            .timeout(Duration.ofSeconds(aiServerProperties.getTimeoutSeconds()))
+                            .block();
+                } catch (WebClientResponseException e) {
+                    log.error("AI 서버 응답 오류: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+                    throw e;
+                } catch (Exception e) {
+                    log.error("AI 서버 통신 오류", e);
+                    throw e;
+                }
+            });
+        } catch (CallNotPermittedException e) {
+            log.warn("AI 서버 Circuit Breaker OPEN 상태 - 데일리 분석 차단");
+            throw new BusinessException(ErrorCode.AI_SERVER_CIRCUIT_OPEN);
         } catch (WebClientResponseException e) {
-            log.error("AI 서버 응답 오류: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("AI 서버 통신 오류", e);
+            log.error("AI 서버 데일리 분석 실패", e);
             throw new BusinessException(ErrorCode.AI_SERVER_CONNECTION_ERROR);
         }
     }

@@ -7,8 +7,6 @@ import com.omteam.omt.chat.client.dto.AiChatRequest;
 import com.omteam.omt.chat.client.dto.AiChatResponse;
 import com.omteam.omt.chat.domain.ChatInputType;
 import com.omteam.omt.common.ai.dto.UserContext;
-import com.omteam.omt.common.exception.BusinessException;
-import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.integration.IntegrationTestBase;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -164,7 +162,7 @@ class AiChatClientIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("AI 서버가 500 에러를 반환하면 AI_SERVER_ERROR 예외가 발생한다")
+    @DisplayName("AI 서버가 500 에러를 반환하면 fallback 응답을 반환한다")
     void sendMessage_serverError() {
         // given
         mockWebServer.enqueue(new MockResponse()
@@ -174,11 +172,13 @@ class AiChatClientIntegrationTest extends IntegrationTestBase {
 
         AiChatRequest request = createTestRequest(null);
 
-        // when & then
-        assertThatThrownBy(() -> aiChatClient.sendMessage(request))
-                .isInstanceOf(BusinessException.class)
-                .extracting(e -> ((BusinessException) e).getErrorCode())
-                .isEqualTo(ErrorCode.AI_SERVER_ERROR);
+        // when
+        AiChatResponse response = aiChatClient.sendMessage(request);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.isFallback()).isTrue();
+        assertThat(response.getBotMessage().getText()).contains("잠시 후 다시 시도해 주세요");
     }
 
     @Test
