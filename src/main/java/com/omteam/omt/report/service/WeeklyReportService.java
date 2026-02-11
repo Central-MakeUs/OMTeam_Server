@@ -68,11 +68,17 @@ public class WeeklyReportService {
         // 3. 타입별 성공횟수
         List<TypeSuccessCount> typeCounts = calculateTypeSuccessCounts(thisWeekResults);
 
-        // 4. 실패 원인 순위
-        List<FailureReasonRank> failureRanks = getFailureReasonRanks(thisWeekResults);
-
-        // 5. AI 피드백 (DB에서 조회)
+        // 4. AI 피드백 (DB에서 조회)
         AiFeedback feedback = getAiFeedback(userId, effectiveStart);
+
+        // 5. 실패 원인 순위 (AI 분석 결과에서 추출)
+        List<FailureReasonRank> failureRanks = feedback.failureReasonRanking().stream()
+                .map(aiRank -> FailureReasonRank.builder()
+                        .rank(aiRank.rank())
+                        .reason(aiRank.category())
+                        .count(aiRank.count())
+                        .build())
+                .toList();
 
         return WeeklyReportResponse.builder()
                 .weekStartDate(effectiveStart)
@@ -169,31 +175,6 @@ public class WeeklyReportService {
                         .successCount(successByType.getOrDefault(type, 0L).intValue())
                         .build())
                 .toList();
-    }
-
-    private List<FailureReasonRank> getFailureReasonRanks(List<DailyMissionResult> results) {
-        Map<String, Long> reasonCounts = results.stream()
-                .filter(r -> r.getResult() == MissionResult.FAILURE)
-                .map(DailyMissionResult::getFailureReason)
-                .filter(reason -> reason != null && !reason.isBlank())
-                .collect(Collectors.groupingBy(reason -> reason, Collectors.counting()));
-
-        List<Map.Entry<String, Long>> sortedReasons = reasonCounts.entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .limit(3)
-                .toList();
-
-        List<FailureReasonRank> ranks = new ArrayList<>();
-        for (int i = 0; i < sortedReasons.size(); i++) {
-            Map.Entry<String, Long> entry = sortedReasons.get(i);
-            ranks.add(FailureReasonRank.builder()
-                    .rank(i + 1)
-                    .reason(entry.getKey())
-                    .count(entry.getValue().intValue())
-                    .build());
-        }
-
-        return ranks;
     }
 
     private AiFeedback getAiFeedback(Long userId, LocalDate weekStartDate) {

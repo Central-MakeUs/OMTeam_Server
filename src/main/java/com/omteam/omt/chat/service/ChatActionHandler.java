@@ -99,7 +99,7 @@ public class ChatActionHandler {
     /**
      * MISSION_FAILURE_REASON 처리:
      * - value=OTHER → 자유 입력 안내
-     * - value=텍스트 or text → 미션 실패 등록
+     * - value=텍스트
      */
     private ChatMessage handleFailureReason(ChatSession session, Long userId, ChatMessageRequest request) {
         String optionValue = request.getOptionValue();
@@ -110,10 +110,7 @@ public class ChatActionHandler {
             return buildPlainMessage(session, "실패 사유를 자유롭게 입력해주세요.", ChatActionType.MISSION_FAILURE_REASON);
         }
 
-        // 실패 사유: 옵션 선택이면 optionValue, 자유 텍스트면 value
-        String failureReason = optionValue != null ? optionValue : value;
-
-        if (failureReason == null || failureReason.isBlank()) {
+        if (value == null || value.isBlank()) {
             return buildPlainMessage(session, "실패 사유를 입력해주세요.", ChatActionType.MISSION_FAILURE_REASON);
         }
 
@@ -124,7 +121,7 @@ public class ChatActionHandler {
 
         MissionResultRequest resultRequest = new MissionResultRequest();
         resultRequest.setResult(MissionResult.FAILURE);
-        resultRequest.setFailureReason(failureReason);
+        resultRequest.setFailureReason(value);
         missionService.completeMission(userId, resultRequest);
         return buildPlainMessage(session, "실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!", null);
     }

@@ -50,7 +50,7 @@ class WebClientConfigTest {
     }
 
     @Test
-    @DisplayName("WebClient가 기본 타임아웃(30초)으로 생성됨")
+    @DisplayName("WebClient가 기본 타임아웃(10초)으로 생성됨")
     void webClient_withDefaultTimeout() {
         // given
         AiServerProperties defaultProps = new AiServerProperties();
@@ -62,6 +62,6 @@ class WebClientConfigTest {
 
         // then
         assertThat(webClient).isNotNull();
-        assertThat(defaultProps.getTimeoutSeconds()).isEqualTo(30);
+        assertThat(defaultProps.getTimeoutSeconds()).isEqualTo(10);
     }
 }

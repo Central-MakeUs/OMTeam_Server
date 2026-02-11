@@ -9,6 +9,8 @@ import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.config.properties.AiServerProperties;
 import com.omteam.omt.report.client.dto.AiWeeklyAnalysisRequest;
 import com.omteam.omt.report.client.dto.AiWeeklyAnalysisResponse;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
@@ -44,11 +46,14 @@ class AiWeeklyAnalysisClientTest {
     @Mock
     AiServerProperties aiServerProperties;
 
+    CircuitBreaker circuitBreaker;
+
     AiWeeklyAnalysisClient aiWeeklyAnalysisClient;
 
     @BeforeEach
     void setUp() {
-        aiWeeklyAnalysisClient = new AiWeeklyAnalysisClient(webClient, aiServerProperties);
+        circuitBreaker = CircuitBreakerRegistry.ofDefaults().circuitBreaker("test");
+        aiWeeklyAnalysisClient = new AiWeeklyAnalysisClient(webClient, aiServerProperties, circuitBreaker);
     }
 
     @Test

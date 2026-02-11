@@ -314,26 +314,32 @@ class WeeklyReportServiceTest {
     class FailureReasonRankTest {
 
         @Test
-        @DisplayName("실패 원인 순위 상위 3개 반환")
-        void getTopFailureReasons() {
+        @DisplayName("AI 분석 결과에서 실패 원인 순위를 추출하여 반환")
+        void getTopFailureReasonsFromAiAnalysis() throws Exception {
             // given
-            List<DailyMissionResult> results = List.of(
-                    createMissionResultWithReason(monday, "시간 부족"),
-                    createMissionResultWithReason(monday.plusDays(1), "시간 부족"),
-                    createMissionResultWithReason(monday.plusDays(2), "시간 부족"),
-                    createMissionResultWithReason(monday.plusDays(3), "피로"),
-                    createMissionResultWithReason(monday.plusDays(4), "피로"),
-                    createMissionResultWithReason(monday.plusDays(5), "날씨")
-            );
+            User user = User.builder().userId(userId).build();
+            String rankingJson = "[{\"rank\":1,\"category\":\"시간 부족\",\"count\":3}," +
+                    "{\"rank\":2,\"category\":\"피로\",\"count\":2}," +
+                    "{\"rank\":3,\"category\":\"날씨\",\"count\":1}]";
+
+            WeeklyAiAnalysis analysis = WeeklyAiAnalysis.builder()
+                    .user(user)
+                    .weekStartDate(monday)
+                    .failureReasonRankingJson(rankingJson)
+                    .weeklyFeedback("이번주 피드백")
+                    .build();
 
             given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
-                    eq(userId), eq(monday), eq(monday.plusDays(6))))
-                    .willReturn(results);
-            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
-                    eq(userId), eq(monday.minusDays(7)), eq(monday.minusDays(1))))
+                    anyLong(), any(), any()))
                     .willReturn(List.of());
             given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
-                    .willReturn(Optional.empty());
+                    .willReturn(Optional.of(analysis));
+            given(objectMapper.readValue(eq(rankingJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
+                    .willReturn(List.of(
+                            createFailureReasonRank(1, "시간 부족", 3),
+                            createFailureReasonRank(2, "피로", 2),
+                            createFailureReasonRank(3, "날씨", 1)
+                    ));
 
             // when
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
@@ -343,6 +349,27 @@ class WeeklyReportServiceTest {
             assertThat(response.topFailureReasons().get(0).rank()).isEqualTo(1);
             assertThat(response.topFailureReasons().get(0).reason()).isEqualTo("시간 부족");
             assertThat(response.topFailureReasons().get(0).count()).isEqualTo(3);
+            assertThat(response.topFailureReasons().get(1).rank()).isEqualTo(2);
+            assertThat(response.topFailureReasons().get(1).reason()).isEqualTo("피로");
+            assertThat(response.topFailureReasons().get(2).rank()).isEqualTo(3);
+            assertThat(response.topFailureReasons().get(2).reason()).isEqualTo("날씨");
+        }
+
+        @Test
+        @DisplayName("AI 분석 결과가 없으면 빈 리스트 반환")
+        void emptyFailureReasonsWhenNoAiAnalysis() {
+            // given
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    anyLong(), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
+
+            // then
+            assertThat(response.topFailureReasons()).isEmpty();
         }
     }
 

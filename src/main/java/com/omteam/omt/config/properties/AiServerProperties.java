@@ -12,5 +12,5 @@ import org.springframework.stereotype.Component;
 public class AiServerProperties {
 
     private String baseUrl;
-    private int timeoutSeconds = 30;
+    private int timeoutSeconds = 10;
 }
