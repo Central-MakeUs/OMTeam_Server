@@ -28,32 +28,21 @@ public class AiWeeklyAnalysisClient {
 
     public AiWeeklyAnalysisResponse analyzeWeeklyMissions(AiWeeklyAnalysisRequest request) {
         try {
-            return aiServerCircuitBreaker.executeSupplier(() -> {
-                try {
-                    return webClient.post()
-                            .uri(aiServerProperties.getBaseUrl() + WEEKLY_ANALYSIS_ENDPOINT)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(request)
-                            .retrieve()
-                            .bodyToMono(AiWeeklyAnalysisResponse.class)
-                            .timeout(Duration.ofSeconds(aiServerProperties.getTimeoutSeconds()))
-                            .block();
-                } catch (WebClientResponseException e) {
-                    log.error("AI 서버 주간 분석 응답 오류: status={}, body={}",
-                            e.getStatusCode(), e.getResponseBodyAsString());
-                    throw e;
-                } catch (Exception e) {
-                    log.error("AI 서버 주간 분석 통신 오류", e);
-                    throw e;
-                }
-            });
+            return aiServerCircuitBreaker.executeSupplier(() -> webClient.post()
+                    .uri(aiServerProperties.getBaseUrl() + WEEKLY_ANALYSIS_ENDPOINT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(AiWeeklyAnalysisResponse.class)
+                    .timeout(Duration.ofSeconds(aiServerProperties.getTimeoutSeconds()))
+                    .block());
         } catch (CallNotPermittedException e) {
             log.warn("AI 서버 Circuit Breaker OPEN 상태 - 주간 분석 차단");
             throw new BusinessException(ErrorCode.AI_SERVER_CIRCUIT_OPEN);
         } catch (WebClientResponseException e) {
+            log.error("AI 서버 주간 분석 응답 오류: status={}, body={}",
+                    e.getStatusCode(), e.getResponseBodyAsString());
             throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
-        } catch (BusinessException e) {
-            throw e;
         } catch (Exception e) {
             log.error("AI 서버 주간 분석 실패", e);
             throw new BusinessException(ErrorCode.AI_SERVER_CONNECTION_ERROR);

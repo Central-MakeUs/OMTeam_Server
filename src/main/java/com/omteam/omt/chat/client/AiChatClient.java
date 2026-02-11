@@ -2,8 +2,6 @@ package com.omteam.omt.chat.client;
 
 import com.omteam.omt.chat.client.dto.AiChatRequest;
 import com.omteam.omt.chat.client.dto.AiChatResponse;
-import com.omteam.omt.common.exception.BusinessException;
-import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.config.properties.AiServerProperties;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -31,37 +29,31 @@ public class AiChatClient {
     public AiChatResponse sendMessage(AiChatRequest request) {
         try {
             return aiServerCircuitBreaker.executeSupplier(() -> {
-                try {
-                    log.debug("AI 채팅 요청: input={}", request.getInput());
-
-                    return webClient.post()
-                            .uri(aiServerProperties.getBaseUrl() + CHAT_ENDPOINT)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(request)
-                            .retrieve()
-                            .bodyToMono(AiChatResponse.class)
-                            .timeout(Duration.ofSeconds(aiServerProperties.getTimeoutSeconds()))
-                            .block();
-                } catch (WebClientResponseException e) {
-                    log.error("AI 서버 응답 오류: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
-                    throw e;
-                } catch (WebClientRequestException e) {
-                    log.error("AI 서버 연결 오류", e);
-                    throw e;
-                } catch (Exception e) {
-                    log.error("AI 서버 통신 중 예상치 못한 오류", e);
-                    throw e;
-                }
+                log.debug("AI 채팅 요청: input={}", request.getInput());
+                return webClient.post()
+                        .uri(aiServerProperties.getBaseUrl() + CHAT_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(request)
+                        .retrieve()
+                        .bodyToMono(AiChatResponse.class)
+                        .timeout(Duration.ofSeconds(aiServerProperties.getTimeoutSeconds()))
+                        .block();
             });
         } catch (CallNotPermittedException e) {
             log.warn("AI 서버 Circuit Breaker OPEN 상태 - 채팅 fallback 반환");
             return AiChatResponse.timeoutFallback();
+        } catch (WebClientResponseException e) {
+            log.error("AI 서버 응답 오류: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            return AiChatResponse.timeoutFallback();
+        } catch (WebClientRequestException e) {
+            log.error("AI 서버 연결 오류", e);
+            return AiChatResponse.timeoutFallback();
         } catch (Exception e) {
             if (isTimeoutException(e)) {
                 log.warn("AI 서버 타임아웃 - 채팅 fallback 반환", e);
-                return AiChatResponse.timeoutFallback();
+            } else {
+                log.error("AI 서버 통신 중 예상치 못한 오류", e);
             }
-            log.error("AI 서버 통신 오류 - 채팅 fallback 반환", e);
             return AiChatResponse.timeoutFallback();
         }
     }
