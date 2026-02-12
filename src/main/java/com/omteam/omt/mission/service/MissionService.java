@@ -23,6 +23,7 @@ import com.omteam.omt.mission.dto.TodayMissionStatusResponse;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
 import com.omteam.omt.mission.repository.MissionRepository;
+import com.omteam.omt.report.service.DailyAnalysisService;
 import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.domain.UserOnboarding;
 import com.omteam.omt.user.service.UserQueryService;
@@ -48,7 +49,7 @@ public class MissionService {
     private final AiMissionClient aiMissionClient;
     private final CharacterService characterService;
     private final UserContextService userContextService;
-
+    private final DailyAnalysisService dailyAnalysisService;
     private static final int RECENT_HISTORY_DAYS = 7;
 
     public DailyMissionRecommendResponse recommendDailyMissions(Long userId) {
@@ -114,6 +115,7 @@ public class MissionService {
         missionResultRepository.save(missionResult);
         inProgressMission.complete();
 
+        dailyAnalysisService.generateDailyAnalysisForUser(user,LocalDate.now());
         // 미션 성공 시 캐릭터 경험치 증가
         if (request.getResult() == MissionResult.SUCCESS) {
             characterService.recordMissionSuccess(userId);
