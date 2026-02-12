@@ -3,6 +3,7 @@ package com.omteam.omt.report.dto;
 import static org.assertj.core.api.Assertions.*;
 
 import com.omteam.omt.mission.domain.MissionType;
+import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.dto.WeeklyReportResponse.AiFeedback;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyResult;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyStatus;
@@ -55,6 +56,7 @@ class WeeklyReportResponseTest {
             );
 
             AiFeedback aiFeedback = AiFeedback.builder()
+                    .isDefault(false)
                     .build();
 
             // when
@@ -68,6 +70,7 @@ class WeeklyReportResponseTest {
                     .typeSuccessCounts(typeCounts)
                     .topFailureReasons(failureRanks)
                     .aiFeedback(aiFeedback)
+                    .dataStatus(ReportDataStatus.READY)
                     .build();
 
             // then
@@ -80,6 +83,7 @@ class WeeklyReportResponseTest {
             assertThat(response.typeSuccessCounts()).hasSize(1);
             assertThat(response.topFailureReasons()).hasSize(1);
             assertThat(response.aiFeedback()).isNotNull();
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
         }
 
         @Test
@@ -96,6 +100,7 @@ class WeeklyReportResponseTest {
                     .typeSuccessCounts(List.of())
                     .topFailureReasons(List.of())
                     .aiFeedback(null)
+                    .dataStatus(ReportDataStatus.NO_DATA)
                     .build();
 
             // then
@@ -103,6 +108,7 @@ class WeeklyReportResponseTest {
             assertThat(response.typeSuccessCounts()).isEmpty();
             assertThat(response.topFailureReasons()).isEmpty();
             assertThat(response.aiFeedback()).isNull();
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
         }
 
         @Test
@@ -119,6 +125,7 @@ class WeeklyReportResponseTest {
                     .typeSuccessCounts(List.of())
                     .topFailureReasons(List.of())
                     .aiFeedback(null)
+                    .dataStatus(ReportDataStatus.READY)
                     .build();
 
             // then

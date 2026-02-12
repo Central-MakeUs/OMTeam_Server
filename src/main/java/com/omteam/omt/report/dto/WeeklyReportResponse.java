@@ -10,6 +10,9 @@ import lombok.Builder;
 @Schema(description = "주간 리포트 응답")
 @Builder
 public record WeeklyReportResponse(
+        @Schema(description = "데이터 상태")
+        ReportDataStatus dataStatus,
+
         @Schema(description = "주간 시작일 (월요일)", example = "2024-01-15")
         LocalDate weekStartDate,
 
@@ -102,7 +105,10 @@ public record WeeklyReportResponse(
             List<AiFailureReasonRank> failureReasonRanking,
 
             @Schema(description = "이번주 결과에 대한 피드백")
-            String weeklyFeedback
+            String weeklyFeedback,
+
+            @Schema(description = "기본 메시지 여부 (true이면 AI 분석이 아닌 안내 메시지)")
+            boolean isDefault
     ) {}
 
     @Schema(description = "AI 분석 실패 원인 순위")

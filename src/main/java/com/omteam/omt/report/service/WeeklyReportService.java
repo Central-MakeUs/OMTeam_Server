@@ -10,6 +10,8 @@ import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.report.domain.WeeklyAiAnalysis;
+import com.omteam.omt.report.constant.DefaultReportMessages;
+import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.dto.WeeklyReportResponse;
 import com.omteam.omt.report.dto.WeeklyReportResponse.AiFeedback;
 import com.omteam.omt.report.dto.WeeklyReportResponse.AiFailureReasonRank;
@@ -69,7 +71,8 @@ public class WeeklyReportService {
         List<TypeSuccessCount> typeCounts = calculateTypeSuccessCounts(thisWeekResults);
 
         // 4. AI 피드백 (DB에서 조회)
-        AiFeedback feedback = getAiFeedback(userId, effectiveStart);
+        boolean hasMissionData = !thisWeekResults.isEmpty();
+        AiFeedback feedback = getAiFeedback(userId, effectiveStart, hasMissionData);
 
         // 5. 실패 원인 순위 (AI 분석 결과에서 추출)
         List<FailureReasonRank> failureRanks = feedback.failureReasonRanking().stream()
@@ -80,7 +83,18 @@ public class WeeklyReportService {
                         .build())
                 .toList();
 
+        // 6. dataStatus 결정
+        ReportDataStatus dataStatus;
+        if (!feedback.isDefault()) {
+            dataStatus = ReportDataStatus.READY;
+        } else if (hasMissionData) {
+            dataStatus = ReportDataStatus.PENDING_ANALYSIS;
+        } else {
+            dataStatus = ReportDataStatus.NO_DATA;
+        }
+
         return WeeklyReportResponse.builder()
+                .dataStatus(dataStatus)
                 .weekStartDate(effectiveStart)
                 .weekEndDate(weekEnd)
                 .thisWeekSuccessRate(thisWeekRate)
@@ -177,14 +191,18 @@ public class WeeklyReportService {
                 .toList();
     }
 
-    private AiFeedback getAiFeedback(Long userId, LocalDate weekStartDate) {
+    private AiFeedback getAiFeedback(Long userId, LocalDate weekStartDate, boolean hasMissionData) {
         Optional<WeeklyAiAnalysis> analysisOpt = weeklyAiAnalysisRepository
                 .findByUserUserIdAndWeekStartDate(userId, weekStartDate);
 
         if (analysisOpt.isEmpty()) {
+            String defaultMessage = hasMissionData
+                    ? DefaultReportMessages.WEEKLY_PENDING
+                    : DefaultReportMessages.WEEKLY_NO_DATA;
             return AiFeedback.builder()
                     .failureReasonRanking(List.of())
-                    .weeklyFeedback(null)
+                    .weeklyFeedback(defaultMessage)
+                    .isDefault(true)
                     .build();
         }
 
@@ -195,6 +213,7 @@ public class WeeklyReportService {
         return AiFeedback.builder()
                 .failureReasonRanking(failureRanking)
                 .weeklyFeedback(analysis.getWeeklyFeedback())
+                .isDefault(false)
                 .build();
     }
 

@@ -2,9 +2,9 @@ package com.omteam.omt.report.service;
 
 import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.ai.service.UserContextService;
-import com.omteam.omt.common.exception.BusinessException;
-import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.report.client.AiDailyAnalysisClient;
+import com.omteam.omt.report.constant.DefaultReportMessages;
+import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
 import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
 import com.omteam.omt.report.client.dto.EncouragementCandidate;
@@ -134,15 +134,20 @@ public class DailyAnalysisService {
     /**
      * 특정 날짜의 데일리 피드백을 조회한다.
      * 날짜가 null인 경우 오늘 날짜로 조회한다.
+     * 피드백이 없는 경우 기본 안내 메시지를 반환한다.
      */
     @Transactional(readOnly = true)
     public DailyFeedbackResponse getDailyFeedback(Long userId, LocalDate date) {
         LocalDate targetDate = (date == null) ? LocalDate.now() : date;
 
-        DailyAnalysis dailyAnalysis = dailyAnalysisRepository
+        return dailyAnalysisRepository
                 .findByUserUserIdAndTargetDate(userId, targetDate)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DAILY_FEEDBACK_NOT_FOUND));
-
-        return DailyFeedbackResponse.from(dailyAnalysis);
+                .map(DailyFeedbackResponse::from)
+                .orElseGet(() -> DailyFeedbackResponse.builder()
+                        .dataStatus(ReportDataStatus.NO_DATA)
+                        .targetDate(targetDate)
+                        .feedbackText(DefaultReportMessages.DAILY_NO_DATA)
+                        .isDefault(true)
+                        .build());
     }
 }

@@ -3,10 +3,10 @@ package com.omteam.omt.report.controller;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
-import com.omteam.omt.common.exception.BusinessException;
-import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.common.response.ApiResponse;
+import com.omteam.omt.report.constant.DefaultReportMessages;
 import com.omteam.omt.report.dto.DailyFeedbackResponse;
+import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.service.DailyAnalysisService;
 import com.omteam.omt.report.service.MonthlyPatternService;
 import com.omteam.omt.report.service.WeeklyReportService;
@@ -89,19 +89,30 @@ class WeeklyReportControllerTest {
     }
 
     @Test
-    @DisplayName("getDailyFeedback_NotFound - 피드백 없을 때 예외 발생")
+    @DisplayName("getDailyFeedback_NotFound - 피드백 없을 때 NO_DATA 응답 반환")
     void getDailyFeedback_NotFound() {
         // given
         LocalDate targetDate = LocalDate.of(2024, 1, 15);
+        DailyFeedbackResponse noDataResponse = DailyFeedbackResponse.builder()
+                .targetDate(targetDate)
+                .feedbackText(DefaultReportMessages.DAILY_NO_DATA)
+                .dataStatus(ReportDataStatus.NO_DATA)
+                .isDefault(true)
+                .build();
 
         given(dailyAnalysisService.getDailyFeedback(principal.userId(), targetDate))
-                .willThrow(new BusinessException(ErrorCode.DAILY_FEEDBACK_NOT_FOUND));
+                .willReturn(noDataResponse);
 
-        // when & then
-        assertThatThrownBy(() -> weeklyReportController.getDailyFeedback(principal, targetDate))
-                .isInstanceOf(BusinessException.class)
-                .extracting(e -> ((BusinessException) e).getErrorCode())
-                .isEqualTo(ErrorCode.DAILY_FEEDBACK_NOT_FOUND);
+        // when
+        ApiResponse<DailyFeedbackResponse> result =
+                weeklyReportController.getDailyFeedback(principal, targetDate);
+
+        // then
+        assertThat(result.success()).isTrue();
+        assertThat(result.data()).isNotNull();
+        assertThat(result.data().dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
+        assertThat(result.data().isDefault()).isTrue();
+        assertThat(result.data().feedbackText()).isEqualTo(DefaultReportMessages.DAILY_NO_DATA);
 
         then(dailyAnalysisService).should().getDailyFeedback(principal.userId(), targetDate);
     }
@@ -129,6 +140,8 @@ class WeeklyReportControllerTest {
         return DailyFeedbackResponse.builder()
                 .targetDate(targetDate)
                 .feedbackText("오늘도 열심히 운동하셨네요!")
+                .dataStatus(ReportDataStatus.READY)
+                .isDefault(false)
                 .build();
     }
 }

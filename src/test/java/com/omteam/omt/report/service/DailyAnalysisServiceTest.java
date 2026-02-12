@@ -5,10 +5,10 @@ import static org.mockito.BDDMockito.*;
 
 import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.ai.service.UserContextService;
-import com.omteam.omt.common.exception.BusinessException;
-import com.omteam.omt.common.exception.ErrorCode;
+import com.omteam.omt.report.constant.DefaultReportMessages;
 import com.omteam.omt.report.domain.DailyAnalysis;
 import com.omteam.omt.report.dto.DailyFeedbackResponse;
+import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.user.domain.User;
 import java.time.LocalDate;
@@ -74,6 +74,8 @@ class DailyAnalysisServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.targetDate()).isEqualTo(targetDate);
         assertThat(response.feedbackText()).isEqualTo("오늘도 열심히 운동하셨네요!");
+        assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
+        assertThat(response.isDefault()).isFalse();
 
         then(dailyAnalysisRepository).should().findByUserUserIdAndTargetDate(1L, targetDate);
     }
@@ -85,10 +87,15 @@ class DailyAnalysisServiceTest {
         given(dailyAnalysisRepository.findByUserUserIdAndTargetDate(1L, targetDate))
                 .willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> dailyAnalysisService.getDailyFeedback(1L, targetDate))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DAILY_FEEDBACK_NOT_FOUND);
+        // when
+        DailyFeedbackResponse response = dailyAnalysisService.getDailyFeedback(1L, targetDate);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
+        assertThat(response.feedbackText()).isEqualTo(DefaultReportMessages.DAILY_NO_DATA);
+        assertThat(response.isDefault()).isTrue();
+        assertThat(response.targetDate()).isEqualTo(targetDate);
 
         then(dailyAnalysisRepository).should().findByUserUserIdAndTargetDate(1L, targetDate);
     }
@@ -114,6 +121,8 @@ class DailyAnalysisServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.targetDate()).isEqualTo(today);
+        assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
+        assertThat(response.isDefault()).isFalse();
 
         then(dailyAnalysisRepository).should().findByUserUserIdAndTargetDate(1L, today);
     }
