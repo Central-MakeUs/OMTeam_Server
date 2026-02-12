@@ -31,6 +31,8 @@ class DailyFeedbackResponseTest {
             // then
             assertThat(response.targetDate()).isEqualTo(LocalDate.of(2024, 1, 15));
             assertThat(response.feedbackText()).isEqualTo("오늘의 피드백입니다.");
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
+            assertThat(response.isDefault()).isFalse();
         }
 
         @Test
@@ -49,6 +51,8 @@ class DailyFeedbackResponseTest {
             // then
             assertThat(response.targetDate()).isEqualTo(LocalDate.of(2024, 1, 16));
             assertThat(response.feedbackText()).isNull();
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
+            assertThat(response.isDefault()).isFalse();
         }
     }
 
@@ -66,11 +70,15 @@ class DailyFeedbackResponseTest {
             DailyFeedbackResponse response = DailyFeedbackResponse.builder()
                     .targetDate(targetDate)
                     .feedbackText("피드백 텍스트")
+                    .dataStatus(ReportDataStatus.READY)
+                    .isDefault(false)
                     .build();
 
             // then
             assertThat(response.targetDate()).isEqualTo(targetDate);
             assertThat(response.feedbackText()).isEqualTo("피드백 텍스트");
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
+            assertThat(response.isDefault()).isFalse();
         }
 
         @Test
@@ -80,6 +88,8 @@ class DailyFeedbackResponseTest {
             DailyFeedbackResponse response = DailyFeedbackResponse.builder()
                     .targetDate(LocalDate.of(2024, 1, 15))
                     .feedbackText(null)
+                    .dataStatus(ReportDataStatus.NO_DATA)
+                    .isDefault(true)
                     .build();
 
             // then
@@ -100,11 +110,15 @@ class DailyFeedbackResponseTest {
             DailyFeedbackResponse response1 = DailyFeedbackResponse.builder()
                     .targetDate(targetDate)
                     .feedbackText("피드백")
+                    .dataStatus(ReportDataStatus.READY)
+                    .isDefault(false)
                     .build();
 
             DailyFeedbackResponse response2 = DailyFeedbackResponse.builder()
                     .targetDate(targetDate)
                     .feedbackText("피드백")
+                    .dataStatus(ReportDataStatus.READY)
+                    .isDefault(false)
                     .build();
 
             // then

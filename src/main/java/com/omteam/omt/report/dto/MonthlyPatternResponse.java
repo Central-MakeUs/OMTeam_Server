@@ -9,6 +9,9 @@ import lombok.Builder;
 @Schema(description = "월간 요일별 패턴 분석 응답")
 @Builder
 public record MonthlyPatternResponse(
+        @Schema(description = "데이터 상태")
+        ReportDataStatus dataStatus,
+
         @Schema(description = "분석 시작일")
         LocalDate startDate,
 
@@ -52,7 +55,10 @@ public record MonthlyPatternResponse(
             String dayOfWeekFeedbackTitle,
 
             @Schema(description = "요일별 피드백 내용")
-            String dayOfWeekFeedbackContent
+            String dayOfWeekFeedbackContent,
+
+            @Schema(description = "기본 메시지 여부 (true이면 AI 분석이 아닌 안내 메시지)")
+            boolean isDefault
     ) {
     }
 }
