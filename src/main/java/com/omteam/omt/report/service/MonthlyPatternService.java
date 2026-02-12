@@ -4,8 +4,10 @@ import com.omteam.omt.common.util.DayOfWeekUtils;
 import com.omteam.omt.common.util.MissionResultStats;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
+import com.omteam.omt.report.constant.DefaultReportMessages;
 import com.omteam.omt.report.domain.WeeklyAiAnalysis;
 import com.omteam.omt.report.dto.MonthlyPatternResponse;
+import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.repository.WeeklyAiAnalysisRepository;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -39,14 +41,19 @@ public class MonthlyPatternService {
         List<DailyMissionResult> results = missionResultRepository
                 .findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(userId, monthAgo, today);
 
+        boolean hasMissionData = !results.isEmpty();
+
         Map<DayOfWeek, List<DailyMissionResult>> resultsByDayOfWeek = results.stream()
                 .collect(Collectors.groupingBy(r -> r.getMissionDate().getDayOfWeek()));
 
         List<MonthlyPatternResponse.DayOfWeekStatistics> dayOfWeekStats =
                 buildDayOfWeekStatistics(resultsByDayOfWeek);
-        MonthlyPatternResponse.AiFeedback aiFeedback = getAiFeedback(userId);
+        MonthlyPatternResponse.AiFeedback aiFeedback = getAiFeedback(userId, hasMissionData);
+
+        ReportDataStatus dataStatus = ReportDataStatus.of(aiFeedback.isDefault(), hasMissionData);
 
         return MonthlyPatternResponse.builder()
+                .dataStatus(dataStatus)
                 .startDate(monthAgo)
                 .endDate(today)
                 .dayOfWeekStats(dayOfWeekStats)
@@ -73,16 +80,23 @@ public class MonthlyPatternService {
                 .toList();
     }
 
-    private MonthlyPatternResponse.AiFeedback getAiFeedback(Long userId) {
+    private MonthlyPatternResponse.AiFeedback getAiFeedback(Long userId, boolean hasMissionData) {
         LocalDate currentWeekMonday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 
         Optional<WeeklyAiAnalysis> analysisOpt = weeklyAiAnalysisRepository
                 .findByUserUserIdAndWeekStartDate(userId, currentWeekMonday);
 
         if (analysisOpt.isEmpty()) {
+            String defaultTitle = hasMissionData
+                    ? DefaultReportMessages.MONTHLY_DAY_PENDING_TITLE
+                    : DefaultReportMessages.MONTHLY_DAY_NO_DATA_TITLE;
+            String defaultContent = hasMissionData
+                    ? DefaultReportMessages.MONTHLY_DAY_PENDING_CONTENT
+                    : DefaultReportMessages.MONTHLY_DAY_NO_DATA_CONTENT;
             return MonthlyPatternResponse.AiFeedback.builder()
-                    .dayOfWeekFeedbackTitle(null)
-                    .dayOfWeekFeedbackContent(null)
+                    .dayOfWeekFeedbackTitle(defaultTitle)
+                    .dayOfWeekFeedbackContent(defaultContent)
+                    .isDefault(true)
                     .build();
         }
 
@@ -90,6 +104,7 @@ public class MonthlyPatternService {
         return MonthlyPatternResponse.AiFeedback.builder()
                 .dayOfWeekFeedbackTitle(analysis.getDayOfWeekFeedbackTitle())
                 .dayOfWeekFeedbackContent(analysis.getDayOfWeekFeedbackContent())
+                .isDefault(false)
                 .build();
     }
 }

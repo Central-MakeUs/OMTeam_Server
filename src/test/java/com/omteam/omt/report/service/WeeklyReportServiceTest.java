@@ -12,7 +12,9 @@ import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.report.client.dto.AiWeeklyAnalysisResponse;
+import com.omteam.omt.report.constant.DefaultReportMessages;
 import com.omteam.omt.report.domain.WeeklyAiAnalysis;
+import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.dto.WeeklyReportResponse;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyStatus;
 import com.omteam.omt.report.repository.WeeklyAiAnalysisRepository;
@@ -90,6 +92,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.PENDING_ANALYSIS);
             assertThat(response.thisWeekSuccessRate()).isEqualTo(71.4); // 5/7 = 71.4%
             assertThat(response.thisWeekSuccessCount()).isEqualTo(5);
         }
@@ -122,6 +125,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
             assertThat(response.lastWeekSuccessRate()).isEqualTo(57.1); // 4/7 = 57.1%
         }
 
@@ -139,6 +143,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
             assertThat(response.thisWeekSuccessRate()).isEqualTo(0.0);
             assertThat(response.lastWeekSuccessRate()).isEqualTo(0.0);
             assertThat(response.thisWeekSuccessCount()).isEqualTo(0);
@@ -171,6 +176,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.PENDING_ANALYSIS);
             assertThat(response.dailyResults()).isNotEmpty();
             assertThat(response.dailyResults().get(0).status()).isEqualTo(DailyStatus.SUCCESS);
             assertThat(response.dailyResults().get(0).dayOfWeek()).isEqualTo(DayOfWeek.MONDAY);
@@ -207,6 +213,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.PENDING_ANALYSIS);
             assertThat(response.typeSuccessCounts()).hasSize(2);
             assertThat(response.typeSuccessCounts().stream()
                     .filter(t -> t.type() == MissionType.EXERCISE)
@@ -233,6 +240,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
             assertThat(response.typeSuccessCounts()).hasSize(MissionType.values().length);
             for (MissionType type : MissionType.values()) {
                 assertThat(response.typeSuccessCounts()).anySatisfy(count -> {
@@ -264,6 +272,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.PENDING_ANALYSIS);
             assertThat(response.typeSuccessCounts()).hasSize(MissionType.values().length);
             assertThat(response.typeSuccessCounts().stream()
                     .filter(t -> t.type() == MissionType.EXERCISE)
@@ -297,6 +306,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.PENDING_ANALYSIS);
             assertThat(response.typeSuccessCounts())
                     .anySatisfy(count -> {
                         assertThat(count.type()).isEqualTo(MissionType.EXERCISE);
@@ -345,6 +355,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
             assertThat(response.topFailureReasons()).hasSize(3);
             assertThat(response.topFailureReasons().get(0).rank()).isEqualTo(1);
             assertThat(response.topFailureReasons().get(0).reason()).isEqualTo("시간 부족");
@@ -369,6 +380,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
             assertThat(response.topFailureReasons()).isEmpty();
         }
     }
@@ -401,6 +413,7 @@ class WeeklyReportServiceTest {
             // then
             assertThat(response.aiFeedback().failureReasonRanking()).isEmpty();
             assertThat(response.aiFeedback().weeklyFeedback()).isEqualTo("이번주는 잘하셨어요.");
+            assertThat(response.aiFeedback().isDefault()).isFalse();
         }
 
         @Test
@@ -418,7 +431,8 @@ class WeeklyReportServiceTest {
 
             // then
             assertThat(response.aiFeedback().failureReasonRanking()).isEmpty();
-            assertThat(response.aiFeedback().weeklyFeedback()).isNull();
+            assertThat(response.aiFeedback().weeklyFeedback()).isNotNull();
+            assertThat(response.aiFeedback().isDefault()).isTrue();
         }
 
         @Test
@@ -451,6 +465,7 @@ class WeeklyReportServiceTest {
             WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
 
             // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
             assertThat(response.aiFeedback().failureReasonRanking()).hasSize(2);
             assertThat(response.aiFeedback().failureReasonRanking().get(0).rank()).isEqualTo(1);
             assertThat(response.aiFeedback().failureReasonRanking().get(0).category()).isEqualTo("시간 부족");
@@ -458,6 +473,79 @@ class WeeklyReportServiceTest {
             assertThat(response.aiFeedback().failureReasonRanking().get(1).rank()).isEqualTo(2);
             assertThat(response.aiFeedback().failureReasonRanking().get(1).category()).isEqualTo("피로");
             assertThat(response.aiFeedback().failureReasonRanking().get(1).count()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("NO_DATA 상태: 미션 데이터 없고 AI 분석 없을 때")
+        void noDataStatusWhenNoMissionDataAndNoAiAnalysis() {
+            // given
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    anyLong(), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
+
+            // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
+            assertThat(response.aiFeedback().isDefault()).isTrue();
+            assertThat(response.aiFeedback().weeklyFeedback()).isEqualTo(DefaultReportMessages.WEEKLY_NO_DATA);
+        }
+
+        @Test
+        @DisplayName("PENDING_ANALYSIS 상태: 미션 데이터는 있으나 AI 분석 없을 때")
+        void pendingAnalysisStatusWhenHasMissionDataButNoAiAnalysis() {
+            // given
+            List<DailyMissionResult> results = List.of(
+                    createMissionResult(monday, MissionResult.SUCCESS),
+                    createMissionResult(monday.plusDays(1), MissionResult.FAILURE)
+            );
+
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday), eq(monday.plusDays(6))))
+                    .willReturn(results);
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    eq(userId), eq(monday.minusDays(7)), eq(monday.minusDays(1))))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.empty());
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
+
+            // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.PENDING_ANALYSIS);
+            assertThat(response.aiFeedback().isDefault()).isTrue();
+            assertThat(response.aiFeedback().weeklyFeedback()).isEqualTo(DefaultReportMessages.WEEKLY_PENDING);
+        }
+
+        @Test
+        @DisplayName("READY 상태: AI 분석이 존재할 때")
+        void readyStatusWhenAiAnalysisExists() {
+            // given
+            User user = User.builder().userId(userId).build();
+            WeeklyAiAnalysis analysis = WeeklyAiAnalysis.builder()
+                    .user(user)
+                    .weekStartDate(monday)
+                    .failureReasonRankingJson(null)
+                    .weeklyFeedback("AI 분석 피드백입니다.")
+                    .build();
+
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetween(
+                    anyLong(), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(userId, monday))
+                    .willReturn(Optional.of(analysis));
+
+            // when
+            WeeklyReportResponse response = weeklyReportService.getWeeklyReport(userId, year, month, weekOfMonth);
+
+            // then
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
+            assertThat(response.aiFeedback().isDefault()).isFalse();
+            assertThat(response.aiFeedback().weeklyFeedback()).isEqualTo("AI 분석 피드백입니다.");
         }
     }
 

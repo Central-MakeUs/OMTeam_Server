@@ -8,8 +8,10 @@ import com.omteam.omt.mission.domain.Mission;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
+import com.omteam.omt.report.constant.DefaultReportMessages;
 import com.omteam.omt.report.domain.WeeklyAiAnalysis;
 import com.omteam.omt.report.dto.MonthlyPatternResponse;
+import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.repository.WeeklyAiAnalysisRepository;
 import com.omteam.omt.user.domain.User;
 import java.time.DayOfWeek;
@@ -66,6 +68,7 @@ class MonthlyPatternServiceTest {
             assertThat(response.dayOfWeekStats()).hasSize(7);
             assertThat(response.dayOfWeekStats())
                     .allMatch(s -> s.totalCount() == 0 && s.successCount() == 0 && s.failureCount() == 0);
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
         }
 
         @Test
@@ -191,7 +194,7 @@ class MonthlyPatternServiceTest {
     class AiFeedbackTest {
 
         @Test
-        @DisplayName("AI 분석 결과가 없을 때 null 피드백 반환")
+        @DisplayName("AI 분석 결과가 없을 때 NO_DATA 기본 메시지 반환")
         void returnsNullFeedbackWhenNoAnalysis() {
             // given
             given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
@@ -204,8 +207,12 @@ class MonthlyPatternServiceTest {
             MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
 
             // then
-            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isNull();
-            assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isNull();
+            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle())
+                    .isEqualTo(DefaultReportMessages.MONTHLY_DAY_NO_DATA_TITLE);
+            assertThat(response.aiFeedback().dayOfWeekFeedbackContent())
+                    .isEqualTo(DefaultReportMessages.MONTHLY_DAY_NO_DATA_CONTENT);
+            assertThat(response.aiFeedback().isDefault()).isTrue();
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
         }
 
         @Test
@@ -232,6 +239,57 @@ class MonthlyPatternServiceTest {
             // then
             assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isEqualTo("화요일에 집중해보세요");
             assertThat(response.aiFeedback().dayOfWeekFeedbackContent()).isEqualTo("화요일에 미션 수행률이 낮았습니다.");
+            assertThat(response.aiFeedback().isDefault()).isFalse();
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.READY);
+        }
+
+        @Test
+        @DisplayName("미션 데이터는 있지만 AI 분석이 없을 때 PENDING_ANALYSIS 상태와 기본 메시지 반환")
+        void returnsPendingStatusWhenHasMissionButNoAnalysis() {
+            // given
+            LocalDate monday = LocalDate.of(2024, 1, 15);
+            List<DailyMissionResult> results = List.of(
+                    createMissionResult(monday, MissionResult.SUCCESS)
+            );
+
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
+                    eq(userId), any(), any()))
+                    .willReturn(results);
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.empty());
+
+            // when
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+
+            // then
+            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle())
+                    .isEqualTo(DefaultReportMessages.MONTHLY_DAY_PENDING_TITLE);
+            assertThat(response.aiFeedback().dayOfWeekFeedbackContent())
+                    .isEqualTo(DefaultReportMessages.MONTHLY_DAY_PENDING_CONTENT);
+            assertThat(response.aiFeedback().isDefault()).isTrue();
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.PENDING_ANALYSIS);
+        }
+
+        @Test
+        @DisplayName("미션 데이터도 없고 AI 분석도 없을 때 NO_DATA 상태와 기본 메시지 반환")
+        void returnsNoDataStatusWhenNoMissionAndNoAnalysis() {
+            // given
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
+                    eq(userId), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.empty());
+
+            // when
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+
+            // then
+            assertThat(response.aiFeedback().dayOfWeekFeedbackTitle())
+                    .isEqualTo(DefaultReportMessages.MONTHLY_DAY_NO_DATA_TITLE);
+            assertThat(response.aiFeedback().dayOfWeekFeedbackContent())
+                    .isEqualTo(DefaultReportMessages.MONTHLY_DAY_NO_DATA_CONTENT);
+            assertThat(response.aiFeedback().isDefault()).isTrue();
+            assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
         }
     }
 
