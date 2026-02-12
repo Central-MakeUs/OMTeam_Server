@@ -12,5 +12,12 @@ public enum ReportDataStatus {
     PENDING_ANALYSIS,
 
     @Schema(description = "미션 데이터 없음")
-    NO_DATA
+    NO_DATA;
+
+    public static ReportDataStatus of(boolean isDefaultFeedback, boolean hasMissionData) {
+        if (!isDefaultFeedback) {
+            return READY;
+        }
+        return hasMissionData ? PENDING_ANALYSIS : NO_DATA;
+    }
 }

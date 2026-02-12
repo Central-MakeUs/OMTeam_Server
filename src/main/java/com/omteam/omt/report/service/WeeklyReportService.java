@@ -84,14 +84,7 @@ public class WeeklyReportService {
                 .toList();
 
         // 6. dataStatus 결정
-        ReportDataStatus dataStatus;
-        if (!feedback.isDefault()) {
-            dataStatus = ReportDataStatus.READY;
-        } else if (hasMissionData) {
-            dataStatus = ReportDataStatus.PENDING_ANALYSIS;
-        } else {
-            dataStatus = ReportDataStatus.NO_DATA;
-        }
+        ReportDataStatus dataStatus = ReportDataStatus.of(feedback.isDefault(), hasMissionData);
 
         return WeeklyReportResponse.builder()
                 .dataStatus(dataStatus)

@@ -50,14 +50,7 @@ public class MonthlyPatternService {
                 buildDayOfWeekStatistics(resultsByDayOfWeek);
         MonthlyPatternResponse.AiFeedback aiFeedback = getAiFeedback(userId, hasMissionData);
 
-        ReportDataStatus dataStatus;
-        if (!aiFeedback.isDefault()) {
-            dataStatus = ReportDataStatus.READY;
-        } else if (hasMissionData) {
-            dataStatus = ReportDataStatus.PENDING_ANALYSIS;
-        } else {
-            dataStatus = ReportDataStatus.NO_DATA;
-        }
+        ReportDataStatus dataStatus = ReportDataStatus.of(aiFeedback.isDefault(), hasMissionData);
 
         return MonthlyPatternResponse.builder()
                 .dataStatus(dataStatus)
