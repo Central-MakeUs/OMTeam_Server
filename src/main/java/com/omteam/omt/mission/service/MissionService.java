@@ -24,6 +24,7 @@ import com.omteam.omt.mission.event.MissionCompletedEvent;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
 import com.omteam.omt.mission.repository.MissionRepository;
+import com.omteam.omt.mission.validator.MissionStatusValidator;
 import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.domain.UserOnboarding;
 import com.omteam.omt.user.service.UserQueryService;
@@ -51,6 +52,7 @@ public class MissionService {
     private final CharacterService characterService;
     private final UserContextService userContextService;
     private final ApplicationEventPublisher eventPublisher;
+    private final MissionStatusValidator missionStatusValidator;
     private static final int RECENT_HISTORY_DAYS = 7;
 
     public DailyMissionRecommendResponse recommendDailyMissions(Long userId) {
@@ -58,7 +60,7 @@ public class MissionService {
         User user = userQueryService.getUser(userId);
 
         // 오늘 이미 완료된 미션이 있으면 추천 불가
-        validateNoMissionResultToday(userId, today);
+        missionStatusValidator.validateNoMissionResultToday(userId, today);
 
         // 기존 미션(IN_PROGRESS, RECOMMENDED)이 있으면 모두 만료 처리 후 새로 추천
         expireExistingRecommendations(userId, today);
@@ -79,15 +81,13 @@ public class MissionService {
     public RecommendedMissionResponse startMission(Long userId, Long missionId) {
         LocalDate today = LocalDate.now();
 
-        validateNoMissionResultToday(userId, today);
+        missionStatusValidator.validateNoMissionResultToday(userId, today);
 
         DailyRecommendedMission newMission = recommendedMissionRepository
                 .findByIdAndUserUserId(missionId, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MISSION_NOT_FOUND));
 
-        if (!newMission.isStartable()) {
-            throw new BusinessException(ErrorCode.INVALID_MISSION_STATUS);
-        }
+        missionStatusValidator.validateMissionStartable(newMission);
 
         // 진행 중인 미션이 있으면 자동 만료 처리
         findFirstMissionByStatus(userId, today, RecommendedMissionStatus.IN_PROGRESS)
@@ -100,9 +100,9 @@ public class MissionService {
     public MissionResultResponse completeMission(Long userId, MissionResultRequest request) {
         LocalDate today = LocalDate.now();
 
-        validateNoMissionResultTodayForComplete(userId, today);
+        missionStatusValidator.validateNoMissionResultTodayForComplete(userId, today);
 
-        DailyRecommendedMission inProgressMission = getInProgressMissionOrThrow(userId, today);
+        DailyRecommendedMission inProgressMission = missionStatusValidator.getInProgressMissionOrThrow(userId, today);
         User user = userQueryService.getUser(userId);
 
         DailyMissionResult missionResult = DailyMissionResult.builder()
@@ -291,20 +291,4 @@ public class MissionService {
         return findMissionsByStatus(userId, date, status).stream().findFirst();
     }
 
-    private void validateNoMissionResultToday(Long userId, LocalDate date) {
-        if (missionResultRepository.existsByUserUserIdAndMissionDate(userId, date)) {
-            throw new BusinessException(ErrorCode.DAILY_MISSION_ALREADY_EXISTS);
-        }
-    }
-
-    private void validateNoMissionResultTodayForComplete(Long userId, LocalDate date) {
-        if (missionResultRepository.existsByUserUserIdAndMissionDate(userId, date)) {
-            throw new BusinessException(ErrorCode.MISSION_RESULT_ALREADY_EXISTS);
-        }
-    }
-
-    private DailyRecommendedMission getInProgressMissionOrThrow(Long userId, LocalDate date) {
-        return findFirstMissionByStatus(userId, date, RecommendedMissionStatus.IN_PROGRESS)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MISSION_NOT_IN_PROGRESS));
-    }
 }
