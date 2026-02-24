@@ -20,6 +20,7 @@ import com.omteam.omt.mission.dto.MissionResultRequest;
 import com.omteam.omt.mission.dto.MissionResultResponse;
 import com.omteam.omt.mission.dto.RecommendedMissionResponse;
 import com.omteam.omt.mission.dto.TodayMissionStatusResponse;
+import com.omteam.omt.mission.event.MissionCompletedEvent;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
 import com.omteam.omt.mission.repository.MissionRepository;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,7 +117,9 @@ public class MissionService {
         missionResultRepository.save(missionResult);
         inProgressMission.complete();
 
-        dailyAnalysisService.generateDailyAnalysisForUser(user,LocalDate.now());
+        // (임시) 미션 인증 시 데일리 분석 결과 생성 - 트랜잭션 커밋 후 실행
+        eventPublisher.publishEvent(new MissionCompletedEvent(user, today));
+
         // 미션 성공 시 캐릭터 경험치 증가
         if (request.getResult() == MissionResult.SUCCESS) {
             characterService.recordMissionSuccess(userId);
