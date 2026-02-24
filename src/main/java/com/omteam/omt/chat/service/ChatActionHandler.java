@@ -35,6 +35,7 @@ public class ChatActionHandler {
         return switch (request.getActionType()) {
             case COMPLETE_MISSION -> handleCompleteMission(session, userId, request);
             case MISSION_FAILURE_REASON -> handleFailureReason(session, userId, request);
+            default -> buildPlainMessage(session, "처리할 수 없는 요청입니다.", null);
         };
     }
 
@@ -82,7 +83,7 @@ public class ChatActionHandler {
         MissionResultRequest resultRequest = new MissionResultRequest();
         resultRequest.setResult(MissionResult.SUCCESS);
         missionService.completeMission(userId, resultRequest);
-        return buildPlainMessage(session, "미션을 성공적으로 완료했어요! 정말 대단해요!", null);
+        return buildTerminalMessage(session, "미션을 성공적으로 완료했어요! 정말 대단해요!");
     }
 
     private ChatMessage buildFailureReasonPrompt(ChatSession session) {
@@ -123,11 +124,22 @@ public class ChatActionHandler {
         resultRequest.setResult(MissionResult.FAILURE);
         resultRequest.setFailureReason(value);
         missionService.completeMission(userId, resultRequest);
-        return buildPlainMessage(session, "실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!", null);
+        return buildTerminalMessage(session, "실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!");
     }
 
     private ChatMessage buildPlainMessage(ChatSession session, String content, ChatActionType actionType) {
         return saveAssistantActionMessage(session, content, List.of(), actionType);
+    }
+
+    private ChatMessage buildTerminalMessage(ChatSession session, String content) {
+        List<ChatMessageResponse.Option> options = List.of(
+                ChatMessageResponse.Option.builder()
+                        .label("홈으로 돌아가기")
+                        .value("HOME")
+                        .actionType(ChatActionType.NAVIGATE_HOME)
+                        .build()
+        );
+        return saveAssistantActionMessage(session, content, options, ChatActionType.NAVIGATE_HOME);
     }
 
     private ChatMessage saveAssistantActionMessage(ChatSession session, String content, List<ChatMessageResponse.Option> options, ChatActionType actionType) {

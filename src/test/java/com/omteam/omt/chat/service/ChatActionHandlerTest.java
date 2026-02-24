@@ -162,7 +162,10 @@ class ChatActionHandlerTest {
 
         assertThat(result.getRole()).isEqualTo(ChatMessageRole.ASSISTANT);
         assertThat(result.getContent()).isEqualTo("미션을 성공적으로 완료했어요! 정말 대단해요!");
-        assertThat(result.getActionType()).isNull();
+        assertThat(result.getActionType()).isEqualTo(ChatActionType.NAVIGATE_HOME);
+        assertThat(result.getOptions()).isNotNull();
+        assertThat(result.getOptions()).contains("HOME");
+        assertThat(result.getOptions()).contains("홈으로 돌아가기");
     }
 
     @Test
@@ -226,7 +229,10 @@ class ChatActionHandlerTest {
 
         assertThat(result.getRole()).isEqualTo(ChatMessageRole.ASSISTANT);
         assertThat(result.getContent()).isEqualTo("실패 사유를 기록했어요. 다음엔 꼭 해낼 수 있을 거예요!");
-        assertThat(result.getActionType()).isNull();
+        assertThat(result.getActionType()).isEqualTo(ChatActionType.NAVIGATE_HOME);
+        assertThat(result.getOptions()).isNotNull();
+        assertThat(result.getOptions()).contains("HOME");
+        assertThat(result.getOptions()).contains("홈으로 돌아가기");
     }
 
     @Test

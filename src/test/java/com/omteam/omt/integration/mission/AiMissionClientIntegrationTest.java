@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @DisplayName("[통합] AiMissionClient - AI 서버 미션 추천 API 호출")
 class AiMissionClientIntegrationTest extends IntegrationTestBase {
@@ -190,6 +191,41 @@ class AiMissionClientIntegrationTest extends IntegrationTestBase {
         // then
         assertThat(response).isNotNull();
         assertThat(response.getMissions()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("AI 서버 응답이 타임아웃되면 AI_SERVER_CONNECTION_ERROR 예외가 발생한다")
+    void recommendDailyMissions_timeout() {
+        // given - 타임아웃(5초)보다 긴 지연 설정
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("{\"missions\": []}")
+                .setBodyDelay(7, TimeUnit.SECONDS));
+
+        AiMissionRecommendRequest request = createTestRequest();
+
+        // when & then
+        assertThatThrownBy(() -> aiMissionClient.recommendDailyMissions(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.AI_SERVER_CONNECTION_ERROR);
+    }
+
+    @Test
+    @DisplayName("AI 서버가 잘못된 JSON 응답을 반환하면 예외가 발생한다")
+    void recommendDailyMissions_malformedResponse() {
+        // given
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("this is not valid json"));
+
+        AiMissionRecommendRequest request = createTestRequest();
+
+        // when & then
+        assertThatThrownBy(() -> aiMissionClient.recommendDailyMissions(request))
+                .isInstanceOf(BusinessException.class);
     }
 
     private AiMissionRecommendRequest createTestRequest() {
