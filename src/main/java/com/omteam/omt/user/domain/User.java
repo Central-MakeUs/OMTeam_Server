@@ -39,6 +39,9 @@ public class User {
     @Column(nullable = false)
     private boolean onboardingCompleted;
 
+    @Column(length = 512)
+    private String fcmToken;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -58,6 +61,10 @@ public class User {
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 
     public boolean isActive() {

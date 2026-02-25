@@ -25,6 +25,8 @@ public class OnboardingResponse {
     private boolean remindEnabled;
     private boolean checkinEnabled;
     private boolean reviewEnabled;
+    private LocalTime wakeUpTime;
+    private LocalTime bedTime;
 
     public static OnboardingResponse of(
             User user,
@@ -43,6 +45,8 @@ public class OnboardingResponse {
                 .remindEnabled(notificationSetting.isRemindEnabled())
                 .checkinEnabled(notificationSetting.isCheckinEnabled())
                 .reviewEnabled(notificationSetting.isReviewEnabled())
+                .wakeUpTime(onboarding.getWakeUpTime())
+                .bedTime(onboarding.getBedTime())
                 .build();
     }
 }
