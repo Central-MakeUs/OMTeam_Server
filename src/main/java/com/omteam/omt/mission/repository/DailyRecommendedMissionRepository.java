@@ -5,6 +5,7 @@ import com.omteam.omt.mission.domain.RecommendedMissionStatus;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,6 +34,13 @@ public interface DailyRecommendedMissionRepository extends JpaRepository<DailyRe
 
     boolean existsByUserUserIdAndMissionDateAndStatusIn(
             Long userId, LocalDate missionDate, List<RecommendedMissionStatus> statuses);
+
+    @Query("SELECT DISTINCT drm.user.userId FROM DailyRecommendedMission drm " +
+            "WHERE drm.user.userId IN :userIds AND drm.missionDate = :missionDate AND drm.status IN :statuses")
+    Set<Long> findUserIdsHavingActiveMissions(
+            @Param("userIds") List<Long> userIds,
+            @Param("missionDate") LocalDate missionDate,
+            @Param("statuses") List<RecommendedMissionStatus> statuses);
 
     @Query("SELECT drm FROM DailyRecommendedMission drm " +
             "JOIN FETCH drm.mission " +

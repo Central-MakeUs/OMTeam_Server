@@ -52,7 +52,10 @@ public enum ErrorCode {
 
     // Report (R)
     DAILY_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "해당 날짜의 피드백을 찾을 수 없습니다"),
-    INVALID_WEEK_OF_MONTH(HttpStatus.BAD_REQUEST, "R002", "해당 월에 존재하지 않는 주차입니다");
+    INVALID_WEEK_OF_MONTH(HttpStatus.BAD_REQUEST, "R002", "해당 월에 존재하지 않는 주차입니다"),
+
+    // Notification (N)
+    FCM_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "N001", "푸시 알림 전송에 실패했습니다");
 
     private final HttpStatus status;
     private final String code;

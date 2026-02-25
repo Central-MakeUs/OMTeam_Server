@@ -39,7 +39,11 @@ public class AuthService {
         return createLoginResponse(user);
     }
 
+    @Transactional
     public void logout(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        user.updateFcmToken(null);
         refreshTokenService.deleteRefreshToken(userId);
     }
 
@@ -74,6 +78,7 @@ public class AuthService {
             throw new BusinessException(ErrorCode.USER_ALREADY_WITHDRAWN);
         }
 
+        user.updateFcmToken(null);
         user.withdraw();
         refreshTokenService.deleteRefreshToken(userId);
     }

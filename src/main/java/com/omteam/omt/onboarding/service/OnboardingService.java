@@ -46,6 +46,8 @@ public class OnboardingService {
                 .minExerciseMinutes(request.getMinExerciseMinutes())
                 .preferredExercises(request.getPreferredExercises())
                 .lifestyleType(request.getLifestyleType())
+                .wakeUpTime(request.getWakeUpTime())
+                .bedTime(request.getBedTime())
                 .build();
 
         UserNotificationSetting notificationSetting = UserNotificationSetting.builder()
@@ -85,6 +87,7 @@ public class OnboardingService {
                 request.getPreferredExercises(),
                 request.getLifestyleType()
         );
+        onboarding.updateSleepSchedule(request.getWakeUpTime(), request.getBedTime());
 
         notificationSetting.update(
                 request.getRemindEnabled(),
@@ -164,6 +167,13 @@ public class OnboardingService {
     public OnboardingResponse updateNotificationSetting(Long userId, boolean remindEnabled, boolean checkinEnabled, boolean reviewEnabled) {
         OnboardingContext ctx = fetchOnboardingContext(userId);
         ctx.notificationSetting.update(remindEnabled, checkinEnabled, reviewEnabled);
+        return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
+    }
+
+    @Transactional
+    public OnboardingResponse updateSleepSchedule(Long userId, LocalTime wakeUpTime, LocalTime bedTime) {
+        OnboardingContext ctx = fetchOnboardingContext(userId);
+        ctx.onboarding.updateSleepSchedule(wakeUpTime, bedTime);
         return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
     }
 
