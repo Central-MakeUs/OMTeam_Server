@@ -43,3 +43,13 @@ jwt:
 ai-server:
   base-url: ${AI_SERVER_BASE_URL:http://localhost:8000}
   timeout-seconds: ${AI_SERVER_TIMEOUT:10}
+
+fcm:
+  service-account-path: ${FCM_SERVICE_ACCOUNT_PATH:}
+
+notification:
+  scheduler:
+    cron: "0 0,30 * * * *"
+  default:
+    wake-up-time: "07:00"
+    bed-time: "23:00"
