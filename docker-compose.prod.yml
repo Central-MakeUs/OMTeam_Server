@@ -21,6 +21,9 @@ services:
       - OAUTH_KAKAO_TEST_CLIENT_ID=${OAUTH_KAKAO_TEST_CLIENT_ID}
       - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
       - AI_SERVER_BASE_URL=${AI_SERVER_BASE_URL:-http://omt-ai:8000}
+      - FCM_SERVICE_ACCOUNT_PATH=/app/config/firebase-service-account.json
+    volumes:
+      - ${FCM_SERVICE_ACCOUNT_HOST_PATH:-/dev/null}:/app/config/firebase-service-account.json:ro
     deploy:
       resources:
         limits:

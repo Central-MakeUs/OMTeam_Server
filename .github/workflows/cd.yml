@@ -139,6 +139,25 @@ jobs:
           strip_components: 0
           overwrite: true
 
+      - name: FCM 서비스 계정 파일 설정
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: FCM_SERVICE_ACCOUNT_JSON
+          script: |
+            mkdir -p /home/${{ secrets.EC2_USERNAME }}/omt/config
+            if [ -n "$FCM_SERVICE_ACCOUNT_JSON" ]; then
+              echo "$FCM_SERVICE_ACCOUNT_JSON" > /home/${{ secrets.EC2_USERNAME }}/omt/config/firebase-service-account.json
+              chmod 600 /home/${{ secrets.EC2_USERNAME }}/omt/config/firebase-service-account.json
+              echo "FCM 서비스 계정 파일 설정 완료"
+            else
+              echo "FCM_SERVICE_ACCOUNT_JSON 시크릿 미설정 - FCM 알림 비활성화됨"
+            fi
+        env:
+          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
+
       - name: SSH로 EC2 배포 실행
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -150,6 +169,14 @@ jobs:
 
             # certbot 및 certs 디렉토리 생성
             mkdir -p certbot/www certs
+
+            # FCM 서비스 계정 파일 경로 결정
+            FCM_KEY_FILE="/home/${{ secrets.EC2_USERNAME }}/omt/config/firebase-service-account.json"
+            if [ -f "$FCM_KEY_FILE" ]; then
+              FCM_HOST_PATH="$FCM_KEY_FILE"
+            else
+              FCM_HOST_PATH="/dev/null"
+            fi
 
             # .env 파일 생성
             cat > .env << 'ENVEOF'
@@ -175,6 +202,7 @@ jobs:
             LANGSMITH_API_KEY=${{ secrets.LANGSMITH_API_KEY }}
             LANGSMITH_PROJECT=${{ secrets.LANGSMITH_PROJECT }}
             ENVEOF
+            echo "FCM_SERVICE_ACCOUNT_HOST_PATH=$FCM_HOST_PATH" >> .env
 
             # 기존 컨테이너 중지
             docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile prod down --timeout 30 || true

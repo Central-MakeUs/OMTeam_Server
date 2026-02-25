@@ -55,17 +55,15 @@ class FcmConfigTest {
         }
 
         @Test
-        @DisplayName("존재하지 않는 파일 경로면 IllegalStateException 발생")
-        void throwsWhenFileNotFound() throws Exception {
+        @DisplayName("존재하지 않는 파일 경로면 예외 없이 FCM 비활성화")
+        void noExceptionWhenFileNotFound() throws Exception {
             FcmConfig config = new FcmConfig();
             setField(config, "serviceAccountPath", "/nonexistent/path/service-account.json");
 
             try (MockedStatic<FirebaseApp> mockedFirebaseApp = mockStatic(FirebaseApp.class)) {
                 mockedFirebaseApp.when(FirebaseApp::getApps).thenReturn(Collections.emptyList());
 
-                assertThatThrownBy(config::initFirebase)
-                        .isInstanceOf(IllegalStateException.class)
-                        .hasMessageContaining("Firebase initialization failed");
+                assertThatNoException().isThrownBy(config::initFirebase);
             }
         }
     }
