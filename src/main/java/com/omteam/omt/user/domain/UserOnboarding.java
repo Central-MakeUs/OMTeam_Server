@@ -64,6 +64,10 @@ public class UserOnboarding {
     @Column(nullable = false)
     private LifestyleType lifestyleType;
 
+    private LocalTime wakeUpTime;
+
+    private LocalTime bedTime;
+
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
@@ -108,5 +112,10 @@ public class UserOnboarding {
 
     public void updateLifestyleType(LifestyleType lifestyleType) {
         this.lifestyleType = lifestyleType;
+    }
+
+    public void updateSleepSchedule(LocalTime wakeUpTime, LocalTime bedTime) {
+        this.wakeUpTime = wakeUpTime;
+        this.bedTime = bedTime;
     }
 }

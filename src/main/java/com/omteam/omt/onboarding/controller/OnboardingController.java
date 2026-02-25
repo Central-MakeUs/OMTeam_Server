@@ -11,6 +11,7 @@ import com.omteam.omt.onboarding.dto.request.UpdateNicknameRequest;
 import com.omteam.omt.onboarding.dto.request.UpdateNotificationSettingRequest;
 import com.omteam.omt.onboarding.dto.request.UpdatePreferredExerciseRequest;
 import com.omteam.omt.onboarding.dto.request.UpdateSingleNotificationRequest;
+import com.omteam.omt.onboarding.dto.request.UpdateSleepScheduleRequest;
 import com.omteam.omt.onboarding.dto.request.UpdateWorkTimeRequest;
 import com.omteam.omt.onboarding.service.OnboardingService;
 import com.omteam.omt.security.principal.UserPrincipal;
@@ -195,6 +196,24 @@ public class OnboardingController {
                         request.getRemindEnabled(),
                         request.getCheckinEnabled(),
                         request.getReviewEnabled()
+                )
+        );
+    }
+
+    @Operation(
+            summary = "기상/취침 시간 수정",
+            description = "사용자의 기상 시간과 취침 시간을 수정합니다. (30분 단위, 선택)"
+    )
+    @PatchMapping("/sleep-schedule")
+    public ApiResponse<OnboardingResponse> updateSleepSchedule(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody UpdateSleepScheduleRequest request
+    ) {
+        return ApiResponse.success(
+                onboardingService.updateSleepSchedule(
+                        userPrincipal.userId(),
+                        request.getWakeUpTime(),
+                        request.getBedTime()
                 )
         );
     }

@@ -14,6 +14,7 @@ import com.omteam.omt.onboarding.dto.request.UpdateNicknameRequest;
 import com.omteam.omt.onboarding.dto.request.UpdateNotificationSettingRequest;
 import com.omteam.omt.onboarding.dto.request.UpdatePreferredExerciseRequest;
 import com.omteam.omt.onboarding.dto.request.UpdateSingleNotificationRequest;
+import com.omteam.omt.onboarding.dto.request.UpdateSleepScheduleRequest;
 import com.omteam.omt.onboarding.dto.request.UpdateWorkTimeRequest;
 import com.omteam.omt.onboarding.service.OnboardingService;
 import com.omteam.omt.security.principal.UserPrincipal;
@@ -468,6 +469,70 @@ class OnboardingControllerTest {
             assertThat(result.success()).isTrue();
 
             then(onboardingService).should().updateSingleNotification(principal.userId(), NotificationType.REVIEW, true);
+        }
+    }
+
+        @Nested
+    @DisplayName("기상/취침 시간 수정")
+    class UpdateSleepSchedule {
+
+        @Test
+        @DisplayName("성공 - 기상/취침 시간이 수정된다")
+        void success_withBothTimes() {
+            // given
+            LocalTime wakeUpTime = LocalTime.of(7, 0);
+            LocalTime bedTime = LocalTime.of(23, 0);
+
+            UpdateSleepScheduleRequest request = new UpdateSleepScheduleRequest();
+            request.setWakeUpTime(wakeUpTime);
+            request.setBedTime(bedTime);
+
+            OnboardingResponse response = OnboardingResponse.builder()
+                    .nickname("테스트유저")
+                    .wakeUpTime(wakeUpTime)
+                    .bedTime(bedTime)
+                    .build();
+
+            given(onboardingService.updateSleepSchedule(principal.userId(), wakeUpTime, bedTime))
+                    .willReturn(response);
+
+            // when
+            ApiResponse<OnboardingResponse> result =
+                    onboardingController.updateSleepSchedule(principal, request);
+
+            // then
+            assertThat(result.success()).isTrue();
+            assertThat(result.data().getWakeUpTime()).isEqualTo(wakeUpTime);
+            assertThat(result.data().getBedTime()).isEqualTo(bedTime);
+
+            then(onboardingService).should().updateSleepSchedule(principal.userId(), wakeUpTime, bedTime);
+        }
+
+        @Test
+        @DisplayName("성공 - null 값으로 기상/취침 시간을 초기화한다")
+        void success_withNullTimes() {
+            // given
+            UpdateSleepScheduleRequest request = new UpdateSleepScheduleRequest();
+
+            OnboardingResponse response = OnboardingResponse.builder()
+                    .nickname("테스트유저")
+                    .wakeUpTime(null)
+                    .bedTime(null)
+                    .build();
+
+            given(onboardingService.updateSleepSchedule(principal.userId(), null, null))
+                    .willReturn(response);
+
+            // when
+            ApiResponse<OnboardingResponse> result =
+                    onboardingController.updateSleepSchedule(principal, request);
+
+            // then
+            assertThat(result.success()).isTrue();
+            assertThat(result.data().getWakeUpTime()).isNull();
+            assertThat(result.data().getBedTime()).isNull();
+
+            then(onboardingService).should().updateSleepSchedule(principal.userId(), null, null);
         }
     }
 
