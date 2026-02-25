@@ -45,7 +45,7 @@ ai-server:
   timeout-seconds: ${AI_SERVER_TIMEOUT:10}
 
 fcm:
-  service-account-path: ${FCM_SERVICE_ACCOUNT_PATH}
+  service-account-path: ${FCM_SERVICE_ACCOUNT_PATH:}
 
 notification:
   scheduler:
