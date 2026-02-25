@@ -10,10 +10,13 @@ import com.omteam.omt.user.domain.UserOnboarding;
 import com.omteam.omt.user.repository.UserNotificationSettingRepository;
 import com.omteam.omt.user.repository.UserOnboardingRepository;
 import com.omteam.omt.user.service.UserQueryService;
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +42,15 @@ public class NotificationService {
     @Value("${notification.default.bed-time}")
     private String defaultBedTimeStr;
 
+    private LocalTime defaultWakeUpTime;
+    private LocalTime defaultBedTime;
+
+    @PostConstruct
+    void initDefaultTimes() {
+        defaultWakeUpTime = LocalTime.parse(defaultWakeUpTimeStr);
+        defaultBedTime = LocalTime.parse(defaultBedTimeStr);
+    }
+
     @Transactional
     public void registerFcmToken(Long userId, String fcmToken) {
         User user = userQueryService.getUser(userId);
@@ -51,7 +63,7 @@ public class NotificationService {
         user.updateFcmToken(null);
     }
 
-    public void sendRemindNotifications(LocalTime now) {
+    public void sendRemindNotifications(LocalTime now, LocalDate today) {
         List<UserOnboarding> targets = userOnboardingRepository.findByAvailableStartTimeForNotification(now);
         if (targets.isEmpty()) {
             return;
@@ -60,11 +72,12 @@ public class NotificationService {
         List<Long> userIds = extractUserIds(targets);
         Map<Long, UserNotificationSetting> settingMap = buildSettingMap(userIds);
 
-        LocalDate today = LocalDate.now();
         List<RecommendedMissionStatus> activeStatuses = List.of(
                 RecommendedMissionStatus.IN_PROGRESS,
                 RecommendedMissionStatus.COMPLETED
         );
+        Set<Long> usersWithActiveMissions = new HashSet<>(
+                recommendedMissionRepository.findUserIdsHavingActiveMissions(userIds, today, activeStatuses));
 
         int sentCount = 0;
         for (UserOnboarding onboarding : targets) {
@@ -78,7 +91,7 @@ public class NotificationService {
             if (user.getFcmToken() == null || user.getFcmToken().isBlank()) {
                 continue;
             }
-            if (recommendedMissionRepository.existsByUserUserIdAndMissionDateAndStatusIn(userId, today, activeStatuses)) {
+            if (usersWithActiveMissions.contains(userId)) {
                 continue;
             }
 
@@ -95,7 +108,6 @@ public class NotificationService {
     }
 
     public void sendCheckinNotifications(LocalTime now) {
-        LocalTime defaultWakeUpTime = LocalTime.parse(defaultWakeUpTimeStr);
         List<UserOnboarding> targets = userOnboardingRepository.findByEffectiveWakeUpTime(now, defaultWakeUpTime);
         if (targets.isEmpty()) {
             return;
@@ -129,8 +141,7 @@ public class NotificationService {
         log.info("체크인 알림 발송 완료: total={}, sent={}", targets.size(), sentCount);
     }
 
-    public void sendReviewNotifications(LocalTime now) {
-        LocalTime defaultBedTime = LocalTime.parse(defaultBedTimeStr);
+    public void sendReviewNotifications(LocalTime now, LocalDate today) {
         LocalTime defaultReviewTime = defaultBedTime.minusHours(1);
         LocalTime targetBedTime = now.plusHours(1);
 
@@ -142,8 +153,6 @@ public class NotificationService {
 
         List<Long> userIds = extractUserIds(targets);
         Map<Long, UserNotificationSetting> settingMap = buildSettingMap(userIds);
-
-        LocalDate today = LocalDate.now();
         int sentCount = 0;
         for (UserOnboarding onboarding : targets) {
             User user = onboarding.getUser();

@@ -29,6 +29,7 @@ import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -70,6 +71,8 @@ class NotificationServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(notificationService, "defaultWakeUpTimeStr", "07:00");
         ReflectionTestUtils.setField(notificationService, "defaultBedTimeStr", "23:00");
+        ReflectionTestUtils.setField(notificationService, "defaultWakeUpTime", LocalTime.of(7, 0));
+        ReflectionTestUtils.setField(notificationService, "defaultBedTime", LocalTime.of(23, 0));
     }
 
     // =========================================================
@@ -185,6 +188,7 @@ class NotificationServiceTest {
     class SendRemindNotifications {
 
         final LocalTime now = LocalTime.of(9, 0);
+        final LocalDate today = LocalDate.of(2026, 2, 25);
 
         @Test
         @DisplayName("성공 - 조건 충족 사용자에게 리마인드 알림이 발송된다")
@@ -198,13 +202,11 @@ class NotificationServiceTest {
                     .willReturn(List.of(onboarding));
             given(notificationSettingRepository.findAllById(List.of(userId)))
                     .willReturn(List.of(setting));
-            given(recommendedMissionRepository.existsByUserUserIdAndMissionDateAndStatusIn(
-                    eq(userId), any(LocalDate.class),
-                    eq(List.of(RecommendedMissionStatus.IN_PROGRESS, RecommendedMissionStatus.COMPLETED))))
-                    .willReturn(false);
+            given(recommendedMissionRepository.findUserIdsHavingActiveMissions(anyList(), eq(today), anyList()))
+                    .willReturn(Set.of());
 
             // when
-            notificationService.sendRemindNotifications(now);
+            notificationService.sendRemindNotifications(now, today);
 
             // then
             then(fcmService).should().sendNotification(
@@ -225,9 +227,11 @@ class NotificationServiceTest {
                     .willReturn(List.of(onboarding));
             given(notificationSettingRepository.findAllById(List.of(userId)))
                     .willReturn(List.of(setting));
+            given(recommendedMissionRepository.findUserIdsHavingActiveMissions(anyList(), eq(today), anyList()))
+                    .willReturn(Set.of());
 
             // when
-            notificationService.sendRemindNotifications(now);
+            notificationService.sendRemindNotifications(now, today);
 
             // then
             then(fcmService).should(never()).sendNotification(anyString(), anyString(), anyString());
@@ -245,9 +249,11 @@ class NotificationServiceTest {
                     .willReturn(List.of(onboarding));
             given(notificationSettingRepository.findAllById(List.of(userId)))
                     .willReturn(List.of(setting));
+            given(recommendedMissionRepository.findUserIdsHavingActiveMissions(anyList(), eq(today), anyList()))
+                    .willReturn(Set.of());
 
             // when
-            notificationService.sendRemindNotifications(now);
+            notificationService.sendRemindNotifications(now, today);
 
             // then
             then(fcmService).should(never()).sendNotification(anyString(), anyString(), anyString());
@@ -265,13 +271,11 @@ class NotificationServiceTest {
                     .willReturn(List.of(onboarding));
             given(notificationSettingRepository.findAllById(List.of(userId)))
                     .willReturn(List.of(setting));
-            given(recommendedMissionRepository.existsByUserUserIdAndMissionDateAndStatusIn(
-                    eq(userId), any(LocalDate.class),
-                    eq(List.of(RecommendedMissionStatus.IN_PROGRESS, RecommendedMissionStatus.COMPLETED))))
-                    .willReturn(true);
+            given(recommendedMissionRepository.findUserIdsHavingActiveMissions(anyList(), eq(today), anyList()))
+                    .willReturn(Set.of(userId));
 
             // when
-            notificationService.sendRemindNotifications(now);
+            notificationService.sendRemindNotifications(now, today);
 
             // then
             then(fcmService).should(never()).sendNotification(anyString(), anyString(), anyString());
@@ -289,13 +293,11 @@ class NotificationServiceTest {
                     .willReturn(List.of(onboarding));
             given(notificationSettingRepository.findAllById(List.of(userId)))
                     .willReturn(List.of(setting));
-            given(recommendedMissionRepository.existsByUserUserIdAndMissionDateAndStatusIn(
-                    eq(userId), any(LocalDate.class),
-                    eq(List.of(RecommendedMissionStatus.IN_PROGRESS, RecommendedMissionStatus.COMPLETED))))
-                    .willReturn(true);
+            given(recommendedMissionRepository.findUserIdsHavingActiveMissions(anyList(), eq(today), anyList()))
+                    .willReturn(Set.of(userId));
 
             // when
-            notificationService.sendRemindNotifications(now);
+            notificationService.sendRemindNotifications(now, today);
 
             // then
             then(fcmService).should(never()).sendNotification(anyString(), anyString(), anyString());
@@ -309,7 +311,7 @@ class NotificationServiceTest {
                     .willReturn(List.of());
 
             // when
-            notificationService.sendRemindNotifications(now);
+            notificationService.sendRemindNotifications(now, today);
 
             // then
             then(notificationSettingRepository).should(never()).findAllById(anyList());
@@ -353,12 +355,8 @@ class NotificationServiceTest {
                     .willReturn(List.of(onboarding1, onboarding2));
             given(notificationSettingRepository.findAllById(List.of(userId, 2L)))
                     .willReturn(List.of(setting1, setting2));
-            given(recommendedMissionRepository.existsByUserUserIdAndMissionDateAndStatusIn(
-                    eq(userId), any(LocalDate.class), anyList()))
-                    .willReturn(false);
-            given(recommendedMissionRepository.existsByUserUserIdAndMissionDateAndStatusIn(
-                    eq(2L), any(LocalDate.class), anyList()))
-                    .willReturn(false);
+            given(recommendedMissionRepository.findUserIdsHavingActiveMissions(anyList(), eq(today), anyList()))
+                    .willReturn(Set.of());
 
             willThrow(new RuntimeException("FCM 오류"))
                     .given(fcmService).sendNotification(eq("token-1"), anyString(), anyString());
@@ -366,7 +364,7 @@ class NotificationServiceTest {
                     .given(fcmService).sendNotification(eq("token-2"), anyString(), anyString());
 
             // when
-            notificationService.sendRemindNotifications(now);
+            notificationService.sendRemindNotifications(now, today);
 
             // then
             then(fcmService).should().sendNotification(eq("token-1"), anyString(), anyString());
@@ -500,6 +498,7 @@ class NotificationServiceTest {
         final LocalTime now = LocalTime.of(22, 0);
         final LocalTime targetBedTime = LocalTime.of(23, 0);
         final LocalTime defaultReviewTime = LocalTime.of(22, 0);
+        final LocalDate today = LocalDate.of(2026, 2, 25);
 
         @Test
         @DisplayName("성공 - 분석 생성 후 회고 알림이 발송된다")
@@ -514,13 +513,13 @@ class NotificationServiceTest {
             given(notificationSettingRepository.findAllById(List.of(userId)))
                     .willReturn(List.of(setting));
             willDoNothing()
-                    .given(dailyAnalysisService).generateDailyAnalysisForUser(eq(user), any(LocalDate.class));
+                    .given(dailyAnalysisService).generateDailyAnalysisForUser(eq(user), eq(today));
 
             // when
-            notificationService.sendReviewNotifications(now);
+            notificationService.sendReviewNotifications(now, today);
 
             // then
-            then(dailyAnalysisService).should().generateDailyAnalysisForUser(eq(user), any(LocalDate.class));
+            then(dailyAnalysisService).should().generateDailyAnalysisForUser(eq(user), eq(today));
             then(fcmService).should().sendNotification(
                     "fcm-token",
                     NotificationMessages.REVIEW_TITLE,
@@ -541,7 +540,7 @@ class NotificationServiceTest {
                     .willReturn(List.of(setting));
 
             // when
-            notificationService.sendReviewNotifications(now);
+            notificationService.sendReviewNotifications(now, today);
 
             // then
             then(dailyAnalysisService).should(never()).generateDailyAnalysisForUser(any(), any());
@@ -562,7 +561,7 @@ class NotificationServiceTest {
                     .willReturn(List.of(setting));
 
             // when
-            notificationService.sendReviewNotifications(now);
+            notificationService.sendReviewNotifications(now, today);
 
             // then
             then(dailyAnalysisService).should(never()).generateDailyAnalysisForUser(any(), any());
@@ -577,7 +576,7 @@ class NotificationServiceTest {
                     .willReturn(List.of());
 
             // when
-            notificationService.sendReviewNotifications(now);
+            notificationService.sendReviewNotifications(now, today);
 
             // then
             then(notificationSettingRepository).should(never()).findAllById(anyList());
@@ -598,10 +597,10 @@ class NotificationServiceTest {
             given(notificationSettingRepository.findAllById(List.of(userId)))
                     .willReturn(List.of(setting));
             willThrow(new RuntimeException("AI 분석 실패"))
-                    .given(dailyAnalysisService).generateDailyAnalysisForUser(eq(user), any(LocalDate.class));
+                    .given(dailyAnalysisService).generateDailyAnalysisForUser(eq(user), eq(today));
 
             // when
-            notificationService.sendReviewNotifications(now);
+            notificationService.sendReviewNotifications(now, today);
 
             // then: catch 블록에서 예외를 삼키므로 FCM도 호출되지 않는다
             then(fcmService).should(never()).sendNotification(anyString(), anyString(), anyString());
