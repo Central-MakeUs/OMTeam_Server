@@ -2,6 +2,6 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-COPY build/libs/*.jar app.jar
+COPY build/libs/omt-*.jar app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
