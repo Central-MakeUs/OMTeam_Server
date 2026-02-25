@@ -37,8 +37,7 @@ public class FcmService {
             String messageId = FirebaseMessaging.getInstance().send(message);
             log.info("FCM notification sent successfully. messageId={}", messageId);
         } catch (FirebaseMessagingException e) {
-            log.warn("FCM send failed [token={}]: errorCode={}, msg={}",
-                    token, e.getMessagingErrorCode(), e.getMessage());
+            log.warn("FCM send failed: errorCode={}, msg={}", e.getMessagingErrorCode(), e.getMessage());
             throw new BusinessException(ErrorCode.FCM_SEND_FAILED);
         }
     }

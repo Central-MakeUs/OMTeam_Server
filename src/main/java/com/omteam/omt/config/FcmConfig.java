@@ -20,7 +20,7 @@ public class FcmConfig {
 
     @PostConstruct
     public void initFirebase() {
-        if (serviceAccountPath == null || serviceAccountPath.isBlank()) {
+        if (serviceAccountPath.isBlank()) {
             log.warn("FCM_SERVICE_ACCOUNT_PATH is not configured. FCM push notifications will be disabled.");
             return;
         }

@@ -1,6 +1,5 @@
 package com.omteam.omt.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mockStatic;
@@ -20,15 +19,6 @@ class FcmConfigTest {
     @Nested
     @DisplayName("initFirebase")
     class InitFirebase {
-
-        @Test
-        @DisplayName("serviceAccountPath가 null이면 초기화 스킵 - 예외 없음")
-        void noopWhenPathIsNull() throws Exception {
-            FcmConfig config = new FcmConfig();
-            setField(config, "serviceAccountPath", null);
-
-            assertThatNoException().isThrownBy(config::initFirebase);
-        }
 
         @Test
         @DisplayName("serviceAccountPath가 빈 문자열이면 초기화 스킵 - 예외 없음")
