@@ -49,6 +49,9 @@ dependencies {
     // Resilience4j (Circuit Breaker)
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
 
+    // Firebase Admin SDK
+    implementation 'com.google.firebase:firebase-admin:9.4.3'
+
     // Swagger/OpenAPI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
