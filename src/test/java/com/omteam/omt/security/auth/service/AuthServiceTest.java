@@ -130,16 +130,33 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("로그아웃 성공")
+    @DisplayName("로그아웃 성공 - FCM 토큰 초기화 및 Refresh 토큰 삭제")
     void logout_success() {
         // given
         Long userId = 1L;
+        User user = createUser(true);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
         // when
         authService.logout(userId);
 
         // then
+        assertThat(user.getFcmToken()).isNull();
         then(refreshTokenService).should().deleteRefreshToken(userId);
+    }
+
+    @Test
+    @DisplayName("로그아웃 실패 - 사용자를 찾을 수 없음")
+    void logout_fail_userNotFound() {
+        // given
+        Long userId = 1L;
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> authService.logout(userId))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.USER_NOT_FOUND);
     }
 
     @Test
@@ -218,17 +235,19 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("회원 탈퇴 성공")
+    @DisplayName("회원 탈퇴 성공 - FCM 토큰 초기화, soft delete, Refresh 토큰 삭제")
     void withdraw_success() {
         // given
         Long userId = 1L;
-        User user = createUser(true);
+        User user = createUserWithFcmToken("some-fcm-token");
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
         // when
         authService.withdraw(userId);
 
         // then
+        assertThat(user.getFcmToken()).isNull();
+        assertThat(user.getDeletedAt()).isNotNull();
         then(userRepository).should().findById(userId);
         then(refreshTokenService).should().deleteRefreshToken(userId);
     }
@@ -286,6 +305,15 @@ class AuthServiceTest {
                 .userId(1L)
                 .email(email)
                 .onboardingCompleted(onboardingCompleted)
+                .build();
+    }
+
+    private User createUserWithFcmToken(String fcmToken) {
+        return User.builder()
+                .userId(1L)
+                .email(email)
+                .onboardingCompleted(true)
+                .fcmToken(fcmToken)
                 .build();
     }
 }
