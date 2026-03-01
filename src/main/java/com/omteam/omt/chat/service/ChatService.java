@@ -125,16 +125,11 @@ public class ChatService {
         AiChatRequest aiRequest = buildAiRequest(userId, session, request);
         AiChatResponse aiResponse = aiChatClient.sendMessage(aiRequest);
 
-        // fallback 응답이면 DB 저장 없이 직접 반환
+        // fallback 응답도 DB에 저장하여 채팅 내역에서 AI 응답이 누락되지 않도록 함
         if (aiResponse.isFallback()) {
             log.info("AI 서버 fallback 응답 반환: userId={}, sessionId={}", userId, session.getId());
-            return ChatMessageResponse.builder()
-                    .messageId(null)
-                    .role(ChatMessageRole.ASSISTANT)
-                    .content(aiResponse.getBotMessage().getText())
-                    .options(List.of())
-                    .isTerminal(false)
-                    .build();
+            ChatMessage fallbackMessage = saveAssistantMessage(session, aiResponse, false);
+            return ChatMessageResponse.from(fallbackMessage, objectMapper, false);
         }
 
         // 대화 종료 여부 판단
