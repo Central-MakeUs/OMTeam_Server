@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.ai.service.UserContextService;
+import com.omteam.omt.common.exception.BusinessException;
+import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
@@ -19,8 +21,10 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,18 +53,35 @@ public class WeeklyAnalysisService {
                 weekStartDate, weekEndDate, activeUsers.size());
 
         int successCount = 0;
+        List<Long> failedUserIds = new ArrayList<>();
 
         for (User user : activeUsers) {
             try {
                 generateWeeklyAnalysisForUser(user, weekStartDate, weekEndDate);
                 successCount++;
+            } catch (BusinessException e) {
+                log.warn("주간 분석 실패: userId={}, errorCode={}, message={}",
+                        user.getUserId(), e.getErrorCode().getCode(), e.getMessage());
+                if (isAiServerError(e.getErrorCode())) {
+                    failedUserIds.add(user.getUserId());
+                }
             } catch (Exception e) {
-                log.error("사용자 {} 주간 분석 실패: {}", user.getUserId(), e.getMessage());
+                log.error("주간 분석 실패 (예상치 못한 오류): userId={}", user.getUserId(), e);
             }
         }
 
         log.info("주간 분석 완료: 성공={}, 실패={}", successCount, activeUsers.size() - successCount);
-        return BatchProcessResult.of(activeUsers.size(), successCount);
+        return BatchProcessResult.of(activeUsers.size(), successCount, failedUserIds);
+    }
+
+    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_SERVER_ERROR,
+            ErrorCode.AI_SERVER_CONNECTION_ERROR,
+            ErrorCode.AI_SERVER_CIRCUIT_OPEN
+    );
+
+    private boolean isAiServerError(ErrorCode code) {
+        return AI_SERVER_ERROR_CODES.contains(code);
     }
 
     @Transactional
@@ -173,7 +194,7 @@ public class WeeklyAnalysisService {
             try {
                 failureRankingJson = objectMapper.writeValueAsString(response.getFailureReasonRanking());
             } catch (JsonProcessingException e) {
-                log.warn("실패 원인 순위 JSON 변환 실패: {}", e.getMessage());
+                log.warn("실패 원인 순위 JSON 변환 실패: userId={}", user.getUserId(), e);
             }
         }
 

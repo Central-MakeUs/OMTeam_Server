@@ -39,7 +39,5 @@ public class NotificationScheduler {
         } catch (Exception e) {
             log.error("회고 알림 스케줄러 오류", e);
         }
-
-        log.info("알림 스케줄러 완료");
     }
 }

@@ -12,4 +12,5 @@ public class DailyMissionRecommendResponse {
     private List<RecommendedMissionResponse> recommendations;
     private boolean hasInProgressMission;
     private RecommendedMissionResponse inProgressMission;
+    private boolean isFallback;
 }

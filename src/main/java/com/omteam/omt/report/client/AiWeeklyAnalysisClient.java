@@ -40,7 +40,7 @@ public class AiWeeklyAnalysisClient {
             log.warn("AI 서버 Circuit Breaker OPEN 상태 - 주간 분석 차단");
             throw new BusinessException(ErrorCode.AI_SERVER_CIRCUIT_OPEN);
         } catch (WebClientResponseException e) {
-            log.error("AI 서버 주간 분석 응답 오류: status={}, body={}",
+            log.warn("AI 서버 응답 오류 - 주간 분석: status={}, body={}",
                     e.getStatusCode(), e.getResponseBodyAsString());
             throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
         } catch (Exception e) {

@@ -2,6 +2,8 @@ package com.omteam.omt.report.service;
 
 import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.ai.service.UserContextService;
+import com.omteam.omt.common.exception.BusinessException;
+import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.report.client.AiDailyAnalysisClient;
 import com.omteam.omt.report.constant.DefaultReportMessages;
 import com.omteam.omt.report.dto.ReportDataStatus;
@@ -19,7 +21,10 @@ import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.repository.UserRepository;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,15 +52,33 @@ public class DailyAnalysisService {
                 .toList();
 
         int successCount = 0;
+        List<Long> failedUserIds = new ArrayList<>();
+
         for (User user : activeUsers) {
             try {
                 generateDailyAnalysisForUser(user, targetDate);
                 successCount++;
+            } catch (BusinessException e) {
+                log.warn("데일리 분석 실패: userId={}, errorCode={}, message={}",
+                        user.getUserId(), e.getErrorCode().getCode(), e.getMessage());
+                if (isAiServerError(e.getErrorCode())) {
+                    failedUserIds.add(user.getUserId());
+                }
             } catch (Exception e) {
-                log.error("격려 메시지 생성 실패: userId={}", user.getUserId(), e);
+                log.error("데일리 분석 실패 (예상치 못한 오류): userId={}", user.getUserId(), e);
             }
         }
-        return BatchProcessResult.of(activeUsers.size(), successCount);
+        return BatchProcessResult.of(activeUsers.size(), successCount, failedUserIds);
+    }
+
+    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_SERVER_ERROR,
+            ErrorCode.AI_SERVER_CONNECTION_ERROR,
+            ErrorCode.AI_SERVER_CIRCUIT_OPEN
+    );
+
+    private boolean isAiServerError(ErrorCode code) {
+        return AI_SERVER_ERROR_CODES.contains(code);
     }
 
     /**

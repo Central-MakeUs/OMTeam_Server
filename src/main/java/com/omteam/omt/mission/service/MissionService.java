@@ -30,8 +30,11 @@ import com.omteam.omt.user.domain.UserOnboarding;
 import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -67,14 +70,29 @@ public class MissionService {
 
         // AI 서버에서 새 미션 추천 받기
         AiMissionRecommendRequest request = buildAiRequest(userId);
-        AiMissionRecommendResponse aiResponse = aiMissionClient.recommendDailyMissions(request);
-        List<DailyRecommendedMission> recommendations = saveRecommendedMissions(user, today, aiResponse);
+        List<DailyRecommendedMission> recommendations;
+        boolean isFallback = false;
+
+        try {
+            AiMissionRecommendResponse aiResponse = aiMissionClient.recommendDailyMissions(request);
+            recommendations = saveRecommendedMissions(user, today, aiResponse);
+        } catch (BusinessException e) {
+            if (isAiServerError(e.getErrorCode())) {
+                log.warn("AI 서버 오류로 DB Fallback 미션 추천 - userId={}, errorCode={}",
+                        userId, e.getErrorCode().getCode());
+                recommendations = saveFallbackRecommendations(user, today);
+                isFallback = true;
+            } else {
+                throw e;
+            }
+        }
 
         return DailyMissionRecommendResponse.builder()
                 .missionDate(today)
                 .recommendations(RecommendedMissionResponse.fromList(recommendations))
                 .hasInProgressMission(false)
                 .inProgressMission(null)
+                .isFallback(isFallback)
                 .build();
     }
 
@@ -253,6 +271,45 @@ public class MissionService {
                 .recentMissionHistory(missionHistories)
                 .weeklyFailureReasons(weeklyFailureReasons)
                 .build();
+    }
+
+    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_SERVER_ERROR,
+            ErrorCode.AI_SERVER_CONNECTION_ERROR,
+            ErrorCode.AI_SERVER_CIRCUIT_OPEN
+    );
+
+    private boolean isAiServerError(ErrorCode errorCode) {
+        return AI_SERVER_ERROR_CODES.contains(errorCode);
+    }
+
+    private List<DailyRecommendedMission> saveFallbackRecommendations(User user, LocalDate date) {
+        Set<Mission> missionSet = new LinkedHashSet<>();
+        missionSet.addAll(missionRepository.findRandomByType("EXERCISE", 2));
+        missionSet.addAll(missionRepository.findRandomByType("DIET", 1));
+
+        int attempts = 0;
+        while (missionSet.size() < 3 && attempts < 5) {
+            missionSet.addAll(missionRepository.findRandom(3 - missionSet.size()));
+            attempts++;
+        }
+
+        if (missionSet.isEmpty()) {
+            throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
+        }
+
+        List<Mission> missions = new ArrayList<>(missionSet);
+
+        return missions.stream()
+                .map(mission -> recommendedMissionRepository.save(
+                        DailyRecommendedMission.builder()
+                                .missionDate(date)
+                                .status(RecommendedMissionStatus.RECOMMENDED)
+                                .mission(mission)
+                                .user(user)
+                                .build()
+                ))
+                .toList();
     }
 
     private List<DailyRecommendedMission> saveRecommendedMissions(

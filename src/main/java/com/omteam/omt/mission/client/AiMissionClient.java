@@ -40,7 +40,7 @@ public class AiMissionClient {
             log.warn("AI 서버 Circuit Breaker OPEN 상태 - 미션 추천 차단");
             throw new BusinessException(ErrorCode.AI_SERVER_CIRCUIT_OPEN);
         } catch (WebClientResponseException e) {
-            log.error("AI 서버 응답 오류: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.warn("AI 서버 응답 오류 - 미션 추천: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
         } catch (Exception e) {
             log.error("AI 서버 미션 추천 실패", e);
