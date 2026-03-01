@@ -1,6 +1,7 @@
 package com.omteam.omt.report.scheduler;
 
 import com.omteam.omt.report.dto.BatchProcessResult;
+import com.omteam.omt.report.service.AnalysisRetryService;
 import com.omteam.omt.report.service.DailyAnalysisService;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class DailyAnalysisScheduler {
 
     private final DailyAnalysisService dailyAnalysisService;
+    private final AnalysisRetryService analysisRetryService;
 
     /**
      * 매일 00:30에 오늘의 데일리 분석 결과를 생성한다.
@@ -28,6 +30,9 @@ public class DailyAnalysisScheduler {
             BatchProcessResult result = dailyAnalysisService.generateDailyEncouragementForAllUsers(yesterday);
             log.info("데일리 분석 스케줄러 완료: total={}, success={}, failed={}",
                     result.totalCount(), result.successCount(), result.failedCount());
+
+            result.failedUserIds().forEach(userId ->
+                    analysisRetryService.enqueue(userId, "DAILY", yesterday));
         } catch (Exception e) {
             log.error("데일리 분석 스케줄러 오류", e);
         }

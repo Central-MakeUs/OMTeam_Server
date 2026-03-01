@@ -1,8 +1,10 @@
 package com.omteam.omt.report.dto;
 
-public record BatchProcessResult(int totalCount, int successCount, int failedCount) {
+import java.util.List;
 
-    public static BatchProcessResult of(int totalCount, int successCount) {
-        return new BatchProcessResult(totalCount, successCount, totalCount - successCount);
+public record BatchProcessResult(int totalCount, int successCount, int failedCount, List<Long> failedUserIds) {
+
+    public static BatchProcessResult of(int totalCount, int successCount, List<Long> failedUserIds) {
+        return new BatchProcessResult(totalCount, successCount, totalCount - successCount, failedUserIds);
     }
 }

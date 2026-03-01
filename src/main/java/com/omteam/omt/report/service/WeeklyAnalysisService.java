@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.ai.service.UserContextService;
+import com.omteam.omt.common.exception.BusinessException;
+import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
@@ -49,18 +51,30 @@ public class WeeklyAnalysisService {
                 weekStartDate, weekEndDate, activeUsers.size());
 
         int successCount = 0;
+        List<Long> failedUserIds = new ArrayList<>();
 
         for (User user : activeUsers) {
             try {
                 generateWeeklyAnalysisForUser(user, weekStartDate, weekEndDate);
                 successCount++;
+            } catch (BusinessException e) {
+                log.error("사용자 {} 주간 분석 실패: {}", user.getUserId(), e.getMessage());
+                if (isAiServerError(e.getErrorCode())) {
+                    failedUserIds.add(user.getUserId());
+                }
             } catch (Exception e) {
                 log.error("사용자 {} 주간 분석 실패: {}", user.getUserId(), e.getMessage());
             }
         }
 
         log.info("주간 분석 완료: 성공={}, 실패={}", successCount, activeUsers.size() - successCount);
-        return BatchProcessResult.of(activeUsers.size(), successCount);
+        return BatchProcessResult.of(activeUsers.size(), successCount, failedUserIds);
+    }
+
+    private boolean isAiServerError(ErrorCode code) {
+        return code == ErrorCode.AI_SERVER_ERROR
+                || code == ErrorCode.AI_SERVER_CONNECTION_ERROR
+                || code == ErrorCode.AI_SERVER_CIRCUIT_OPEN;
     }
 
     @Transactional
