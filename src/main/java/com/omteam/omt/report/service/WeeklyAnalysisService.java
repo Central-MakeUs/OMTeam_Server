@@ -21,8 +21,10 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,10 +73,14 @@ public class WeeklyAnalysisService {
         return BatchProcessResult.of(activeUsers.size(), successCount, failedUserIds);
     }
 
+    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_SERVER_ERROR,
+            ErrorCode.AI_SERVER_CONNECTION_ERROR,
+            ErrorCode.AI_SERVER_CIRCUIT_OPEN
+    );
+
     private boolean isAiServerError(ErrorCode code) {
-        return code == ErrorCode.AI_SERVER_ERROR
-                || code == ErrorCode.AI_SERVER_CONNECTION_ERROR
-                || code == ErrorCode.AI_SERVER_CIRCUIT_OPEN;
+        return AI_SERVER_ERROR_CODES.contains(code);
     }
 
     @Transactional

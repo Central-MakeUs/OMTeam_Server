@@ -30,8 +30,11 @@ import com.omteam.omt.user.domain.UserOnboarding;
 import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -269,25 +272,32 @@ public class MissionService {
                 .build();
     }
 
+    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_SERVER_ERROR,
+            ErrorCode.AI_SERVER_CONNECTION_ERROR,
+            ErrorCode.AI_SERVER_CIRCUIT_OPEN
+    );
+
     private boolean isAiServerError(ErrorCode errorCode) {
-        return errorCode == ErrorCode.AI_SERVER_ERROR
-                || errorCode == ErrorCode.AI_SERVER_CONNECTION_ERROR
-                || errorCode == ErrorCode.AI_SERVER_CIRCUIT_OPEN;
+        return AI_SERVER_ERROR_CODES.contains(errorCode);
     }
 
     private List<DailyRecommendedMission> saveFallbackRecommendations(User user, LocalDate date) {
-        List<Mission> missions = new ArrayList<>();
-        missions.addAll(missionRepository.findRandomByType("EXERCISE", 2));
-        missions.addAll(missionRepository.findRandomByType("DIET", 1));
+        Set<Mission> missionSet = new LinkedHashSet<>();
+        missionSet.addAll(missionRepository.findRandomByType("EXERCISE", 2));
+        missionSet.addAll(missionRepository.findRandomByType("DIET", 1));
 
-        if (missions.size() < 3) {
-            int remaining = 3 - missions.size();
-            missions.addAll(missionRepository.findRandom(remaining));
+        int attempts = 0;
+        while (missionSet.size() < 3 && attempts < 5) {
+            missionSet.addAll(missionRepository.findRandom(3 - missionSet.size()));
+            attempts++;
         }
 
-        if (missions.isEmpty()) {
+        if (missionSet.isEmpty()) {
             throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
         }
+
+        List<Mission> missions = new ArrayList<>(missionSet);
 
         return missions.stream()
                 .map(mission -> recommendedMissionRepository.save(

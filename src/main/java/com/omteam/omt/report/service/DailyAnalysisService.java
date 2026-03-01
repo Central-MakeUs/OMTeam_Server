@@ -22,7 +22,9 @@ import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.repository.UserRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -68,10 +70,14 @@ public class DailyAnalysisService {
         return BatchProcessResult.of(activeUsers.size(), successCount, failedUserIds);
     }
 
+    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_SERVER_ERROR,
+            ErrorCode.AI_SERVER_CONNECTION_ERROR,
+            ErrorCode.AI_SERVER_CIRCUIT_OPEN
+    );
+
     private boolean isAiServerError(ErrorCode code) {
-        return code == ErrorCode.AI_SERVER_ERROR
-                || code == ErrorCode.AI_SERVER_CONNECTION_ERROR
-                || code == ErrorCode.AI_SERVER_CIRCUIT_OPEN;
+        return AI_SERVER_ERROR_CODES.contains(code);
     }
 
     /**
