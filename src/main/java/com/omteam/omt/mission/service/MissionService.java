@@ -67,14 +67,28 @@ public class MissionService {
 
         // AI 서버에서 새 미션 추천 받기
         AiMissionRecommendRequest request = buildAiRequest(userId);
-        AiMissionRecommendResponse aiResponse = aiMissionClient.recommendDailyMissions(request);
-        List<DailyRecommendedMission> recommendations = saveRecommendedMissions(user, today, aiResponse);
+        List<DailyRecommendedMission> recommendations;
+        boolean isFallback = false;
+
+        try {
+            AiMissionRecommendResponse aiResponse = aiMissionClient.recommendDailyMissions(request);
+            recommendations = saveRecommendedMissions(user, today, aiResponse);
+        } catch (BusinessException e) {
+            if (isAiServerError(e.getErrorCode())) {
+                log.warn("AI 서버 오류로 DB Fallback 미션 추천 - userId={}", userId);
+                recommendations = saveFallbackRecommendations(user, today);
+                isFallback = true;
+            } else {
+                throw e;
+            }
+        }
 
         return DailyMissionRecommendResponse.builder()
                 .missionDate(today)
                 .recommendations(RecommendedMissionResponse.fromList(recommendations))
                 .hasInProgressMission(false)
                 .inProgressMission(null)
+                .isFallback(isFallback)
                 .build();
     }
 
@@ -253,6 +267,38 @@ public class MissionService {
                 .recentMissionHistory(missionHistories)
                 .weeklyFailureReasons(weeklyFailureReasons)
                 .build();
+    }
+
+    private boolean isAiServerError(ErrorCode errorCode) {
+        return errorCode == ErrorCode.AI_SERVER_ERROR
+                || errorCode == ErrorCode.AI_SERVER_CONNECTION_ERROR
+                || errorCode == ErrorCode.AI_SERVER_CIRCUIT_OPEN;
+    }
+
+    private List<DailyRecommendedMission> saveFallbackRecommendations(User user, LocalDate date) {
+        List<Mission> missions = new ArrayList<>();
+        missions.addAll(missionRepository.findRandomByType("EXERCISE", 2));
+        missions.addAll(missionRepository.findRandomByType("DIET", 1));
+
+        if (missions.size() < 3) {
+            int remaining = 3 - missions.size();
+            missions.addAll(missionRepository.findRandom(remaining));
+        }
+
+        if (missions.isEmpty()) {
+            throw new BusinessException(ErrorCode.AI_SERVER_ERROR);
+        }
+
+        return missions.stream()
+                .map(mission -> recommendedMissionRepository.save(
+                        DailyRecommendedMission.builder()
+                                .missionDate(date)
+                                .status(RecommendedMissionStatus.RECOMMENDED)
+                                .mission(mission)
+                                .user(user)
+                                .build()
+                ))
+                .toList();
     }
 
     private List<DailyRecommendedMission> saveRecommendedMissions(
