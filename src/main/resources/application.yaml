@@ -53,3 +53,11 @@ notification:
   default:
     wake-up-time: "07:00"
     bed-time: "23:00"
+
+logging:
+  level:
+    root: WARN
+    com.omteam.omt: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN

@@ -28,6 +28,9 @@ services:
       - OAUTH_APPLE_CLIENT_ID=${OAUTH_APPLE_CLIENT_ID}
       - AI_SERVER_BASE_URL=${AI_SERVER_BASE_URL:-http://omt-ai:8000}
       - FCM_SERVICE_ACCOUNT_PATH=${FCM_SERVICE_ACCOUNT_PATH:}
+      - LOG_PATH=/app/logs
+    volumes:
+      - ./logs:/app/logs
     depends_on:
       omt-ai:
         condition: service_started

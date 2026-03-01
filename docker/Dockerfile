@@ -2,6 +2,8 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
+RUN mkdir -p logs
+
 COPY build/libs/*.jar app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
