@@ -78,7 +78,8 @@ public class MissionService {
             recommendations = saveRecommendedMissions(user, today, aiResponse);
         } catch (BusinessException e) {
             if (isAiServerError(e.getErrorCode())) {
-                log.warn("AI 서버 오류로 DB Fallback 미션 추천 - userId={}", userId);
+                log.warn("AI 서버 오류로 DB Fallback 미션 추천 - userId={}, errorCode={}",
+                        userId, e.getErrorCode().getCode());
                 recommendations = saveFallbackRecommendations(user, today);
                 isFallback = true;
             } else {

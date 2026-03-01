@@ -59,12 +59,13 @@ public class DailyAnalysisService {
                 generateDailyAnalysisForUser(user, targetDate);
                 successCount++;
             } catch (BusinessException e) {
-                log.error("격려 메시지 생성 실패: userId={}", user.getUserId(), e);
+                log.warn("데일리 분석 실패: userId={}, errorCode={}, message={}",
+                        user.getUserId(), e.getErrorCode().getCode(), e.getMessage());
                 if (isAiServerError(e.getErrorCode())) {
                     failedUserIds.add(user.getUserId());
                 }
             } catch (Exception e) {
-                log.error("격려 메시지 생성 실패: userId={}", user.getUserId(), e);
+                log.error("데일리 분석 실패 (예상치 못한 오류): userId={}", user.getUserId(), e);
             }
         }
         return BatchProcessResult.of(activeUsers.size(), successCount, failedUserIds);

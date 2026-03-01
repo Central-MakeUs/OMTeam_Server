@@ -39,6 +39,9 @@ public class AnalysisRetryService {
     public void processRetries() {
         List<AnalysisRetryQueue> pending =
                 retryQueueRepository.findByStatus(AnalysisRetryQueue.STATUS_PENDING);
+        if (pending.isEmpty()) {
+            return;
+        }
         log.info("재시도 큐 처리 시작: {} 건", pending.size());
 
         for (AnalysisRetryQueue item : pending) {

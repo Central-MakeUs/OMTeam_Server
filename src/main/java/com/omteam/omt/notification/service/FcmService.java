@@ -16,7 +16,7 @@ public class FcmService {
 
     public void sendNotification(String token, String title, String body) {
         if (FirebaseApp.getApps().isEmpty()) {
-            log.debug("Firebase not initialized. Skipping FCM notification.");
+            log.warn("Firebase가 초기화되지 않아 FCM 알림을 전송하지 않습니다.");
             return;
         }
 

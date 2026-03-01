@@ -43,10 +43,10 @@ public class AiChatClient {
             log.warn("AI 서버 Circuit Breaker OPEN 상태 - 채팅 fallback 반환");
             return AiChatResponse.timeoutFallback();
         } catch (WebClientResponseException e) {
-            log.error("AI 서버 응답 오류: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.warn("AI 서버 응답 오류 - 채팅: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
             return AiChatResponse.timeoutFallback();
         } catch (WebClientRequestException e) {
-            log.error("AI 서버 연결 오류", e);
+            log.warn("AI 서버 연결 오류 - 채팅 fallback 반환", e);
             return AiChatResponse.timeoutFallback();
         } catch (Exception e) {
             if (isTimeoutException(e)) {

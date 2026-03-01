@@ -60,12 +60,13 @@ public class WeeklyAnalysisService {
                 generateWeeklyAnalysisForUser(user, weekStartDate, weekEndDate);
                 successCount++;
             } catch (BusinessException e) {
-                log.error("사용자 {} 주간 분석 실패: {}", user.getUserId(), e.getMessage());
+                log.warn("주간 분석 실패: userId={}, errorCode={}, message={}",
+                        user.getUserId(), e.getErrorCode().getCode(), e.getMessage());
                 if (isAiServerError(e.getErrorCode())) {
                     failedUserIds.add(user.getUserId());
                 }
             } catch (Exception e) {
-                log.error("사용자 {} 주간 분석 실패: {}", user.getUserId(), e.getMessage());
+                log.error("주간 분석 실패 (예상치 못한 오류): userId={}", user.getUserId(), e);
             }
         }
 
@@ -193,7 +194,7 @@ public class WeeklyAnalysisService {
             try {
                 failureRankingJson = objectMapper.writeValueAsString(response.getFailureReasonRanking());
             } catch (JsonProcessingException e) {
-                log.warn("실패 원인 순위 JSON 변환 실패: {}", e.getMessage());
+                log.warn("실패 원인 순위 JSON 변환 실패: userId={}", user.getUserId(), e);
             }
         }
 
