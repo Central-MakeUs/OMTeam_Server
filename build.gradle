@@ -94,3 +94,8 @@ tasks.register('allTests', Test) {
     group = 'verification'
     useJUnitPlatform()
 }
+
+// plain JAR 생성 비활성화 → build/libs/ 에 bootJar만 생성
+tasks.named('jar') {
+    enabled = false
+}
