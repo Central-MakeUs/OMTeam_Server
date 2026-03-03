@@ -49,9 +49,16 @@ public class WeeklyReportController {
     @Operation(summary = "월간 요일별 패턴 분석", description = "지난 30일간의 요일별 성공 패턴을 분석하고 AI 피드백을 제공합니다.")
     @GetMapping("/monthly-pattern")
     public ApiResponse<MonthlyPatternResponse> getMonthlyPattern(
-            @AuthenticationPrincipal UserPrincipal principal
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Parameter(description = "연도 (미입력시 이번 주)", example = "2024")
+            @RequestParam(required = false) Integer year,
+            @Parameter(description = "월 (1-12)", example = "1")
+            @RequestParam(required = false) Integer month,
+            @Parameter(description = "해당 월의 주차 (1부터 시작)", example = "3")
+            @RequestParam(required = false) Integer weekOfMonth
     ) {
-        MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(principal.userId());
+        MonthlyPatternResponse response = monthlyPatternService
+                .getMonthlyPattern(principal.userId(), year, month, weekOfMonth);
         return ApiResponse.success(response);
     }
 
