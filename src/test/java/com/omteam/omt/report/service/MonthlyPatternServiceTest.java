@@ -3,6 +3,7 @@ package com.omteam.omt.report.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import com.omteam.omt.common.util.DateRangeUtils;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.Mission;
 import com.omteam.omt.mission.domain.MissionResult;
@@ -62,7 +63,7 @@ class MonthlyPatternServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, null, null, null);
 
             // then
             assertThat(response.dayOfWeekStats()).hasSize(7);
@@ -72,7 +73,7 @@ class MonthlyPatternServiceTest {
         }
 
         @Test
-        @DisplayName("30일 기간이 올바르게 설정됨")
+        @DisplayName("파라미터 없이 호출 시 이번 주 월요일 기준으로 30일 기간이 설정됨")
         void periodIsSetTo30Days() {
             // given
             given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
@@ -82,11 +83,12 @@ class MonthlyPatternServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, null, null, null);
 
             // then
-            assertThat(response.endDate()).isEqualTo(LocalDate.now());
-            assertThat(response.startDate()).isEqualTo(LocalDate.now().minusDays(30));
+            LocalDate expectedEnd = DateRangeUtils.getWeekStartDate(LocalDate.now());
+            assertThat(response.endDate()).isEqualTo(expectedEnd);
+            assertThat(response.startDate()).isEqualTo(expectedEnd.minusDays(30));
         }
 
         @Test
@@ -100,7 +102,7 @@ class MonthlyPatternServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, null, null, null);
 
             // then
             assertThat(response.dayOfWeekStats()).hasSize(7);
@@ -110,6 +112,25 @@ class MonthlyPatternServiceTest {
             assertThat(response.dayOfWeekStats().stream()
                     .filter(s -> s.dayOfWeek() == DayOfWeek.SUNDAY)
                     .findFirst().get().dayName()).isEqualTo("일요일");
+        }
+
+        @Test
+        @DisplayName("year/month/weekOfMonth 지정 시 해당 주 월요일 기준으로 30일 기간이 설정됨")
+        void periodIsSetBasedOnSpecifiedWeek() {
+            // given: 2024년 1월 3번째 주 월요일 = 2024-01-15
+            given(missionResultRepository.findByUserUserIdAndMissionDateBetweenOrderByMissionDateDesc(
+                    eq(userId), any(), any()))
+                    .willReturn(List.of());
+            given(weeklyAiAnalysisRepository.findByUserUserIdAndWeekStartDate(eq(userId), any()))
+                    .willReturn(Optional.empty());
+
+            // when
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, 2024, 1, 3);
+
+            // then
+            LocalDate expectedEnd = LocalDate.of(2024, 1, 15);
+            assertThat(response.endDate()).isEqualTo(expectedEnd);
+            assertThat(response.startDate()).isEqualTo(expectedEnd.minusDays(30));
         }
     }
 
@@ -138,7 +159,7 @@ class MonthlyPatternServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, null, null, null);
 
             // then
             MonthlyPatternResponse.DayOfWeekStatistics mondayStats = response.dayOfWeekStats().stream()
@@ -179,7 +200,7 @@ class MonthlyPatternServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, null, null, null);
 
             // then
             MonthlyPatternResponse.DayOfWeekStatistics mondayStats = response.dayOfWeekStats().stream()
@@ -204,7 +225,7 @@ class MonthlyPatternServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, null, null, null);
 
             // then
             assertThat(response.aiFeedback().dayOfWeekFeedbackTitle())
@@ -234,7 +255,7 @@ class MonthlyPatternServiceTest {
                     .willReturn(Optional.of(analysis));
 
             // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, null, null, null);
 
             // then
             assertThat(response.aiFeedback().dayOfWeekFeedbackTitle()).isEqualTo("화요일에 집중해보세요");
@@ -259,7 +280,7 @@ class MonthlyPatternServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, null, null, null);
 
             // then
             assertThat(response.aiFeedback().dayOfWeekFeedbackTitle())
@@ -281,7 +302,7 @@ class MonthlyPatternServiceTest {
                     .willReturn(Optional.empty());
 
             // when
-            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId);
+            MonthlyPatternResponse response = monthlyPatternService.getMonthlyPattern(userId, null, null, null);
 
             // then
             assertThat(response.aiFeedback().dayOfWeekFeedbackTitle())
