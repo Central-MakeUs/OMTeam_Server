@@ -331,7 +331,6 @@ curl -X POST http://localhost:8080/auth/oauth/kakao \
 | `AI_SERVER_BASE_URL` | AI 서버 base URL | `http://omt-ai:8000` |
 | `AI_SERVER_TIMEOUT` | AI 서버 요청 타임아웃 (ms) | - |
 | `FCM_SERVICE_ACCOUNT_PATH` | Firebase 서비스 계정 JSON 경로 | - |
-| `JPA_DDL_AUTO` | JPA DDL 전략 | `validate` |
 | `APP_PORT` | 앱 노출 포트 | `8080` |
 
 **AI 서버 관련 (LangGraph)**
