@@ -1,7 +1,8 @@
 package com.omteam.omt.mission.controller;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 import com.omteam.omt.common.response.ApiResponse;
 import com.omteam.omt.mission.domain.MissionResult;
@@ -42,6 +43,27 @@ class MissionControllerTest {
     @BeforeEach
     void setUp() {
         principal = new UserPrincipal(1L);
+    }
+
+    private RecommendedMissionResponse createRecommendedMission(
+            Long id, String name, RecommendedMissionStatus status) {
+        return RecommendedMissionResponse.builder()
+                .recommendedMissionId(id)
+                .missionDate(LocalDate.now())
+                .status(status)
+                .mission(createMissionResponse(id, name))
+                .build();
+    }
+
+    private MissionResponse createMissionResponse(Long id, String name) {
+        return MissionResponse.builder()
+                .id(id)
+                .name(name)
+                .type(MissionType.EXERCISE)
+                .difficulty(2)
+                .estimatedMinutes(15)
+                .estimatedCalories(50)
+                .build();
     }
 
     @Nested
@@ -182,6 +204,8 @@ class MissionControllerTest {
             then(missionService).should().startMission(principal.userId(), recommendedMissionId);
         }
     }
+
+    // ===== 헬퍼 메서드 =====
 
     @Nested
     @DisplayName("미션 결과 등록")
@@ -338,28 +362,5 @@ class MissionControllerTest {
             assertThat(result.data().getCurrentMission()).isNull();
             assertThat(result.data().getMissionResult()).isNull();
         }
-    }
-
-    // ===== 헬퍼 메서드 =====
-
-    private RecommendedMissionResponse createRecommendedMission(
-            Long id, String name, RecommendedMissionStatus status) {
-        return RecommendedMissionResponse.builder()
-                .recommendedMissionId(id)
-                .missionDate(LocalDate.now())
-                .status(status)
-                .mission(createMissionResponse(id, name))
-                .build();
-    }
-
-    private MissionResponse createMissionResponse(Long id, String name) {
-        return MissionResponse.builder()
-                .id(id)
-                .name(name)
-                .type(MissionType.EXERCISE)
-                .difficulty(2)
-                .estimatedMinutes(15)
-                .estimatedCalories(50)
-                .build();
     }
 }

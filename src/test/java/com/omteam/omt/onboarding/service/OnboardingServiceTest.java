@@ -34,19 +34,91 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("[단위] OnboardingService")
 class OnboardingServiceTest {
 
+    final Long userId = 1L;
     @Mock
     UserQueryService userQueryService;
-
     @Mock
     UserOnboardingRepository userOnboardingRepository;
-
     @Mock
     UserNotificationSettingRepository userNotificationSettingRepository;
-
     @InjectMocks
     OnboardingService onboardingService;
 
-    final Long userId = 1L;
+    private User createIncompleteUser() {
+        return User.builder()
+                .userId(userId)
+                .email("test@example.com")
+                .build();
+    }
+
+    private User createCompletedUser() {
+        return User.builder()
+                .userId(userId)
+                .email("test@example.com")
+                .nickname("테스트유저")
+                .onboardingCompleted(true)
+                .build();
+    }
+
+    private UserOnboarding createUserOnboarding(User user) {
+        return UserOnboarding.builder()
+                .user(user)
+                .appGoalText("체중 감량")
+                .workTimeType(WorkTimeType.FIXED)
+                .availableStartTime(LocalTime.of(18, 0))
+                .availableEndTime(LocalTime.of(21, 0))
+                .minExerciseMinutes(30)
+                .preferredExercises(List.of("스트레칭", "걷기"))
+                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
+                .build();
+    }
+
+    /* ======================== */
+    /* ===== Helper Zone ====== */
+    /* ======================== */
+
+    private UserOnboarding createUserOnboardingWithSleepSchedule(
+            User user, LocalTime wakeUpTime, LocalTime bedTime) {
+        return UserOnboarding.builder()
+                .user(user)
+                .appGoalText("체중 감량")
+                .workTimeType(WorkTimeType.FIXED)
+                .availableStartTime(LocalTime.of(18, 0))
+                .availableEndTime(LocalTime.of(21, 0))
+                .minExerciseMinutes(30)
+                .preferredExercises(List.of("스트레칭", "걷기"))
+                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
+                .wakeUpTime(wakeUpTime)
+                .bedTime(bedTime)
+                .build();
+    }
+
+    private UserNotificationSetting createNotificationSetting(User user) {
+        return UserNotificationSetting.builder()
+                .user(user)
+                .remindEnabled(true)
+                .checkinEnabled(true)
+                .reviewEnabled(true)
+                .build();
+    }
+
+    private OnboardingRequest createOnboardingRequest(LocalTime wakeUpTime, LocalTime bedTime) {
+        OnboardingRequest request = new OnboardingRequest();
+        request.setNickname("테스트유저");
+        request.setAppGoalText("체중 감량");
+        request.setWorkTimeType(WorkTimeType.FIXED);
+        request.setAvailableStartTime(LocalTime.of(18, 0));
+        request.setAvailableEndTime(LocalTime.of(21, 0));
+        request.setMinExerciseMinutes(30);
+        request.setPreferredExercises(List.of("스트레칭", "걷기"));
+        request.setLifestyleType(LifestyleType.REGULAR_DAYTIME);
+        request.setRemindEnabled(true);
+        request.setCheckinEnabled(true);
+        request.setReviewEnabled(true);
+        request.setWakeUpTime(wakeUpTime);
+        request.setBedTime(bedTime);
+        return request;
+    }
 
     @Nested
     @DisplayName("온보딩 등록 (createOnboarding)")
@@ -251,81 +323,5 @@ class OnboardingServiceTest {
                     .extracting(e -> ((BusinessException) e).getErrorCode())
                     .isEqualTo(ErrorCode.ONBOARDING_NOT_COMPLETED);
         }
-    }
-
-    /* ======================== */
-    /* ===== Helper Zone ====== */
-    /* ======================== */
-
-    private User createIncompleteUser() {
-        return User.builder()
-                .userId(userId)
-                .email("test@example.com")
-                .build();
-    }
-
-    private User createCompletedUser() {
-        return User.builder()
-                .userId(userId)
-                .email("test@example.com")
-                .nickname("테스트유저")
-                .onboardingCompleted(true)
-                .build();
-    }
-
-    private UserOnboarding createUserOnboarding(User user) {
-        return UserOnboarding.builder()
-                .user(user)
-                .appGoalText("체중 감량")
-                .workTimeType(WorkTimeType.FIXED)
-                .availableStartTime(LocalTime.of(18, 0))
-                .availableEndTime(LocalTime.of(21, 0))
-                .minExerciseMinutes(30)
-                .preferredExercises(List.of("스트레칭", "걷기"))
-                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
-                .build();
-    }
-
-    private UserOnboarding createUserOnboardingWithSleepSchedule(
-            User user, LocalTime wakeUpTime, LocalTime bedTime) {
-        return UserOnboarding.builder()
-                .user(user)
-                .appGoalText("체중 감량")
-                .workTimeType(WorkTimeType.FIXED)
-                .availableStartTime(LocalTime.of(18, 0))
-                .availableEndTime(LocalTime.of(21, 0))
-                .minExerciseMinutes(30)
-                .preferredExercises(List.of("스트레칭", "걷기"))
-                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
-                .wakeUpTime(wakeUpTime)
-                .bedTime(bedTime)
-                .build();
-    }
-
-    private UserNotificationSetting createNotificationSetting(User user) {
-        return UserNotificationSetting.builder()
-                .user(user)
-                .remindEnabled(true)
-                .checkinEnabled(true)
-                .reviewEnabled(true)
-                .build();
-    }
-
-    private OnboardingRequest createOnboardingRequest(LocalTime wakeUpTime, LocalTime bedTime) {
-        OnboardingRequest request = new OnboardingRequest();
-        request.setNickname("테스트유저");
-        request.setAppGoalText("체중 감량");
-        request.setWorkTimeType(WorkTimeType.FIXED);
-        request.setAvailableStartTime(LocalTime.of(18, 0));
-        request.setAvailableEndTime(LocalTime.of(21, 0));
-        request.setMinExerciseMinutes(30);
-        request.setPreferredExercises(List.of("스트레칭", "걷기"));
-        request.setLifestyleType(LifestyleType.REGULAR_DAYTIME);
-        request.setRemindEnabled(true);
-        request.setCheckinEnabled(true);
-        request.setReviewEnabled(true);
-        request.setWakeUpTime(wakeUpTime);
-        request.setBedTime(bedTime);
-        return request;
     }
 }

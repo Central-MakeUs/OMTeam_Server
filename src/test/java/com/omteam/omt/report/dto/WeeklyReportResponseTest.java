@@ -1,9 +1,8 @@
 package com.omteam.omt.report.dto;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.omteam.omt.mission.domain.MissionType;
-import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.dto.WeeklyReportResponse.AiFeedback;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyResult;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyStatus;

@@ -47,6 +47,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class MissionService {
 
+    private static final int RECENT_HISTORY_DAYS = 7;
+    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_SERVER_ERROR,
+            ErrorCode.AI_SERVER_CONNECTION_ERROR,
+            ErrorCode.AI_SERVER_CIRCUIT_OPEN
+    );
     private final MissionRepository missionRepository;
     private final DailyRecommendedMissionRepository recommendedMissionRepository;
     private final DailyMissionResultRepository missionResultRepository;
@@ -56,7 +62,6 @@ public class MissionService {
     private final UserContextService userContextService;
     private final ApplicationEventPublisher eventPublisher;
     private final MissionStatusValidator missionStatusValidator;
-    private static final int RECENT_HISTORY_DAYS = 7;
 
     public DailyMissionRecommendResponse recommendDailyMissions(Long userId) {
         LocalDate today = LocalDate.now();
@@ -156,13 +161,16 @@ public class MissionService {
         }
 
         // 진행 중인 미션 확인
-        Optional<DailyRecommendedMission> inProgress = findFirstMissionByStatus(userId, today, RecommendedMissionStatus.IN_PROGRESS);
+        Optional<DailyRecommendedMission> inProgress = findFirstMissionByStatus(userId, today,
+                RecommendedMissionStatus.IN_PROGRESS);
         if (inProgress.isPresent()) {
-            return buildStatusResponse(today, true, true, false, RecommendedMissionResponse.from(inProgress.get()), null);
+            return buildStatusResponse(today, true, true, false, RecommendedMissionResponse.from(inProgress.get()),
+                    null);
         }
 
         // 추천된 미션만 있거나 없는 경우
-        boolean hasRecommendations = !findMissionsByStatus(userId, today, RecommendedMissionStatus.RECOMMENDED).isEmpty();
+        boolean hasRecommendations = !findMissionsByStatus(userId, today,
+                RecommendedMissionStatus.RECOMMENDED).isEmpty();
         return buildStatusResponse(today, hasRecommendations, false, false, null, null);
     }
 
@@ -273,12 +281,6 @@ public class MissionService {
                 .build();
     }
 
-    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
-            ErrorCode.AI_SERVER_ERROR,
-            ErrorCode.AI_SERVER_CONNECTION_ERROR,
-            ErrorCode.AI_SERVER_CIRCUIT_OPEN
-    );
-
     private boolean isAiServerError(ErrorCode errorCode) {
         return AI_SERVER_ERROR_CODES.contains(errorCode);
     }
@@ -340,11 +342,13 @@ public class MissionService {
 
     // ==================== 상태별 미션 조회 Helper ====================
 
-    private List<DailyRecommendedMission> findMissionsByStatus(Long userId, LocalDate date, RecommendedMissionStatus status) {
+    private List<DailyRecommendedMission> findMissionsByStatus(Long userId, LocalDate date,
+                                                               RecommendedMissionStatus status) {
         return recommendedMissionRepository.findByUserUserIdAndMissionDateAndStatus(userId, date, status);
     }
 
-    private Optional<DailyRecommendedMission> findFirstMissionByStatus(Long userId, LocalDate date, RecommendedMissionStatus status) {
+    private Optional<DailyRecommendedMission> findFirstMissionByStatus(Long userId, LocalDate date,
+                                                                       RecommendedMissionStatus status) {
         return findMissionsByStatus(userId, date, status).stream().findFirst();
     }
 

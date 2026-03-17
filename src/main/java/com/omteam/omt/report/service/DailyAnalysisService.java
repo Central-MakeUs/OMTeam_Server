@@ -4,20 +4,20 @@ import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.ai.service.UserContextService;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
+import com.omteam.omt.mission.domain.DailyMissionResult;
+import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.report.client.AiDailyAnalysisClient;
-import com.omteam.omt.report.constant.DefaultReportMessages;
-import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
 import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
 import com.omteam.omt.report.client.dto.EncouragementCandidate;
+import com.omteam.omt.report.constant.DefaultReportMessages;
 import com.omteam.omt.report.domain.DailyAnalysis;
 import com.omteam.omt.report.domain.EncouragementIntent;
 import com.omteam.omt.report.domain.EncouragementMessage;
 import com.omteam.omt.report.dto.BatchProcessResult;
 import com.omteam.omt.report.dto.DailyFeedbackResponse;
+import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.repository.DailyAnalysisRepository;
-import com.omteam.omt.mission.domain.DailyMissionResult;
-import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.repository.UserRepository;
 import java.time.LocalDate;
@@ -35,6 +35,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DailyAnalysisService {
 
+    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_SERVER_ERROR,
+            ErrorCode.AI_SERVER_CONNECTION_ERROR,
+            ErrorCode.AI_SERVER_CIRCUIT_OPEN
+    );
     private final AiDailyAnalysisClient aiDailyAnalysisClient;
     private final DailyAnalysisRepository dailyAnalysisRepository;
     private final DailyMissionResultRepository missionResultRepository;
@@ -71,12 +76,6 @@ public class DailyAnalysisService {
         return BatchProcessResult.of(activeUsers.size(), successCount, failedUserIds);
     }
 
-    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
-            ErrorCode.AI_SERVER_ERROR,
-            ErrorCode.AI_SERVER_CONNECTION_ERROR,
-            ErrorCode.AI_SERVER_CIRCUIT_OPEN
-    );
-
     private boolean isAiServerError(ErrorCode code) {
         return AI_SERVER_ERROR_CODES.contains(code);
     }
@@ -104,7 +103,8 @@ public class DailyAnalysisService {
         log.info("데일리 분석 결과 생성 완료: userId={}, targetDate={}", user.getUserId(), targetDate);
     }
 
-    private AiDailyAnalysisRequest buildRequest(Long userId, LocalDate targetDate, DailyMissionResult targetDateResult) {
+    private AiDailyAnalysisRequest buildRequest(Long userId, LocalDate targetDate,
+                                                DailyMissionResult targetDateResult) {
         UserContext userContext = userContextService.buildContext(userId);
 
         AiDailyAnalysisRequest.AiDailyAnalysisRequestBuilder builder = AiDailyAnalysisRequest.builder()
@@ -155,9 +155,7 @@ public class DailyAnalysisService {
     }
 
     /**
-     * 특정 날짜의 데일리 피드백을 조회한다.
-     * 날짜가 null인 경우 오늘 날짜로 조회한다.
-     * 피드백이 없는 경우 기본 안내 메시지를 반환한다.
+     * 특정 날짜의 데일리 피드백을 조회한다. 날짜가 null인 경우 오늘 날짜로 조회한다. 피드백이 없는 경우 기본 안내 메시지를 반환한다.
      */
     @Transactional(readOnly = true)
     public DailyFeedbackResponse getDailyFeedback(Long userId, LocalDate date) {

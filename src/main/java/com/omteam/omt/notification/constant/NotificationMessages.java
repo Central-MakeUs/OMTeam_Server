@@ -11,5 +11,6 @@ public final class NotificationMessages {
     public static final String REVIEW_TITLE = "오늘 하루는 어땠나요?";
     public static final String REVIEW_BODY = "오늘의 피드백이 준비됐어요. 확인해보세요!";
 
-    private NotificationMessages() {}
+    private NotificationMessages() {
+    }
 }

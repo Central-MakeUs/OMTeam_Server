@@ -1,7 +1,9 @@
 package com.omteam.omt.report.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.eq;
+import static org.mockito.BDDMockito.given;
 
 import com.omteam.omt.common.util.DateRangeUtils;
 import com.omteam.omt.mission.domain.DailyMissionResult;
@@ -30,15 +32,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MonthlyPatternServiceTest {
 
+    final Long userId = 1L;
     @Mock
     DailyMissionResultRepository missionResultRepository;
-
     @Mock
     WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
-
     MonthlyPatternService monthlyPatternService;
-
-    final Long userId = 1L;
 
     @BeforeEach
     void setUp() {
@@ -46,6 +45,19 @@ class MonthlyPatternServiceTest {
                 missionResultRepository,
                 weeklyAiAnalysisRepository
         );
+    }
+
+    private DailyMissionResult createMissionResult(LocalDate date, MissionResult result) {
+        Mission mission = Mission.builder()
+                .name("테스트 미션")
+                .type(MissionType.EXERCISE)
+                .build();
+
+        return DailyMissionResult.builder()
+                .missionDate(date)
+                .result(result)
+                .mission(mission)
+                .build();
     }
 
     @Nested
@@ -312,18 +324,5 @@ class MonthlyPatternServiceTest {
             assertThat(response.aiFeedback().isDefault()).isTrue();
             assertThat(response.dataStatus()).isEqualTo(ReportDataStatus.NO_DATA);
         }
-    }
-
-    private DailyMissionResult createMissionResult(LocalDate date, MissionResult result) {
-        Mission mission = Mission.builder()
-                .name("테스트 미션")
-                .type(MissionType.EXERCISE)
-                .build();
-
-        return DailyMissionResult.builder()
-                .missionDate(date)
-                .result(result)
-                .mission(mission)
-                .build();
     }
 }

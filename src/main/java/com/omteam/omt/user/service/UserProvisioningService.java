@@ -7,7 +7,6 @@ import com.omteam.omt.user.domain.UserSocialAccount;
 import com.omteam.omt.user.repository.UserCharacterRepository;
 import com.omteam.omt.user.repository.UserRepository;
 import com.omteam.omt.user.repository.UserSocialAccountRepository;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,8 +26,7 @@ public class UserProvisioningService {
     private final UserCharacterRepository characterRepository;
 
     /**
-     * 소셜 계정으로 사용자를 조회하거나, 없으면 새로 생성한다.
-     * 탈퇴한 사용자가 재가입하는 경우, 기존 소셜 계정을 새 사용자에 연결한다.
+     * 소셜 계정으로 사용자를 조회하거나, 없으면 새로 생성한다. 탈퇴한 사용자가 재가입하는 경우, 기존 소셜 계정을 새 사용자에 연결한다.
      */
     @Transactional
     public User findOrCreateUser(SocialProvider provider, String providerUserId, String email) {

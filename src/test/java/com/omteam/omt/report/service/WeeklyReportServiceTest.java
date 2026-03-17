@@ -1,7 +1,11 @@
 package com.omteam.omt.report.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.anyLong;
+import static org.mockito.BDDMockito.eq;
+import static org.mockito.BDDMockito.given;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.common.exception.BusinessException;
@@ -34,23 +38,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class WeeklyReportServiceTest {
 
-    @Mock
-    DailyMissionResultRepository missionResultRepository;
-
-    @Mock
-    WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
-
-    @Mock
-    ObjectMapper objectMapper;
-
-    WeeklyReportService weeklyReportService;
-
     final Long userId = 1L;
     final LocalDate monday = LocalDate.of(2024, 1, 15); // Monday
     // 2024년 1월 15일은 1월의 3번째 월요일 (첫 번째 월요일: 1/1)
     final Integer year = 2024;
     final Integer month = 1;
     final Integer weekOfMonth = 3;
+    @Mock
+    DailyMissionResultRepository missionResultRepository;
+    @Mock
+    WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
+    @Mock
+    ObjectMapper objectMapper;
+    WeeklyReportService weeklyReportService;
 
     @BeforeEach
     void setUp() {
@@ -59,6 +59,46 @@ class WeeklyReportServiceTest {
                 weeklyAiAnalysisRepository,
                 objectMapper
         );
+    }
+
+    private DailyMissionResult createMissionResult(LocalDate date, MissionResult result) {
+        return createMissionResult(date, result, MissionType.EXERCISE);
+    }
+
+    private DailyMissionResult createMissionResult(LocalDate date, MissionResult result, MissionType type) {
+        Mission mission = Mission.builder()
+                .name("테스트 미션")
+                .type(type)
+                .build();
+
+        return DailyMissionResult.builder()
+                .missionDate(date)
+                .result(result)
+                .mission(mission)
+                .build();
+    }
+
+    private DailyMissionResult createMissionResultWithReason(LocalDate date, String failureReason) {
+        Mission mission = Mission.builder()
+                .name("테스트 미션")
+                .type(MissionType.EXERCISE)
+                .build();
+
+        return DailyMissionResult.builder()
+                .missionDate(date)
+                .result(MissionResult.FAILURE)
+                .failureReason(failureReason)
+                .mission(mission)
+                .build();
+    }
+
+    private AiWeeklyAnalysisResponse.FailureReasonRank createFailureReasonRank(int rank, String category, int count) {
+        AiWeeklyAnalysisResponse.FailureReasonRank failureReasonRank =
+                new AiWeeklyAnalysisResponse.FailureReasonRank();
+        failureReasonRank.setRank(rank);
+        failureReasonRank.setCategory(category);
+        failureReasonRank.setCount(count);
+        return failureReasonRank;
     }
 
     @Nested
@@ -621,45 +661,5 @@ class WeeklyReportServiceTest {
                         assertThat(be.getErrorCode()).isEqualTo(ErrorCode.INVALID_WEEK_OF_MONTH);
                     });
         }
-    }
-
-    private DailyMissionResult createMissionResult(LocalDate date, MissionResult result) {
-        return createMissionResult(date, result, MissionType.EXERCISE);
-    }
-
-    private DailyMissionResult createMissionResult(LocalDate date, MissionResult result, MissionType type) {
-        Mission mission = Mission.builder()
-                .name("테스트 미션")
-                .type(type)
-                .build();
-
-        return DailyMissionResult.builder()
-                .missionDate(date)
-                .result(result)
-                .mission(mission)
-                .build();
-    }
-
-    private DailyMissionResult createMissionResultWithReason(LocalDate date, String failureReason) {
-        Mission mission = Mission.builder()
-                .name("테스트 미션")
-                .type(MissionType.EXERCISE)
-                .build();
-
-        return DailyMissionResult.builder()
-                .missionDate(date)
-                .result(MissionResult.FAILURE)
-                .failureReason(failureReason)
-                .mission(mission)
-                .build();
-    }
-
-    private AiWeeklyAnalysisResponse.FailureReasonRank createFailureReasonRank(int rank, String category, int count) {
-        AiWeeklyAnalysisResponse.FailureReasonRank failureReasonRank =
-                new AiWeeklyAnalysisResponse.FailureReasonRank();
-        failureReasonRank.setRank(rank);
-        failureReasonRank.setCategory(category);
-        failureReasonRank.setCount(count);
-        return failureReasonRank;
     }
 }

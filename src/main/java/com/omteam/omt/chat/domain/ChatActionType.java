@@ -1,8 +1,7 @@
 package com.omteam.omt.chat.domain;
 
 /**
- * 챗봇 액션 타입.
- * AI 호출 없이 서버에서 직접 처리하는 채팅 액션을 구분한다.
+ * 챗봇 액션 타입. AI 호출 없이 서버에서 직접 처리하는 채팅 액션을 구분한다.
  */
 public enum ChatActionType {
     COMPLETE_MISSION,        // 미션 결과 등록 (시작/성공/실패 선택)

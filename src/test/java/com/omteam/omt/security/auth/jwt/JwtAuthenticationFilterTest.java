@@ -23,19 +23,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
 
-    @Mock
-    JwtTokenProvider jwtTokenProvider;
-
-    @Mock
-    FilterChain filterChain;
-
-    JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    MockHttpServletRequest request;
-    MockHttpServletResponse response;
-
     final String validToken = "valid.jwt.token";
     final Long userId = 1L;
+    @Mock
+    JwtTokenProvider jwtTokenProvider;
+    @Mock
+    FilterChain filterChain;
+    JwtAuthenticationFilter jwtAuthenticationFilter;
+    MockHttpServletRequest request;
+    MockHttpServletResponse response;
 
     @BeforeEach
     void setUp() {

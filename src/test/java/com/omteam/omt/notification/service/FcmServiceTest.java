@@ -50,7 +50,8 @@ class FcmServiceTest {
             try (MockedStatic<FirebaseApp> mockedFirebaseApp = mockStatic(FirebaseApp.class);
                  MockedStatic<FirebaseMessaging> mockedMessaging = mockStatic(FirebaseMessaging.class)) {
 
-                mockedFirebaseApp.when(FirebaseApp::getApps).thenReturn(List.of(org.mockito.Mockito.mock(FirebaseApp.class)));
+                mockedFirebaseApp.when(FirebaseApp::getApps)
+                        .thenReturn(List.of(org.mockito.Mockito.mock(FirebaseApp.class)));
                 FirebaseMessaging mockMessaging = org.mockito.Mockito.mock(FirebaseMessaging.class);
                 mockedMessaging.when(FirebaseMessaging::getInstance).thenReturn(mockMessaging);
 
@@ -67,7 +68,8 @@ class FcmServiceTest {
             try (MockedStatic<FirebaseApp> mockedFirebaseApp = mockStatic(FirebaseApp.class);
                  MockedStatic<FirebaseMessaging> mockedMessaging = mockStatic(FirebaseMessaging.class)) {
 
-                mockedFirebaseApp.when(FirebaseApp::getApps).thenReturn(List.of(org.mockito.Mockito.mock(FirebaseApp.class)));
+                mockedFirebaseApp.when(FirebaseApp::getApps)
+                        .thenReturn(List.of(org.mockito.Mockito.mock(FirebaseApp.class)));
                 FirebaseMessaging mockMessaging = org.mockito.Mockito.mock(FirebaseMessaging.class);
                 mockedMessaging.when(FirebaseMessaging::getInstance).thenReturn(mockMessaging);
 
@@ -84,7 +86,8 @@ class FcmServiceTest {
             try (MockedStatic<FirebaseApp> mockedFirebaseApp = mockStatic(FirebaseApp.class);
                  MockedStatic<FirebaseMessaging> mockedMessaging = mockStatic(FirebaseMessaging.class)) {
 
-                mockedFirebaseApp.when(FirebaseApp::getApps).thenReturn(List.of(org.mockito.Mockito.mock(FirebaseApp.class)));
+                mockedFirebaseApp.when(FirebaseApp::getApps)
+                        .thenReturn(List.of(org.mockito.Mockito.mock(FirebaseApp.class)));
                 FirebaseMessaging mockMessaging = org.mockito.Mockito.mock(FirebaseMessaging.class);
                 mockedMessaging.when(FirebaseMessaging::getInstance).thenReturn(mockMessaging);
                 given(mockMessaging.send(any(Message.class))).willReturn("projects/test/messages/12345");
@@ -102,7 +105,8 @@ class FcmServiceTest {
             try (MockedStatic<FirebaseApp> mockedFirebaseApp = mockStatic(FirebaseApp.class);
                  MockedStatic<FirebaseMessaging> mockedMessaging = mockStatic(FirebaseMessaging.class)) {
 
-                mockedFirebaseApp.when(FirebaseApp::getApps).thenReturn(List.of(org.mockito.Mockito.mock(FirebaseApp.class)));
+                mockedFirebaseApp.when(FirebaseApp::getApps)
+                        .thenReturn(List.of(org.mockito.Mockito.mock(FirebaseApp.class)));
                 FirebaseMessaging mockMessaging = org.mockito.Mockito.mock(FirebaseMessaging.class);
                 mockedMessaging.when(FirebaseMessaging::getInstance).thenReturn(mockMessaging);
 

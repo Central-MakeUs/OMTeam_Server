@@ -2,11 +2,9 @@ package com.omteam.omt.mission.dto;
 
 import com.omteam.omt.mission.domain.DailyRecommendedMission;
 import com.omteam.omt.mission.domain.RecommendedMissionStatus;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.List;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -20,11 +18,11 @@ public class RecommendedMissionResponse {
     @Schema(
             description = "추천 미션의 현재 상태",
             allowableValues = {
-                "RECOMMENDED",
-                "SELECTED",
-                "IN_PROGRESS",
-                "COMPLETED",
-                "EXPIRED"
+                    "RECOMMENDED",
+                    "SELECTED",
+                    "IN_PROGRESS",
+                    "COMPLETED",
+                    "EXPIRED"
             },
             example = "RECOMMENDED"
     )

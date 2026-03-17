@@ -1,7 +1,8 @@
 package com.omteam.omt.report.client;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 
 import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.exception.BusinessException;
@@ -11,7 +12,6 @@ import com.omteam.omt.report.client.dto.AiWeeklyAnalysisRequest;
 import com.omteam.omt.report.client.dto.AiWeeklyAnalysisResponse;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -126,7 +126,8 @@ class AiWeeklyAnalysisClientTest {
         given(requestBodySpec.bodyValue(request)).willReturn(requestHeadersSpec);
         given(requestHeadersSpec.retrieve()).willReturn(responseSpec);
         given(responseSpec.bodyToMono(AiWeeklyAnalysisResponse.class))
-                .willReturn(Mono.error(WebClientResponseException.create(500, "Internal Server Error", null, null, null)));
+                .willReturn(
+                        Mono.error(WebClientResponseException.create(500, "Internal Server Error", null, null, null)));
 
         // when & then
         assertThatThrownBy(() -> aiWeeklyAnalysisClient.analyzeWeeklyMissions(request))

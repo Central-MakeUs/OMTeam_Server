@@ -14,7 +14,6 @@ import static org.mockito.Mockito.never;
 
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
-import com.omteam.omt.mission.domain.RecommendedMissionStatus;
 import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
 import com.omteam.omt.notification.constant.NotificationMessages;
 import com.omteam.omt.report.service.DailyAnalysisService;
@@ -44,28 +43,21 @@ import org.springframework.test.util.ReflectionTestUtils;
 @DisplayName("[단위] NotificationService")
 class NotificationServiceTest {
 
+    final Long userId = 1L;
     @Mock
     UserQueryService userQueryService;
-
     @Mock
     UserOnboardingRepository userOnboardingRepository;
-
     @Mock
     UserNotificationSettingRepository notificationSettingRepository;
-
     @Mock
     DailyRecommendedMissionRepository recommendedMissionRepository;
-
     @Mock
     DailyAnalysisService dailyAnalysisService;
-
     @Mock
     FcmService fcmService;
-
     @InjectMocks
     NotificationService notificationService;
-
-    final Long userId = 1L;
 
     @BeforeEach
     void setUp() {
@@ -78,6 +70,96 @@ class NotificationServiceTest {
     // =========================================================
     // registerFcmToken
     // =========================================================
+
+    private User createUser() {
+        return User.builder()
+                .userId(userId)
+                .email("test@example.com")
+                .build();
+    }
+
+    // =========================================================
+    // deleteFcmToken
+    // =========================================================
+
+    private User createUserWithFcmToken(String fcmToken) {
+        return User.builder()
+                .userId(userId)
+                .email("test@example.com")
+                .fcmToken(fcmToken)
+                .build();
+    }
+
+    // =========================================================
+    // sendRemindNotifications
+    // =========================================================
+
+    private UserOnboarding createOnboarding(User user, LocalTime availableStartTime) {
+        return UserOnboarding.builder()
+                .userId(user.getUserId())
+                .user(user)
+                .availableStartTime(availableStartTime)
+                .availableEndTime(availableStartTime.plusHours(1))
+                .appGoalText("목표")
+                .workTimeType(WorkTimeType.FIXED)
+                .minExerciseMinutes(30)
+                .preferredExercises(List.of("달리기"))
+                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
+                .build();
+    }
+
+    // =========================================================
+    // sendCheckinNotifications
+    // =========================================================
+
+    private UserOnboarding createOnboardingWithWakeUpTime(User user, LocalTime wakeUpTime) {
+        return UserOnboarding.builder()
+                .userId(user.getUserId())
+                .user(user)
+                .availableStartTime(LocalTime.of(9, 0))
+                .availableEndTime(LocalTime.of(10, 0))
+                .appGoalText("목표")
+                .workTimeType(WorkTimeType.FIXED)
+                .minExerciseMinutes(30)
+                .preferredExercises(List.of("달리기"))
+                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
+                .wakeUpTime(wakeUpTime)
+                .build();
+    }
+
+    // =========================================================
+    // sendReviewNotifications
+    // =========================================================
+
+    private UserOnboarding createOnboardingWithBedTime(User user, LocalTime bedTime) {
+        return UserOnboarding.builder()
+                .userId(user.getUserId())
+                .user(user)
+                .availableStartTime(LocalTime.of(9, 0))
+                .availableEndTime(LocalTime.of(10, 0))
+                .appGoalText("목표")
+                .workTimeType(WorkTimeType.FIXED)
+                .minExerciseMinutes(30)
+                .preferredExercises(List.of("달리기"))
+                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
+                .bedTime(bedTime)
+                .build();
+    }
+
+    /* ======================== */
+    /* ===== Helper Zone ====== */
+    /* ======================== */
+
+    private UserNotificationSetting createSetting(
+            User user, boolean remindEnabled, boolean checkinEnabled, boolean reviewEnabled) {
+        return UserNotificationSetting.builder()
+                .userId(user.getUserId())
+                .user(user)
+                .remindEnabled(remindEnabled)
+                .checkinEnabled(checkinEnabled)
+                .reviewEnabled(reviewEnabled)
+                .build();
+    }
 
     @Nested
     @DisplayName("registerFcmToken - FCM 토큰 등록/갱신")
@@ -127,10 +209,6 @@ class NotificationServiceTest {
         }
     }
 
-    // =========================================================
-    // deleteFcmToken
-    // =========================================================
-
     @Nested
     @DisplayName("deleteFcmToken - FCM 토큰 삭제")
     class DeleteFcmToken {
@@ -178,10 +256,6 @@ class NotificationServiceTest {
                     .isEqualTo(ErrorCode.USER_NOT_FOUND);
         }
     }
-
-    // =========================================================
-    // sendRemindNotifications
-    // =========================================================
 
     @Nested
     @DisplayName("sendRemindNotifications - 리마인드 알림 발송")
@@ -372,10 +446,6 @@ class NotificationServiceTest {
         }
     }
 
-    // =========================================================
-    // sendCheckinNotifications
-    // =========================================================
-
     @Nested
     @DisplayName("sendCheckinNotifications - 체크인 알림 발송")
     class SendCheckinNotifications {
@@ -484,10 +554,6 @@ class NotificationServiceTest {
                     NotificationMessages.CHECKIN_BODY);
         }
     }
-
-    // =========================================================
-    // sendReviewNotifications
-    // =========================================================
 
     @Nested
     @DisplayName("sendReviewNotifications - 회고 알림 발송")
@@ -605,79 +671,5 @@ class NotificationServiceTest {
             // then: catch 블록에서 예외를 삼키므로 FCM도 호출되지 않는다
             then(fcmService).should(never()).sendNotification(anyString(), anyString(), anyString());
         }
-    }
-
-    /* ======================== */
-    /* ===== Helper Zone ====== */
-    /* ======================== */
-
-    private User createUser() {
-        return User.builder()
-                .userId(userId)
-                .email("test@example.com")
-                .build();
-    }
-
-    private User createUserWithFcmToken(String fcmToken) {
-        return User.builder()
-                .userId(userId)
-                .email("test@example.com")
-                .fcmToken(fcmToken)
-                .build();
-    }
-
-    private UserOnboarding createOnboarding(User user, LocalTime availableStartTime) {
-        return UserOnboarding.builder()
-                .userId(user.getUserId())
-                .user(user)
-                .availableStartTime(availableStartTime)
-                .availableEndTime(availableStartTime.plusHours(1))
-                .appGoalText("목표")
-                .workTimeType(WorkTimeType.FIXED)
-                .minExerciseMinutes(30)
-                .preferredExercises(List.of("달리기"))
-                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
-                .build();
-    }
-
-    private UserOnboarding createOnboardingWithWakeUpTime(User user, LocalTime wakeUpTime) {
-        return UserOnboarding.builder()
-                .userId(user.getUserId())
-                .user(user)
-                .availableStartTime(LocalTime.of(9, 0))
-                .availableEndTime(LocalTime.of(10, 0))
-                .appGoalText("목표")
-                .workTimeType(WorkTimeType.FIXED)
-                .minExerciseMinutes(30)
-                .preferredExercises(List.of("달리기"))
-                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
-                .wakeUpTime(wakeUpTime)
-                .build();
-    }
-
-    private UserOnboarding createOnboardingWithBedTime(User user, LocalTime bedTime) {
-        return UserOnboarding.builder()
-                .userId(user.getUserId())
-                .user(user)
-                .availableStartTime(LocalTime.of(9, 0))
-                .availableEndTime(LocalTime.of(10, 0))
-                .appGoalText("목표")
-                .workTimeType(WorkTimeType.FIXED)
-                .minExerciseMinutes(30)
-                .preferredExercises(List.of("달리기"))
-                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
-                .bedTime(bedTime)
-                .build();
-    }
-
-    private UserNotificationSetting createSetting(
-            User user, boolean remindEnabled, boolean checkinEnabled, boolean reviewEnabled) {
-        return UserNotificationSetting.builder()
-                .userId(user.getUserId())
-                .user(user)
-                .remindEnabled(remindEnabled)
-                .checkinEnabled(checkinEnabled)
-                .reviewEnabled(reviewEnabled)
-                .build();
     }
 }

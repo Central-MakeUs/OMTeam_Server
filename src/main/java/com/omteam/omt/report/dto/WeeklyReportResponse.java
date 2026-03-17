@@ -41,6 +41,18 @@ public record WeeklyReportResponse(
         AiFeedback aiFeedback
 ) {
 
+    @Schema(description = "미션 수행 상태")
+    public enum DailyStatus {
+        @Schema(description = "성공")
+        SUCCESS,
+
+        @Schema(description = "실패")
+        FAILURE,
+
+        @Schema(description = "미수행")
+        NOT_PERFORMED
+    }
+
     @Schema(description = "요일별 미션 결과")
     @Builder
     public record DailyResult(
@@ -58,18 +70,7 @@ public record WeeklyReportResponse(
 
             @Schema(description = "미션 제목", example = "30분 걷기")
             String missionTitle
-    ) {}
-
-    @Schema(description = "미션 수행 상태")
-    public enum DailyStatus {
-        @Schema(description = "성공")
-        SUCCESS,
-
-        @Schema(description = "실패")
-        FAILURE,
-
-        @Schema(description = "미수행")
-        NOT_PERFORMED
+    ) {
     }
 
     @Schema(description = "미션 타입별 성공 횟수")
@@ -83,7 +84,8 @@ public record WeeklyReportResponse(
 
             @Schema(description = "성공 횟수", example = "3")
             int successCount
-    ) {}
+    ) {
+    }
 
     @Schema(description = "실패 원인 순위")
     @Builder
@@ -96,7 +98,8 @@ public record WeeklyReportResponse(
 
             @Schema(description = "발생 횟수", example = "5")
             int count
-    ) {}
+    ) {
+    }
 
     @Schema(name = "WeeklyAiFeedback", description = "AI 피드백 (주간)")
     @Builder
@@ -109,7 +112,8 @@ public record WeeklyReportResponse(
 
             @Schema(description = "기본 메시지 여부 (true이면 AI 분석이 아닌 안내 메시지)")
             boolean isDefault
-    ) {}
+    ) {
+    }
 
     @Schema(description = "AI 분석 실패 원인 순위")
     @Builder
@@ -122,5 +126,6 @@ public record WeeklyReportResponse(
 
             @Schema(description = "발생 횟수", example = "3")
             int count
-    ) {}
+    ) {
+    }
 }

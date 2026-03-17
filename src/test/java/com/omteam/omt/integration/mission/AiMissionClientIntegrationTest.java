@@ -1,6 +1,7 @@
 package com.omteam.omt.integration.mission;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
@@ -12,16 +13,15 @@ import com.omteam.omt.mission.client.dto.AiMissionRecommendResponse;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.user.domain.LifestyleType;
 import com.omteam.omt.user.domain.WorkTimeType;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @DisplayName("[통합] AiMissionClient - AI 서버 미션 추천 API 호출")
 class AiMissionClientIntegrationTest extends IntegrationTestBase {
@@ -34,32 +34,32 @@ class AiMissionClientIntegrationTest extends IntegrationTestBase {
     void recommendDailyMissions_success() throws Exception {
         // given
         String responseBody = """
-            {
-                "missions": [
-                    {
-                        "name": "스트레칭 10분",
-                        "type": "EXERCISE",
-                        "difficulty": 1,
-                        "estimatedMinutes": 10,
-                        "estimatedCalories": 30
-                    },
-                    {
-                        "name": "계단 오르기 5층",
-                        "type": "EXERCISE",
-                        "difficulty": 2,
-                        "estimatedMinutes": 15,
-                        "estimatedCalories": 50
-                    },
-                    {
-                        "name": "점심 샐러드 먹기",
-                        "type": "DIET",
-                        "difficulty": 2,
-                        "estimatedMinutes": 30,
-                        "estimatedCalories": 0
-                    }
-                ]
-            }
-            """;
+                {
+                    "missions": [
+                        {
+                            "name": "스트레칭 10분",
+                            "type": "EXERCISE",
+                            "difficulty": 1,
+                            "estimatedMinutes": 10,
+                            "estimatedCalories": 30
+                        },
+                        {
+                            "name": "계단 오르기 5층",
+                            "type": "EXERCISE",
+                            "difficulty": 2,
+                            "estimatedMinutes": 15,
+                            "estimatedCalories": 50
+                        },
+                        {
+                            "name": "점심 샐러드 먹기",
+                            "type": "DIET",
+                            "difficulty": 2,
+                            "estimatedMinutes": 30,
+                            "estimatedCalories": 0
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -136,18 +136,18 @@ class AiMissionClientIntegrationTest extends IntegrationTestBase {
     void recommendDailyMissions_canConvertToEntity() throws Exception {
         // given
         String responseBody = """
-            {
-                "missions": [
-                    {
-                        "name": "요가 20분",
-                        "type": "EXERCISE",
-                        "difficulty": 3,
-                        "estimatedMinutes": 20,
-                        "estimatedCalories": 80
-                    }
-                ]
-            }
-            """;
+                {
+                    "missions": [
+                        {
+                            "name": "요가 20분",
+                            "type": "EXERCISE",
+                            "difficulty": 3,
+                            "estimatedMinutes": 20,
+                            "estimatedCalories": 80
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -173,10 +173,10 @@ class AiMissionClientIntegrationTest extends IntegrationTestBase {
     void recommendDailyMissions_emptyMissions() throws Exception {
         // given
         String responseBody = """
-            {
-                "missions": []
-            }
-            """;
+                {
+                    "missions": []
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)

@@ -1,7 +1,9 @@
 package com.omteam.omt.mission.validator;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
@@ -23,17 +25,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayName("[단위] MissionStatusValidator")
 class MissionStatusValidatorTest {
 
-    @Mock
-    DailyRecommendedMissionRepository recommendedMissionRepository;
-
-    @Mock
-    DailyMissionResultRepository missionResultRepository;
-
-    @InjectMocks
-    MissionStatusValidator missionStatusValidator;
-
     private static final Long USER_ID = 1L;
     private static final LocalDate TODAY = LocalDate.now();
+    @Mock
+    DailyRecommendedMissionRepository recommendedMissionRepository;
+    @Mock
+    DailyMissionResultRepository missionResultRepository;
+    @InjectMocks
+    MissionStatusValidator missionStatusValidator;
 
     @Nested
     @DisplayName("validateNoMissionResultToday")

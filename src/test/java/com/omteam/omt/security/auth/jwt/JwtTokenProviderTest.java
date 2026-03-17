@@ -1,6 +1,6 @@
 package com.omteam.omt.security.auth.jwt;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.omteam.omt.config.properties.JwtProperties;
 import io.jsonwebtoken.Jwts;

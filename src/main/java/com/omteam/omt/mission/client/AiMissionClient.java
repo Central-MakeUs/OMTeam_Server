@@ -20,11 +20,10 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @RequiredArgsConstructor
 public class AiMissionClient {
 
+    private static final String DAILY_MISSION_ENDPOINT = "/ai/missions/daily";
     private final WebClient webClient;
     private final AiServerProperties aiServerProperties;
     private final CircuitBreaker aiServerCircuitBreaker;
-
-    private static final String DAILY_MISSION_ENDPOINT = "/ai/missions/daily";
 
     public AiMissionRecommendResponse recommendDailyMissions(AiMissionRecommendRequest request) {
         try {

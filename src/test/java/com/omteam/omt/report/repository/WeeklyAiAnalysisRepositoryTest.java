@@ -1,7 +1,8 @@
 package com.omteam.omt.report.repository;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.given;
 
 import com.omteam.omt.report.domain.WeeklyAiAnalysis;
 import com.omteam.omt.user.domain.User;
@@ -18,12 +19,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class WeeklyAiAnalysisRepositoryTest {
 
+    final LocalDate weekStartDate = LocalDate.of(2024, 1, 15);
     @Mock
     WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
-
     User testUser;
     WeeklyAiAnalysis testAnalysis;
-    final LocalDate weekStartDate = LocalDate.of(2024, 1, 15);
 
     @BeforeEach
     void setUp() {

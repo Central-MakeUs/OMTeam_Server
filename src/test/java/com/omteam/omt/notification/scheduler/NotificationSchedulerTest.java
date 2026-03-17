@@ -34,9 +34,11 @@ class NotificationSchedulerTest {
         @DisplayName("3가지 알림 모두 정상 호출된다")
         void success_allNotificationsCalled() {
             // given
-            willDoNothing().given(notificationService).sendRemindNotifications(any(LocalTime.class), any(LocalDate.class));
+            willDoNothing().given(notificationService)
+                    .sendRemindNotifications(any(LocalTime.class), any(LocalDate.class));
             willDoNothing().given(notificationService).sendCheckinNotifications(any(LocalTime.class));
-            willDoNothing().given(notificationService).sendReviewNotifications(any(LocalTime.class), any(LocalDate.class));
+            willDoNothing().given(notificationService)
+                    .sendReviewNotifications(any(LocalTime.class), any(LocalDate.class));
 
             // when
             notificationScheduler.sendScheduledNotifications();
@@ -54,7 +56,8 @@ class NotificationSchedulerTest {
             willThrow(new RuntimeException("리마인드 알림 오류"))
                     .given(notificationService).sendRemindNotifications(any(LocalTime.class), any(LocalDate.class));
             willDoNothing().given(notificationService).sendCheckinNotifications(any(LocalTime.class));
-            willDoNothing().given(notificationService).sendReviewNotifications(any(LocalTime.class), any(LocalDate.class));
+            willDoNothing().given(notificationService)
+                    .sendReviewNotifications(any(LocalTime.class), any(LocalDate.class));
 
             // when
             notificationScheduler.sendScheduledNotifications();
@@ -68,10 +71,12 @@ class NotificationSchedulerTest {
         @DisplayName("체크인 알림 실패해도 회고 알림이 계속 실행된다")
         void checkinFails_reviewStillCalled() {
             // given
-            willDoNothing().given(notificationService).sendRemindNotifications(any(LocalTime.class), any(LocalDate.class));
+            willDoNothing().given(notificationService)
+                    .sendRemindNotifications(any(LocalTime.class), any(LocalDate.class));
             willThrow(new RuntimeException("체크인 알림 오류"))
                     .given(notificationService).sendCheckinNotifications(any(LocalTime.class));
-            willDoNothing().given(notificationService).sendReviewNotifications(any(LocalTime.class), any(LocalDate.class));
+            willDoNothing().given(notificationService)
+                    .sendReviewNotifications(any(LocalTime.class), any(LocalDate.class));
 
             // when
             notificationScheduler.sendScheduledNotifications();

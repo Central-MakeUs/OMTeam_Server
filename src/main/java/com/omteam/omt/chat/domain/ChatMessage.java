@@ -22,8 +22,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * 챗봇 대화 메시지.
- * 사용자 메시지와 AI 응답 메시지를 모두 저장한다.
+ * 챗봇 대화 메시지. 사용자 메시지와 AI 응답 메시지를 모두 저장한다.
  */
 @Entity
 @Table(name = "chat_message")

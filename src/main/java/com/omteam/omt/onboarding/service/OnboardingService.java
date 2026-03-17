@@ -136,7 +136,8 @@ public class OnboardingService {
     }
 
     @Transactional
-    public OnboardingResponse updateAvailableTime(Long userId, LocalTime availableStartTime, LocalTime availableEndTime) {
+    public OnboardingResponse updateAvailableTime(Long userId, LocalTime availableStartTime,
+                                                  LocalTime availableEndTime) {
         OnboardingContext ctx = fetchOnboardingContext(userId);
         ctx.onboarding.updateAvailableTime(availableStartTime, availableEndTime);
         return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
@@ -164,7 +165,8 @@ public class OnboardingService {
     }
 
     @Transactional
-    public OnboardingResponse updateNotificationSetting(Long userId, boolean remindEnabled, boolean checkinEnabled, boolean reviewEnabled) {
+    public OnboardingResponse updateNotificationSetting(Long userId, boolean remindEnabled, boolean checkinEnabled,
+                                                        boolean reviewEnabled) {
         OnboardingContext ctx = fetchOnboardingContext(userId);
         ctx.notificationSetting.update(remindEnabled, checkinEnabled, reviewEnabled);
         return OnboardingResponse.of(ctx.user, ctx.onboarding, ctx.notificationSetting);
@@ -195,5 +197,7 @@ public class OnboardingService {
         return new OnboardingContext(user, onboarding, notificationSetting);
     }
 
-    private record OnboardingContext(User user, UserOnboarding onboarding, UserNotificationSetting notificationSetting) {}
+    private record OnboardingContext(User user, UserOnboarding onboarding,
+                                     UserNotificationSetting notificationSetting) {
+    }
 }

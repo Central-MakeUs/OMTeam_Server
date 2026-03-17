@@ -1,7 +1,8 @@
 package com.omteam.omt.onboarding.controller;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 import com.omteam.omt.common.response.ApiResponse;
 import com.omteam.omt.onboarding.dto.OnboardingRequest;
@@ -47,6 +48,59 @@ class OnboardingControllerTest {
     @BeforeEach
     void setUp() {
         principal = new UserPrincipal(1L);
+    }
+
+    private OnboardingRequest createOnboardingRequest() {
+        OnboardingRequest request = new OnboardingRequest();
+        request.setNickname("테스트유저");
+        request.setAppGoalText("체중 감량");
+        request.setWorkTimeType(WorkTimeType.FIXED);
+        request.setAvailableStartTime(LocalTime.of(18, 0));
+        request.setAvailableEndTime(LocalTime.of(21, 0));
+        request.setMinExerciseMinutes(30);
+        request.setPreferredExercises(List.of("스트레칭", "걷기"));
+        request.setLifestyleType(LifestyleType.REGULAR_DAYTIME);
+        request.setRemindEnabled(true);
+        request.setCheckinEnabled(true);
+        request.setReviewEnabled(true);
+        return request;
+    }
+
+    private OnboardingResponse createOnboardingResponse() {
+        return OnboardingResponse.builder()
+                .nickname("테스트유저")
+                .appGoalText("체중 감량")
+                .workTimeType(WorkTimeType.FIXED)
+                .availableStartTime(LocalTime.of(18, 0))
+                .availableEndTime(LocalTime.of(21, 0))
+                .minExerciseMinutes(30)
+                .preferredExercises(List.of("스트레칭", "걷기"))
+                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
+                .remindEnabled(true)
+                .checkinEnabled(true)
+                .reviewEnabled(true)
+                .build();
+    }
+
+    private OnboardingResponse createOnboardingResponseWith(String field, String value) {
+        OnboardingResponse.OnboardingResponseBuilder builder = OnboardingResponse.builder()
+                .nickname("테스트유저")
+                .appGoalText("체중 감량")
+                .workTimeType(WorkTimeType.FIXED)
+                .availableStartTime(LocalTime.of(18, 0))
+                .availableEndTime(LocalTime.of(21, 0))
+                .minExerciseMinutes(30)
+                .preferredExercises(List.of("스트레칭", "걷기"))
+                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
+                .remindEnabled(true)
+                .checkinEnabled(true)
+                .reviewEnabled(true);
+
+        if ("appGoalText".equals(field)) {
+            builder.appGoalText(value);
+        }
+
+        return builder.build();
     }
 
     @Nested
@@ -354,6 +408,8 @@ class OnboardingControllerTest {
         }
     }
 
+    // ===== 헬퍼 메서드 =====
+
     @Nested
     @DisplayName("알림 설정 전체 수정")
     class UpdateNotificationSetting {
@@ -418,7 +474,8 @@ class OnboardingControllerTest {
             assertThat(result.success()).isTrue();
             assertThat(result.data().isRemindEnabled()).isTrue();
 
-            then(onboardingService).should().updateSingleNotification(principal.userId(), NotificationType.REMIND, true);
+            then(onboardingService).should()
+                    .updateSingleNotification(principal.userId(), NotificationType.REMIND, true);
         }
 
         @Test
@@ -443,7 +500,8 @@ class OnboardingControllerTest {
             // then
             assertThat(result.success()).isTrue();
 
-            then(onboardingService).should().updateSingleNotification(principal.userId(), NotificationType.CHECKIN, false);
+            then(onboardingService).should()
+                    .updateSingleNotification(principal.userId(), NotificationType.CHECKIN, false);
         }
 
         @Test
@@ -468,11 +526,12 @@ class OnboardingControllerTest {
             // then
             assertThat(result.success()).isTrue();
 
-            then(onboardingService).should().updateSingleNotification(principal.userId(), NotificationType.REVIEW, true);
+            then(onboardingService).should()
+                    .updateSingleNotification(principal.userId(), NotificationType.REVIEW, true);
         }
     }
 
-        @Nested
+    @Nested
     @DisplayName("기상/취침 시간 수정")
     class UpdateSleepSchedule {
 
@@ -534,60 +593,5 @@ class OnboardingControllerTest {
 
             then(onboardingService).should().updateSleepSchedule(principal.userId(), null, null);
         }
-    }
-
-    // ===== 헬퍼 메서드 =====
-
-    private OnboardingRequest createOnboardingRequest() {
-        OnboardingRequest request = new OnboardingRequest();
-        request.setNickname("테스트유저");
-        request.setAppGoalText("체중 감량");
-        request.setWorkTimeType(WorkTimeType.FIXED);
-        request.setAvailableStartTime(LocalTime.of(18, 0));
-        request.setAvailableEndTime(LocalTime.of(21, 0));
-        request.setMinExerciseMinutes(30);
-        request.setPreferredExercises(List.of("스트레칭", "걷기"));
-        request.setLifestyleType(LifestyleType.REGULAR_DAYTIME);
-        request.setRemindEnabled(true);
-        request.setCheckinEnabled(true);
-        request.setReviewEnabled(true);
-        return request;
-    }
-
-    private OnboardingResponse createOnboardingResponse() {
-        return OnboardingResponse.builder()
-                .nickname("테스트유저")
-                .appGoalText("체중 감량")
-                .workTimeType(WorkTimeType.FIXED)
-                .availableStartTime(LocalTime.of(18, 0))
-                .availableEndTime(LocalTime.of(21, 0))
-                .minExerciseMinutes(30)
-                .preferredExercises(List.of("스트레칭", "걷기"))
-                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
-                .remindEnabled(true)
-                .checkinEnabled(true)
-                .reviewEnabled(true)
-                .build();
-    }
-
-    private OnboardingResponse createOnboardingResponseWith(String field, String value) {
-        OnboardingResponse.OnboardingResponseBuilder builder = OnboardingResponse.builder()
-                .nickname("테스트유저")
-                .appGoalText("체중 감량")
-                .workTimeType(WorkTimeType.FIXED)
-                .availableStartTime(LocalTime.of(18, 0))
-                .availableEndTime(LocalTime.of(21, 0))
-                .minExerciseMinutes(30)
-                .preferredExercises(List.of("스트레칭", "걷기"))
-                .lifestyleType(LifestyleType.REGULAR_DAYTIME)
-                .remindEnabled(true)
-                .checkinEnabled(true)
-                .reviewEnabled(true);
-
-        if ("appGoalText".equals(field)) {
-            builder.appGoalText(value);
-        }
-
-        return builder.build();
     }
 }

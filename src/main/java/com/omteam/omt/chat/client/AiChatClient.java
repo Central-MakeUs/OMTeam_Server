@@ -20,11 +20,10 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @RequiredArgsConstructor
 public class AiChatClient {
 
+    private static final String CHAT_ENDPOINT = "/ai/chat/messages";
     private final WebClient webClient;
     private final AiServerProperties aiServerProperties;
     private final CircuitBreaker aiServerCircuitBreaker;
-
-    private static final String CHAT_ENDPOINT = "/ai/chat/messages";
 
     public AiChatResponse sendMessage(AiChatRequest request) {
         try {

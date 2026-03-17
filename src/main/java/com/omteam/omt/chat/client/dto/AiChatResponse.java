@@ -28,6 +28,10 @@ public class AiChatResponse {
                 .build();
     }
 
+    public boolean isTerminal() {
+        return state != null && state.isTerminal();
+    }
+
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
@@ -52,9 +56,5 @@ public class AiChatResponse {
     @Builder
     public static class State {
         private boolean isTerminal;
-    }
-
-    public boolean isTerminal() {
-        return state != null && state.isTerminal();
     }
 }

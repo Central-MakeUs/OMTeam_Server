@@ -1,6 +1,6 @@
 package com.omteam.omt.report.domain;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.omteam.omt.user.domain.User;
 import java.time.LocalDate;

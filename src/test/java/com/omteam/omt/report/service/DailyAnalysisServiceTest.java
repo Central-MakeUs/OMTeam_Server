@@ -1,9 +1,9 @@
 package com.omteam.omt.report.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
-import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.ai.service.UserContextService;
 import com.omteam.omt.report.constant.DefaultReportMessages;
 import com.omteam.omt.report.domain.DailyAnalysis;

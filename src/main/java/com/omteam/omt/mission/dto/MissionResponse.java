@@ -2,7 +2,6 @@ package com.omteam.omt.mission.dto;
 
 import com.omteam.omt.mission.domain.Mission;
 import com.omteam.omt.mission.domain.MissionType;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,13 +22,13 @@ public class MissionResponse {
             allowableValues = {"EXERCISE", "DIET"}
     )
     private MissionType type;
-    
+
     @Schema(description = "미션 난이도 (1~5, 별 개수)")
     private int difficulty;
 
     @Schema(description = "예상 소요 시간")
     private int estimatedMinutes;
-    
+
     @Schema(description = "예상 소모 칼로리")
     private int estimatedCalories;
 

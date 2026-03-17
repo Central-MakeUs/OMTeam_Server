@@ -1,6 +1,6 @@
 package com.omteam.omt.integration.chat;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.omteam.omt.chat.client.AiChatClient;
 import com.omteam.omt.chat.client.dto.AiChatRequest;
@@ -29,18 +29,18 @@ class AiChatClientIntegrationTest extends IntegrationTestBase {
     void sendMessage_success() {
         // given
         String responseBody = """
-            {
-                "botMessage": {
-                    "text": "안녕하세요! 무엇을 도와드릴까요?",
-                    "options": [
-                        { "label": "운동이 힘들어요", "value": "EXERCISE_HARD" },
-                        { "label": "동기부여가 필요해요", "value": "NEED_MOTIVATION" },
-                        { "label": "다른 고민이 있어요", "value": "OTHER" }
-                    ]
-                },
-                "state": { "isTerminal": false }
-            }
-            """;
+                {
+                    "botMessage": {
+                        "text": "안녕하세요! 무엇을 도와드릴까요?",
+                        "options": [
+                            { "label": "운동이 힘들어요", "value": "EXERCISE_HARD" },
+                            { "label": "동기부여가 필요해요", "value": "NEED_MOTIVATION" },
+                            { "label": "다른 고민이 있어요", "value": "OTHER" }
+                        ]
+                    },
+                    "state": { "isTerminal": false }
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -65,17 +65,17 @@ class AiChatClientIntegrationTest extends IntegrationTestBase {
     void sendMessage_textInput() {
         // given
         String responseBody = """
-            {
-                "botMessage": {
-                    "text": "운동이 힘드시군요. 어떤 점이 가장 어려우신가요?",
-                    "options": [
-                        { "label": "시간이 부족해요", "value": "TIME_SHORTAGE" },
-                        { "label": "체력이 부족해요", "value": "STAMINA_SHORTAGE" }
-                    ]
-                },
-                "state": { "isTerminal": false }
-            }
-            """;
+                {
+                    "botMessage": {
+                        "text": "운동이 힘드시군요. 어떤 점이 가장 어려우신가요?",
+                        "options": [
+                            { "label": "시간이 부족해요", "value": "TIME_SHORTAGE" },
+                            { "label": "체력이 부족해요", "value": "STAMINA_SHORTAGE" }
+                        ]
+                    },
+                    "state": { "isTerminal": false }
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -103,14 +103,14 @@ class AiChatClientIntegrationTest extends IntegrationTestBase {
     void sendMessage_optionInput() {
         // given
         String responseBody = """
-            {
-                "botMessage": {
-                    "text": "시간이 부족하시군요. 짧은 시간에 할 수 있는 운동을 추천드릴게요.",
-                    "options": []
-                },
-                "state": { "isTerminal": false }
-            }
-            """;
+                {
+                    "botMessage": {
+                        "text": "시간이 부족하시군요. 짧은 시간에 할 수 있는 운동을 추천드릴게요.",
+                        "options": []
+                    },
+                    "state": { "isTerminal": false }
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -137,14 +137,14 @@ class AiChatClientIntegrationTest extends IntegrationTestBase {
     void sendMessage_terminalResponse() {
         // given
         String responseBody = """
-            {
-                "botMessage": {
-                    "text": "좋은 대화였어요! 언제든 다시 찾아주세요.",
-                    "options": []
-                },
-                "state": { "isTerminal": true }
-            }
-            """;
+                {
+                    "botMessage": {
+                        "text": "좋은 대화였어요! 언제든 다시 찾아주세요.",
+                        "options": []
+                    },
+                    "state": { "isTerminal": true }
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -186,14 +186,14 @@ class AiChatClientIntegrationTest extends IntegrationTestBase {
     void sendMessage_noOptions() {
         // given
         String responseBody = """
-            {
-                "botMessage": {
-                    "text": "자유롭게 말씀해주세요.",
-                    "options": []
-                },
-                "state": { "isTerminal": false }
-            }
-            """;
+                {
+                    "botMessage": {
+                        "text": "자유롭게 말씀해주세요.",
+                        "options": []
+                    },
+                    "state": { "isTerminal": false }
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)

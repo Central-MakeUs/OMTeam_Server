@@ -20,11 +20,10 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @RequiredArgsConstructor
 public class AiWeeklyAnalysisClient {
 
+    private static final String WEEKLY_ANALYSIS_ENDPOINT = "/ai/analysis/weekly";
     private final WebClient webClient;
     private final AiServerProperties aiServerProperties;
     private final CircuitBreaker aiServerCircuitBreaker;
-
-    private static final String WEEKLY_ANALYSIS_ENDPOINT = "/ai/analysis/weekly";
 
     public AiWeeklyAnalysisResponse analyzeWeeklyMissions(AiWeeklyAnalysisRequest request) {
         try {

@@ -19,8 +19,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * AI 분석 재시도 큐.
- * 1차 배치에서 AI 서버 오류로 실패한 사용자를 기록하고, 재시도 스케줄러가 처리한다.
+ * AI 분석 재시도 큐. 1차 배치에서 AI 서버 오류로 실패한 사용자를 기록하고, 재시도 스케줄러가 처리한다.
  */
 @Entity
 @Table(name = "analysis_retry_queue",

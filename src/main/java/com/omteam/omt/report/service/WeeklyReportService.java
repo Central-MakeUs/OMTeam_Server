@@ -4,23 +4,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.common.util.DateRangeUtils;
-import com.omteam.omt.report.client.dto.AiWeeklyAnalysisResponse;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
-import com.omteam.omt.report.domain.WeeklyAiAnalysis;
+import com.omteam.omt.report.client.dto.AiWeeklyAnalysisResponse;
 import com.omteam.omt.report.constant.DefaultReportMessages;
+import com.omteam.omt.report.domain.WeeklyAiAnalysis;
 import com.omteam.omt.report.dto.ReportDataStatus;
 import com.omteam.omt.report.dto.WeeklyReportResponse;
-import com.omteam.omt.report.dto.WeeklyReportResponse.AiFeedback;
 import com.omteam.omt.report.dto.WeeklyReportResponse.AiFailureReasonRank;
+import com.omteam.omt.report.dto.WeeklyReportResponse.AiFeedback;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyResult;
 import com.omteam.omt.report.dto.WeeklyReportResponse.DailyStatus;
 import com.omteam.omt.report.dto.WeeklyReportResponse.FailureReasonRank;
 import com.omteam.omt.report.dto.WeeklyReportResponse.TypeSuccessCount;
 import com.omteam.omt.report.repository.WeeklyAiAnalysisRepository;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -216,7 +215,8 @@ public class WeeklyReportService {
         }
         try {
             List<AiWeeklyAnalysisResponse.FailureReasonRank> rawList = objectMapper.readValue(json,
-                    new TypeReference<List<AiWeeklyAnalysisResponse.FailureReasonRank>>() {});
+                    new TypeReference<List<AiWeeklyAnalysisResponse.FailureReasonRank>>() {
+                    });
             return rawList.stream()
                     .map(rankData -> AiFailureReasonRank.builder()
                             .rank(rankData.getRank())

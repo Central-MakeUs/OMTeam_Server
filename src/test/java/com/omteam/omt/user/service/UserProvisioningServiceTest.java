@@ -1,7 +1,11 @@
 package com.omteam.omt.user.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.never;
+import static org.mockito.BDDMockito.spy;
+import static org.mockito.BDDMockito.then;
 
 import com.omteam.omt.user.domain.SocialProvider;
 import com.omteam.omt.user.domain.User;
@@ -22,18 +26,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class UserProvisioningServiceTest {
 
+    final SocialProvider provider = SocialProvider.GOOGLE;
+    final String providerUserId = "google-user-id";
+    final String email = "test@example.com";
     @Mock
     UserRepository userRepository;
     @Mock
     UserSocialAccountRepository socialAccountRepository;
     @Mock
     UserCharacterRepository characterRepository;
-
     UserProvisioningService userProvisioningService;
-
-    final SocialProvider provider = SocialProvider.GOOGLE;
-    final String providerUserId = "google-user-id";
-    final String email = "test@example.com";
 
     @BeforeEach
     void setUp() {

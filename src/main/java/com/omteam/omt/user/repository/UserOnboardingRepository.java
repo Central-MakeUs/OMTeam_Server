@@ -18,9 +18,12 @@ public interface UserOnboardingRepository extends JpaRepository<UserOnboarding, 
 
     // 체크인: wakeUpTime == time, null이면 defaultTime과 비교
     @Query("SELECT uo FROM UserOnboarding uo JOIN FETCH uo.user u WHERE (uo.wakeUpTime = :time OR (uo.wakeUpTime IS NULL AND :time = :defaultTime)) AND u.onboardingCompleted = true AND u.deletedAt IS NULL")
-    List<UserOnboarding> findByEffectiveWakeUpTime(@Param("time") LocalTime time, @Param("defaultTime") LocalTime defaultTime);
+    List<UserOnboarding> findByEffectiveWakeUpTime(@Param("time") LocalTime time,
+                                                   @Param("defaultTime") LocalTime defaultTime);
 
     // 회고: bedTime == targetBedTime (now + 1h), null이면 defaultReviewTime과 비교
     @Query("SELECT uo FROM UserOnboarding uo JOIN FETCH uo.user u WHERE (uo.bedTime = :targetBedTime OR (uo.bedTime IS NULL AND :now = :defaultReviewTime)) AND u.onboardingCompleted = true AND u.deletedAt IS NULL")
-    List<UserOnboarding> findByBedTimeForReview(@Param("targetBedTime") LocalTime targetBedTime, @Param("now") LocalTime now, @Param("defaultReviewTime") LocalTime defaultReviewTime);
+    List<UserOnboarding> findByBedTimeForReview(@Param("targetBedTime") LocalTime targetBedTime,
+                                                @Param("now") LocalTime now,
+                                                @Param("defaultReviewTime") LocalTime defaultReviewTime);
 }

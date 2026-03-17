@@ -21,8 +21,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * 챗봇 대화 세션.
- * 사용자당 최대 1개의 활성 세션만 존재할 수 있다.
+ * 챗봇 대화 세션. 사용자당 최대 1개의 활성 세션만 존재할 수 있다.
  */
 @Entity
 @Table(name = "chat_session")
@@ -53,8 +52,7 @@ public class ChatSession {
     private LocalDateTime endedAt;
 
     /**
-     * 세션을 종료 처리한다.
-     * AI가 isTerminal을 반환했을 때 호출된다.
+     * 세션을 종료 처리한다. AI가 isTerminal을 반환했을 때 호출된다.
      */
     public void end() {
         this.isActive = false;

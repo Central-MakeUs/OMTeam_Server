@@ -10,11 +10,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @ActiveProfiles("test")
 class OmtApplicationTests {
 
-	@MockitoBean
-	private RedisTemplate<String, String> redisTemplate;
+    @MockitoBean
+    private RedisTemplate<String, String> redisTemplate;
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

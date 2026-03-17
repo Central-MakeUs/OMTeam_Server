@@ -1,7 +1,12 @@
 package com.omteam.omt.chat.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.anyLong;
+import static org.mockito.BDDMockito.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.never;
+import static org.mockito.BDDMockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.chat.domain.ChatActionType;
@@ -27,16 +32,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ChatActionHandlerTest {
 
+    final Long userId = 1L;
+    final Long sessionId = 100L;
     @Mock
     MissionService missionService;
     @Mock
     ChatMessageRepository messageRepository;
-
     ChatActionHandler chatActionHandler;
     ObjectMapper objectMapper;
-
-    final Long userId = 1L;
-    final Long sessionId = 100L;
 
     @BeforeEach
     void setUp() {

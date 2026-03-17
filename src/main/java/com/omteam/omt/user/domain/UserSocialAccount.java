@@ -53,8 +53,7 @@ public class UserSocialAccount {
     private SocialProvider provider;
 
     /**
-     * 소셜 서비스에서 내려준 고유 사용자 ID
-     * (Google sub, Kakao id, Apple sub)
+     * 소셜 서비스에서 내려준 고유 사용자 ID (Google sub, Kakao id, Apple sub)
      */
     @Column(name = "provider_user_id", nullable = false, length = 100)
     private String providerUserId;

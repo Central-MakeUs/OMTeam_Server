@@ -1,15 +1,15 @@
 package com.omteam.omt.character.service;
 
 import com.omteam.omt.character.dto.CharacterResponse;
-import com.omteam.omt.report.domain.DailyAnalysis;
-import com.omteam.omt.report.domain.EncouragementIntent;
-import com.omteam.omt.report.domain.EncouragementMessage;
-import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.RecommendedMissionStatus;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
+import com.omteam.omt.report.domain.DailyAnalysis;
+import com.omteam.omt.report.domain.EncouragementIntent;
+import com.omteam.omt.report.domain.EncouragementMessage;
+import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.user.domain.UserCharacter;
 import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDate;

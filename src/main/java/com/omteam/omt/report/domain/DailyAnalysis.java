@@ -26,8 +26,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * 일별 AI 격려 메시지 세트.
- * 매일 스케줄러가 AI 서버에서 4가지 intent별 메시지를 받아와 저장한다.
+ * 일별 AI 격려 메시지 세트. 매일 스케줄러가 AI 서버에서 4가지 intent별 메시지를 받아와 저장한다.
  */
 @Entity
 @Table(name = "daily_encouragement_set",

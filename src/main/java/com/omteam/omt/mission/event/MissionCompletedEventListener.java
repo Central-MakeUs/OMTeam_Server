@@ -8,8 +8,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * (임시) 미션 완료 후 데일리 분석 결과를 생성하는 이벤트 리스너.
- * 분석 조회 기준 확정 후 제거 예정
+ * (임시) 미션 완료 후 데일리 분석 결과를 생성하는 이벤트 리스너. 분석 조회 기준 확정 후 제거 예정
  */
 @Slf4j
 @Component

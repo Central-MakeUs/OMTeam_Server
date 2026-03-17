@@ -1,18 +1,21 @@
 package com.omteam.omt.character.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.eq;
+import static org.mockito.BDDMockito.given;
 
 import com.omteam.omt.character.dto.CharacterResponse;
-import com.omteam.omt.report.domain.DailyAnalysis;
-import com.omteam.omt.report.domain.EncouragementMessage;
-import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.mission.repository.DailyRecommendedMissionRepository;
+import com.omteam.omt.report.domain.DailyAnalysis;
+import com.omteam.omt.report.domain.EncouragementMessage;
+import com.omteam.omt.report.repository.DailyAnalysisRepository;
 import com.omteam.omt.user.domain.UserCharacter;
 import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDate;
@@ -27,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CharacterServiceTest {
 
+    final Long userId = 1L;
     @Mock
     UserQueryService userQueryService;
     @Mock
@@ -35,10 +39,7 @@ class CharacterServiceTest {
     DailyMissionResultRepository missionResultRepository;
     @Mock
     DailyRecommendedMissionRepository recommendedMissionRepository;
-
     CharacterService characterService;
-
-    final Long userId = 1L;
 
     @BeforeEach
     void setUp() {

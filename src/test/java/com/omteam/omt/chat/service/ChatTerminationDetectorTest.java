@@ -1,6 +1,6 @@
 package com.omteam.omt.chat.service;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.omteam.omt.chat.domain.ChatInputType;
 import com.omteam.omt.chat.dto.ChatMessageRequest;

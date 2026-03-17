@@ -1,7 +1,8 @@
 package com.omteam.omt.chat.controller;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 import com.omteam.omt.chat.domain.ChatActionType;
 import com.omteam.omt.chat.domain.ChatInputType;
@@ -38,6 +39,17 @@ class ChatControllerTest {
     @BeforeEach
     void setUp() {
         principal = new UserPrincipal(1L);
+    }
+
+    private ChatMessageResponse createAssistantMessage(Long messageId) {
+        return ChatMessageResponse.builder()
+                .messageId(messageId)
+                .role(ChatMessageRole.ASSISTANT)
+                .content("테스트 응답 메시지")
+                .options(List.of())
+                .isTerminal(false)
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 
     @Nested
@@ -123,6 +135,8 @@ class ChatControllerTest {
             assertThat(result.data().getMessages()).isEmpty();
         }
     }
+
+    // ===== 헬퍼 메서드 =====
 
     @Nested
     @DisplayName("메시지 전송")
@@ -276,18 +290,5 @@ class ChatControllerTest {
             assertThat(result.success()).isTrue();
             assertThat(result.data().isTerminal()).isTrue();
         }
-    }
-
-    // ===== 헬퍼 메서드 =====
-
-    private ChatMessageResponse createAssistantMessage(Long messageId) {
-        return ChatMessageResponse.builder()
-                .messageId(messageId)
-                .role(ChatMessageRole.ASSISTANT)
-                .content("테스트 응답 메시지")
-                .options(List.of())
-                .isTerminal(false)
-                .createdAt(LocalDateTime.now())
-                .build();
     }
 }

@@ -9,9 +9,7 @@ import java.util.Base64;
 import java.util.List;
 
 /**
- * OAuth 프로바이더의 ID 토큰을 검증하는 추상 클래스.
- * 각 프로바이더(Kakao, Apple)는 이 클래스를 상속받아
- * issuer, audience, KeyLocator만 제공하면 됨.
+ * OAuth 프로바이더의 ID 토큰을 검증하는 추상 클래스. 각 프로바이더(Kakao, Apple)는 이 클래스를 상속받아 issuer, audience, KeyLocator만 제공하면 됨.
  */
 public abstract class AbstractIdTokenVerifier {
 
@@ -44,8 +42,7 @@ public abstract class AbstractIdTokenVerifier {
     }
 
     /**
-     * RSA 서명의 leading zero가 제거되어 255바이트가 된 경우,
-     * 256바이트로 패딩하여 복원한다.
+     * RSA 서명의 leading zero가 제거되어 255바이트가 된 경우, 256바이트로 패딩하여 복원한다.
      *
      * @see <a href="https://issues.apache.org/jira/browse/SSHD-642">SSHD-642</a>
      */
@@ -92,8 +89,7 @@ public abstract class AbstractIdTokenVerifier {
     protected abstract String getIssuer();
 
     /**
-     * 허용되는 audience(client-id) 목록을 반환한다.
-     * 단일 audience만 허용하는 경우 List.of(audience)를 반환하면 됨.
+     * 허용되는 audience(client-id) 목록을 반환한다. 단일 audience만 허용하는 경우 List.of(audience)를 반환하면 됨.
      */
     protected abstract List<String> getAllowedAudiences();
 

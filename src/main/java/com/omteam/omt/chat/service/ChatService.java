@@ -23,7 +23,6 @@ import com.omteam.omt.user.service.UserQueryService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -83,11 +82,9 @@ public class ChatService {
 
     /**
      * 메시지 전송 (세션 자동 관리)
-     *
-     * 3-way 분기:
-     * 1. Action 요청 (actionType != null) → ChatActionHandler 위임 (AI 호출 X)
-     * 2. Start 요청 (type=null, actionType=null) → 기존 AI 채팅 시작
-     * 3. Regular 요청 (type!=null, actionType=null) → 기존 AI 채팅 흐름
+     * <p>
+     * 3-way 분기: 1. Action 요청 (actionType != null) → ChatActionHandler 위임 (AI 호출 X) 2. Start 요청 (type=null,
+     * actionType=null) → 기존 AI 채팅 시작 3. Regular 요청 (type!=null, actionType=null) → 기존 AI 채팅 흐름
      */
     @Transactional
     public ChatMessageResponse sendMessage(Long userId, ChatMessageRequest request) {

@@ -1,7 +1,13 @@
 package com.omteam.omt.report.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.never;
+import static org.mockito.BDDMockito.times;
+import static org.mockito.BDDMockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.common.ai.dto.UserContext;
@@ -31,27 +37,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class WeeklyAnalysisServiceTest {
 
+    final LocalDate monday = LocalDate.of(2024, 1, 15);
     @Mock
     UserRepository userRepository;
-
     @Mock
     DailyMissionResultRepository missionResultRepository;
-
     @Mock
     WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
-
     @Mock
     AiWeeklyAnalysisClient aiWeeklyAnalysisClient;
-
     @Mock
     UserContextService userContextService;
-
     @Mock
     ObjectMapper objectMapper;
-
     WeeklyAnalysisService weeklyAnalysisService;
-
-    final LocalDate monday = LocalDate.of(2024, 1, 15);
 
     @BeforeEach
     void setUp() {

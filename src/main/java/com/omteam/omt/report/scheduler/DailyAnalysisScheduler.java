@@ -18,8 +18,7 @@ public class DailyAnalysisScheduler {
     private final AnalysisRetryService analysisRetryService;
 
     /**
-     * 매일 00:30에 오늘의 데일리 분석 결과를 생성한다.
-     * (00:00에 미션 만료 스케줄러가 돌기 때문에 30분 후에 실행)
+     * 매일 00:30에 오늘의 데일리 분석 결과를 생성한다. (00:00에 미션 만료 스케줄러가 돌기 때문에 30분 후에 실행)
      */
     @Scheduled(cron = "0 30 0 * * *")
     public void generateDailyEncouragement() {

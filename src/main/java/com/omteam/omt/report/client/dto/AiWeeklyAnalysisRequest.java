@@ -18,25 +18,6 @@ public class AiWeeklyAnalysisRequest {
     private List<DailyResultSummary> weeklyResults;
     private List<DayOfWeekStats> monthlyDayOfWeekStats;
 
-    @Getter
-    @Builder
-    public static class DailyResultSummary {
-        private LocalDate date;
-        private String dayOfWeek;
-        private String status;  // SUCCESS, FAILURE, NOT_PERFORMED
-        private String missionType;
-        private String failureReason;
-    }
-
-    @Getter
-    @Builder
-    public static class DayOfWeekStats {
-        private String dayOfWeek;
-        private int totalCount;
-        private int successCount;
-        private double successRate;
-    }
-
     public static AiWeeklyAnalysisRequest of(
             Long userId,
             UserContext userContext,
@@ -55,5 +36,24 @@ public class AiWeeklyAnalysisRequest {
                 .weeklyResults(weeklyResults != null ? weeklyResults : List.of())
                 .monthlyDayOfWeekStats(monthlyDayOfWeekStats != null ? monthlyDayOfWeekStats : List.of())
                 .build();
+    }
+
+    @Getter
+    @Builder
+    public static class DailyResultSummary {
+        private LocalDate date;
+        private String dayOfWeek;
+        private String status;  // SUCCESS, FAILURE, NOT_PERFORMED
+        private String missionType;
+        private String failureReason;
+    }
+
+    @Getter
+    @Builder
+    public static class DayOfWeekStats {
+        private String dayOfWeek;
+        private int totalCount;
+        private int successCount;
+        private double successRate;
     }
 }

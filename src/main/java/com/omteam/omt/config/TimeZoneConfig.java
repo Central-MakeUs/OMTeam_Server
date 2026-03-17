@@ -1,9 +1,8 @@
 package com.omteam.omt.config;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.context.annotation.Configuration;
-
 import java.util.TimeZone;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class TimeZoneConfig {

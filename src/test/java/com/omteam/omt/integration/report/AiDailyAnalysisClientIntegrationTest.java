@@ -1,16 +1,17 @@
 package com.omteam.omt.integration.report;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.omteam.omt.report.client.AiDailyAnalysisClient;
-import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
-import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
-import com.omteam.omt.report.domain.EncouragementIntent;
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
 import com.omteam.omt.integration.IntegrationTestBase;
 import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
+import com.omteam.omt.report.client.AiDailyAnalysisClient;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisRequest;
+import com.omteam.omt.report.client.dto.AiDailyAnalysisResponse;
+import com.omteam.omt.report.domain.EncouragementIntent;
 import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,32 +30,32 @@ class AiDailyAnalysisClientIntegrationTest extends IntegrationTestBase {
     void requestDailyAnalysis_success() throws Exception {
         // given
         String responseBody = """
-            {
-                "feedbackText": "오늘도 꾸준히 운동을 완료했네요! 이대로 가면 목표 달성이 가능해요.",
-                "encouragementCandidates": [
-                    {
-                        "intent": "PRAISE",
-                        "title": "대단해요!",
-                        "message": "연속 3일째 미션 성공이에요. 이 기세를 유지해봐요!"
-                    },
-                    {
-                        "intent": "RETRY",
-                        "title": "다시 시작해봐요",
-                        "message": "어제는 쉬었지만 오늘은 다시 시작할 수 있어요."
-                    },
-                    {
-                        "intent": "NORMAL",
-                        "title": "꾸준함이 중요해요",
-                        "message": "작은 습관이 큰 변화를 만들어요."
-                    },
-                    {
-                        "intent": "PUSH",
-                        "title": "오늘 시작해볼까요?",
-                        "message": "아직 오늘의 미션을 시작하지 않았어요. 지금 바로 시작해봐요!"
-                    }
-                ]
-            }
-            """;
+                {
+                    "feedbackText": "오늘도 꾸준히 운동을 완료했네요! 이대로 가면 목표 달성이 가능해요.",
+                    "encouragementCandidates": [
+                        {
+                            "intent": "PRAISE",
+                            "title": "대단해요!",
+                            "message": "연속 3일째 미션 성공이에요. 이 기세를 유지해봐요!"
+                        },
+                        {
+                            "intent": "RETRY",
+                            "title": "다시 시작해봐요",
+                            "message": "어제는 쉬었지만 오늘은 다시 시작할 수 있어요."
+                        },
+                        {
+                            "intent": "NORMAL",
+                            "title": "꾸준함이 중요해요",
+                            "message": "작은 습관이 큰 변화를 만들어요."
+                        },
+                        {
+                            "intent": "PUSH",
+                            "title": "오늘 시작해볼까요?",
+                            "message": "아직 오늘의 미션을 시작하지 않았어요. 지금 바로 시작해봐요!"
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -100,17 +101,17 @@ class AiDailyAnalysisClientIntegrationTest extends IntegrationTestBase {
     void requestDailyAnalysis_withoutYesterdayMission() throws Exception {
         // given
         String responseBody = """
-            {
-                "feedbackText": "아직 미션을 시작하지 않았네요. 오늘 첫 미션을 시작해보는 건 어떨까요?",
-                "encouragementCandidates": [
-                    {
-                        "intent": "PUSH",
-                        "title": "시작이 반이에요",
-                        "message": "작은 미션부터 시작해보세요!"
-                    }
-                ]
-            }
-            """;
+                {
+                    "feedbackText": "아직 미션을 시작하지 않았네요. 오늘 첫 미션을 시작해보는 건 어떨까요?",
+                    "encouragementCandidates": [
+                        {
+                            "intent": "PUSH",
+                            "title": "시작이 반이에요",
+                            "message": "작은 미션부터 시작해보세요!"
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -155,17 +156,17 @@ class AiDailyAnalysisClientIntegrationTest extends IntegrationTestBase {
     void requestDailyAnalysis_partialIntents() throws Exception {
         // given
         String responseBody = """
-            {
-                "feedbackText": "미션 실패를 경험했네요. 괜찮아요, 다시 도전해봐요!",
-                "encouragementCandidates": [
-                    {
-                        "intent": "RETRY",
-                        "title": "다시 도전해요",
-                        "message": "실패는 성공의 어머니예요."
-                    }
-                ]
-            }
-            """;
+                {
+                    "feedbackText": "미션 실패를 경험했네요. 괜찮아요, 다시 도전해봐요!",
+                    "encouragementCandidates": [
+                        {
+                            "intent": "RETRY",
+                            "title": "다시 도전해요",
+                            "message": "실패는 성공의 어머니예요."
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -190,17 +191,17 @@ class AiDailyAnalysisClientIntegrationTest extends IntegrationTestBase {
     void requestDailyAnalysis_withFailureReason() throws Exception {
         // given
         String responseBody = """
-            {
-                "feedbackText": "시간 부족으로 미션을 완료하지 못했군요. 다음에는 더 짧은 미션을 선택해보는 건 어떨까요?",
-                "encouragementCandidates": [
-                    {
-                        "intent": "RETRY",
-                        "title": "작은 목표부터",
-                        "message": "10분 미션으로 다시 시작해봐요."
-                    }
-                ]
-            }
-            """;
+                {
+                    "feedbackText": "시간 부족으로 미션을 완료하지 못했군요. 다음에는 더 짧은 미션을 선택해보는 건 어떨까요?",
+                    "encouragementCandidates": [
+                        {
+                            "intent": "RETRY",
+                            "title": "작은 목표부터",
+                            "message": "10분 미션으로 다시 시작해봐요."
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)

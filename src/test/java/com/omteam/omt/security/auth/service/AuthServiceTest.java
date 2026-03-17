@@ -1,7 +1,12 @@
 package com.omteam.omt.security.auth.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.mock;
+import static org.mockito.BDDMockito.spy;
+import static org.mockito.BDDMockito.then;
 
 import com.omteam.omt.common.exception.BusinessException;
 import com.omteam.omt.common.exception.ErrorCode;
@@ -28,6 +33,10 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class AuthServiceTest {
 
+    final SocialProvider provider = SocialProvider.GOOGLE;
+    final String idToken = "id-token";
+    final String providerUserId = "provider-id";
+    final String email = "test@test.com";
     @Mock
     OAuthClient oAuthClient;
     @Mock
@@ -38,13 +47,7 @@ class AuthServiceTest {
     JwtTokenProvider jwtTokenProvider;
     @Mock
     RefreshTokenService refreshTokenService;
-
     AuthService authService;
-
-    final SocialProvider provider = SocialProvider.GOOGLE;
-    final String idToken = "id-token";
-    final String providerUserId = "provider-id";
-    final String email = "test@test.com";
 
     @BeforeEach
     void setUp() {

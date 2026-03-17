@@ -15,8 +15,7 @@ public class HealthCheckController {
     private String env;
 
     /**
-     * 로드밸런서 헬스체크용 (인증 불필요)
-     * SecurityConfig에서 /actuator/health로 허용됨
+     * 로드밸런서 헬스체크용 (인증 불필요) SecurityConfig에서 /actuator/health로 허용됨
      */
     @GetMapping("/actuator/health")
     public ResponseEntity<Map<String, String>> health() {

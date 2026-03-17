@@ -28,8 +28,7 @@ public class ChatActionHandler {
     private final ObjectMapper objectMapper;
 
     /**
-     * 액션 요청 처리.
-     * 액션 시작 요청(value=null)과 후속 요청(value 있음)을 모두 처리한다.
+     * 액션 요청 처리. 액션 시작 요청(value=null)과 후속 요청(value 있음)을 모두 처리한다.
      */
     public ChatMessage handleAction(ChatSession session, Long userId, ChatMessageRequest request) {
         return switch (request.getActionType()) {
@@ -40,10 +39,8 @@ public class ChatActionHandler {
     }
 
     /**
-     * COMPLETE_MISSION 처리:
-     * 1. value=null → 미션 상태 확인 후 성공/실패 선택 메뉴
-     * 2. value=SUCCESS → 미션 성공 등록
-     * 3. value=FAILURE → 실패 사유 선택 프롬프트
+     * COMPLETE_MISSION 처리: 1. value=null → 미션 상태 확인 후 성공/실패 선택 메뉴 2. value=SUCCESS → 미션 성공 등록 3. value=FAILURE → 실패 사유
+     * 선택 프롬프트
      */
     private ChatMessage handleCompleteMission(ChatSession session, Long userId, ChatMessageRequest request) {
         String optionValue = request.getOptionValue();
@@ -67,11 +64,14 @@ public class ChatActionHandler {
         }
 
         List<ChatMessageResponse.Option> options = List.of(
-                ChatMessageResponse.Option.builder().label("성공했어요!").value("SUCCESS").actionType(ChatActionType.COMPLETE_MISSION).build(),
-                ChatMessageResponse.Option.builder().label("실패했어요...").value("FAILURE").actionType(ChatActionType.COMPLETE_MISSION).build()
+                ChatMessageResponse.Option.builder().label("성공했어요!").value("SUCCESS")
+                        .actionType(ChatActionType.COMPLETE_MISSION).build(),
+                ChatMessageResponse.Option.builder().label("실패했어요...").value("FAILURE")
+                        .actionType(ChatActionType.COMPLETE_MISSION).build()
         );
 
-        return saveAssistantActionMessage(session, "오늘 미션 결과를 등록할게요. 어떻게 되셨나요?", options, ChatActionType.COMPLETE_MISSION);
+        return saveAssistantActionMessage(session, "오늘 미션 결과를 등록할게요. 어떻게 되셨나요?", options,
+                ChatActionType.COMPLETE_MISSION);
     }
 
     private ChatMessage handleMissionSuccess(ChatSession session, Long userId) {
@@ -88,19 +88,22 @@ public class ChatActionHandler {
 
     private ChatMessage buildFailureReasonPrompt(ChatSession session) {
         List<ChatMessageResponse.Option> options = List.of(
-                ChatMessageResponse.Option.builder().label("시간이 부족했어요").value("LACK_OF_TIME").actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
-                ChatMessageResponse.Option.builder().label("컨디션이 안 좋았어요").value("POOR_CONDITION").actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
-                ChatMessageResponse.Option.builder().label("동기가 부족했어요").value("LACK_OF_MOTIVATION").actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
-                ChatMessageResponse.Option.builder().label("기타 (직접 입력)").value("OTHER").actionType(ChatActionType.MISSION_FAILURE_REASON).build()
+                ChatMessageResponse.Option.builder().label("시간이 부족했어요").value("LACK_OF_TIME")
+                        .actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
+                ChatMessageResponse.Option.builder().label("컨디션이 안 좋았어요").value("POOR_CONDITION")
+                        .actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
+                ChatMessageResponse.Option.builder().label("동기가 부족했어요").value("LACK_OF_MOTIVATION")
+                        .actionType(ChatActionType.MISSION_FAILURE_REASON).build(),
+                ChatMessageResponse.Option.builder().label("기타 (직접 입력)").value("OTHER")
+                        .actionType(ChatActionType.MISSION_FAILURE_REASON).build()
         );
 
-        return saveAssistantActionMessage(session, "아쉽지만 괜찮아요! 다음에 더 잘할 수 있어요. 실패 사유를 알려주세요.", options, ChatActionType.COMPLETE_MISSION);
+        return saveAssistantActionMessage(session, "아쉽지만 괜찮아요! 다음에 더 잘할 수 있어요. 실패 사유를 알려주세요.", options,
+                ChatActionType.COMPLETE_MISSION);
     }
 
     /**
-     * MISSION_FAILURE_REASON 처리:
-     * - value=OTHER → 자유 입력 안내
-     * - value=텍스트
+     * MISSION_FAILURE_REASON 처리: - value=OTHER → 자유 입력 안내 - value=텍스트
      */
     private ChatMessage handleFailureReason(ChatSession session, Long userId, ChatMessageRequest request) {
         String optionValue = request.getOptionValue();
@@ -142,7 +145,9 @@ public class ChatActionHandler {
         return saveAssistantActionMessage(session, content, options, ChatActionType.NAVIGATE_HOME);
     }
 
-    private ChatMessage saveAssistantActionMessage(ChatSession session, String content, List<ChatMessageResponse.Option> options, ChatActionType actionType) {
+    private ChatMessage saveAssistantActionMessage(ChatSession session, String content,
+                                                   List<ChatMessageResponse.Option> options,
+                                                   ChatActionType actionType) {
         String optionsJson = convertOptionsToJson(options);
 
         ChatMessage message = ChatMessage.builder()

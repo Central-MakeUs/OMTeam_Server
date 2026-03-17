@@ -1,6 +1,6 @@
 package com.omteam.omt.report.dto;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.omteam.omt.report.domain.DailyAnalysis;
 import com.omteam.omt.user.domain.User;
@@ -10,6 +10,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class DailyFeedbackResponseTest {
+
+    private User createMockUser() {
+        return User.builder()
+                .userId(1L)
+                .email("test@example.com")
+                .nickname("테스트유저")
+                .build();
+    }
 
     @Nested
     @DisplayName("DailyFeedbackResponse.from() 메서드 테스트")
@@ -125,13 +133,5 @@ class DailyFeedbackResponseTest {
             assertThat(response1).isEqualTo(response2);
             assertThat(response1.hashCode()).isEqualTo(response2.hashCode());
         }
-    }
-
-    private User createMockUser() {
-        return User.builder()
-                .userId(1L)
-                .email("test@example.com")
-                .nickname("테스트유저")
-                .build();
     }
 }

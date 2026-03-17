@@ -8,8 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * 사용자의 채팅 종료 의도를 서버 레벨에서 감지하는 서비스.
- * AI 서버의 isTerminal 응답을 보완하여, 사용자가 종료 의도를 표현했을 때 세션을 종료할 수 있도록 한다.
+ * 사용자의 채팅 종료 의도를 서버 레벨에서 감지하는 서비스. AI 서버의 isTerminal 응답을 보완하여, 사용자가 종료 의도를 표현했을 때 세션을 종료할 수 있도록 한다.
  */
 @Slf4j
 @Component

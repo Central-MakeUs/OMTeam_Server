@@ -22,12 +22,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserContextService {
 
+    private static final int RECENT_DAYS = 7;
     private final UserRepository userRepository;
     private final UserOnboardingRepository onboardingRepository;
     private final UserCharacterRepository characterRepository;
     private final DailyMissionResultRepository missionResultRepository;
-
-    private static final int RECENT_DAYS = 7;
 
     public UserContext buildContext(Long userId) {
         User user = userRepository.findById(userId)

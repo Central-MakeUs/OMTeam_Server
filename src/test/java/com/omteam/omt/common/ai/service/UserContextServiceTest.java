@@ -1,7 +1,10 @@
 package com.omteam.omt.common.ai.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.eq;
+import static org.mockito.BDDMockito.given;
 
 import com.omteam.omt.common.ai.dto.UserContext;
 import com.omteam.omt.common.exception.BusinessException;
@@ -20,7 +23,6 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class UserContextServiceTest {
 
+    final Long userId = 1L;
     @Mock
     UserRepository userRepository;
     @Mock
@@ -39,10 +42,7 @@ class UserContextServiceTest {
     UserCharacterRepository characterRepository;
     @Mock
     DailyMissionResultRepository missionResultRepository;
-
     UserContextService userContextService;
-
-    final Long userId = 1L;
 
     @BeforeEach
     void setUp() {
@@ -59,14 +59,16 @@ class UserContextServiceTest {
     void buildContext_success_with_all_data() {
         // given
         User user = createUser("테스트유저");
-        UserOnboarding onboarding = createOnboarding(user, "건강 관리", List.of("요가", "스트레칭"), LifestyleType.REGULAR_DAYTIME);
+        UserOnboarding onboarding = createOnboarding(user, "건강 관리", List.of("요가", "스트레칭"),
+                LifestyleType.REGULAR_DAYTIME);
         UserCharacter character = createCharacter(2, 35);
         List<DailyMissionResult> results = createMissionResults(5, 2); // 5 성공, 2 실패
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.of(onboarding));
         given(characterRepository.findById(userId)).willReturn(Optional.of(character));
-        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class), any(LocalDate.class)))
+        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class),
+                any(LocalDate.class)))
                 .willReturn(results);
 
         // when
@@ -92,7 +94,8 @@ class UserContextServiceTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.empty());
         given(characterRepository.findById(userId)).willReturn(Optional.of(character));
-        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class), any(LocalDate.class)))
+        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class),
+                any(LocalDate.class)))
                 .willReturn(Collections.emptyList());
 
         // when
@@ -117,7 +120,8 @@ class UserContextServiceTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.of(onboarding));
         given(characterRepository.findById(userId)).willReturn(Optional.empty());
-        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class), any(LocalDate.class)))
+        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class),
+                any(LocalDate.class)))
                 .willReturn(Collections.emptyList());
 
         // when
@@ -153,7 +157,8 @@ class UserContextServiceTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.empty());
         given(characterRepository.findById(userId)).willReturn(Optional.empty());
-        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class), any(LocalDate.class)))
+        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class),
+                any(LocalDate.class)))
                 .willReturn(results);
 
         // when
@@ -172,7 +177,8 @@ class UserContextServiceTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.empty());
         given(characterRepository.findById(userId)).willReturn(Optional.empty());
-        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class), any(LocalDate.class)))
+        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class),
+                any(LocalDate.class)))
                 .willReturn(Collections.emptyList());
 
         // when
@@ -192,7 +198,8 @@ class UserContextServiceTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.empty());
         given(characterRepository.findById(userId)).willReturn(Optional.empty());
-        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class), any(LocalDate.class)))
+        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class),
+                any(LocalDate.class)))
                 .willReturn(results);
 
         // when
@@ -212,7 +219,8 @@ class UserContextServiceTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.empty());
         given(characterRepository.findById(userId)).willReturn(Optional.empty());
-        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class), any(LocalDate.class)))
+        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class),
+                any(LocalDate.class)))
                 .willReturn(results);
 
         // when
@@ -232,7 +240,8 @@ class UserContextServiceTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(onboardingRepository.findByUserId(userId)).willReturn(Optional.of(onboarding));
         given(characterRepository.findById(userId)).willReturn(Optional.empty());
-        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class), any(LocalDate.class)))
+        given(missionResultRepository.findByUserUserIdAndMissionDateBetween(eq(userId), any(LocalDate.class),
+                any(LocalDate.class)))
                 .willReturn(Collections.emptyList());
 
         // when
@@ -257,7 +266,8 @@ class UserContextServiceTest {
                 .build();
     }
 
-    private UserOnboarding createOnboarding(User user, String appGoalText, List<String> preferredExercises, LifestyleType lifestyleType) {
+    private UserOnboarding createOnboarding(User user, String appGoalText, List<String> preferredExercises,
+                                            LifestyleType lifestyleType) {
         return UserOnboarding.builder()
                 .userId(userId)
                 .user(user)

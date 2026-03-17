@@ -14,11 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DateRangeUtils {
 
-    public record DateRange(LocalDate startDate, LocalDate endDate) {}
-
     /**
-     * 주어진 날짜가 속한 주의 월요일을 반환한다.
-     * date가 null이면 오늘 날짜 기준으로 계산한다.
+     * 주어진 날짜가 속한 주의 월요일을 반환한다. date가 null이면 오늘 날짜 기준으로 계산한다.
      */
     public static LocalDate getWeekStartDate(LocalDate date) {
         LocalDate target = (date != null) ? date : LocalDate.now();
@@ -44,8 +41,7 @@ public final class DateRangeUtils {
     }
 
     /**
-     * 특정 연/월의 N번째 주 월요일을 반환한다.
-     * 해당 월에 존재하지 않는 주차인 경우 BusinessException을 발생시킨다.
+     * 특정 연/월의 N번째 주 월요일을 반환한다. 해당 월에 존재하지 않는 주차인 경우 BusinessException을 발생시킨다.
      */
     public static LocalDate getWeekStartOfMonth(int year, int month, int weekOfMonth) {
         if (weekOfMonth < 1) {
@@ -62,5 +58,8 @@ public final class DateRangeUtils {
         }
 
         return targetMonday;
+    }
+
+    public record DateRange(LocalDate startDate, LocalDate endDate) {
     }
 }

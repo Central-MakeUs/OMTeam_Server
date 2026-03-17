@@ -1,11 +1,7 @@
 package com.omteam.omt.integration.report;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.omteam.omt.report.domain.DailyAnalysis;
-import com.omteam.omt.report.domain.EncouragementIntent;
-import com.omteam.omt.report.repository.DailyAnalysisRepository;
-import com.omteam.omt.report.service.DailyAnalysisService;
 import com.omteam.omt.integration.IntegrationTestBase;
 import com.omteam.omt.mission.domain.DailyMissionResult;
 import com.omteam.omt.mission.domain.Mission;
@@ -13,12 +9,21 @@ import com.omteam.omt.mission.domain.MissionResult;
 import com.omteam.omt.mission.domain.MissionType;
 import com.omteam.omt.mission.repository.DailyMissionResultRepository;
 import com.omteam.omt.mission.repository.MissionRepository;
+import com.omteam.omt.report.domain.DailyAnalysis;
+import com.omteam.omt.report.domain.EncouragementIntent;
+import com.omteam.omt.report.repository.DailyAnalysisRepository;
+import com.omteam.omt.report.service.DailyAnalysisService;
 import com.omteam.omt.user.domain.LifestyleType;
 import com.omteam.omt.user.domain.User;
 import com.omteam.omt.user.domain.UserOnboarding;
 import com.omteam.omt.user.domain.WorkTimeType;
 import com.omteam.omt.user.repository.UserOnboardingRepository;
 import com.omteam.omt.user.repository.UserRepository;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,12 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @DisplayName("[통합] DailyAnalysisService - AI 일일 분석 및 DB 저장")
 @Transactional
@@ -84,32 +83,32 @@ class DailyAnalysisServiceIntegrationTest extends IntegrationTestBase {
     void generateDailyAnalysisForUser_savesAndRetrievesFromDb() throws Exception {
         // given
         String aiResponse = """
-            {
-                "feedbackText": "오늘도 꾸준히 운동을 완료했네요! 이대로 가면 목표 달성이 가능해요.",
-                "encouragementCandidates": [
-                    {
-                        "intent": "PRAISE",
-                        "title": "대단해요!",
-                        "message": "연속 3일째 미션 성공이에요."
-                    },
-                    {
-                        "intent": "RETRY",
-                        "title": "다시 시작해봐요",
-                        "message": "어제는 쉬었지만 오늘은 다시 시작할 수 있어요."
-                    },
-                    {
-                        "intent": "NORMAL",
-                        "title": "꾸준함이 중요해요",
-                        "message": "작은 습관이 큰 변화를 만들어요."
-                    },
-                    {
-                        "intent": "PUSH",
-                        "title": "오늘 시작해볼까요?",
-                        "message": "지금 바로 시작해봐요!"
-                    }
-                ]
-            }
-            """;
+                {
+                    "feedbackText": "오늘도 꾸준히 운동을 완료했네요! 이대로 가면 목표 달성이 가능해요.",
+                    "encouragementCandidates": [
+                        {
+                            "intent": "PRAISE",
+                            "title": "대단해요!",
+                            "message": "연속 3일째 미션 성공이에요."
+                        },
+                        {
+                            "intent": "RETRY",
+                            "title": "다시 시작해봐요",
+                            "message": "어제는 쉬었지만 오늘은 다시 시작할 수 있어요."
+                        },
+                        {
+                            "intent": "NORMAL",
+                            "title": "꾸준함이 중요해요",
+                            "message": "작은 습관이 큰 변화를 만들어요."
+                        },
+                        {
+                            "intent": "PUSH",
+                            "title": "오늘 시작해볼까요?",
+                            "message": "지금 바로 시작해봐요!"
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -155,32 +154,32 @@ class DailyAnalysisServiceIntegrationTest extends IntegrationTestBase {
     void getMessageByIntent_returnsCorrectMessage() throws Exception {
         // given
         String aiResponse = """
-            {
-                "feedbackText": "테스트 피드백",
-                "encouragementCandidates": [
-                    {
-                        "intent": "PRAISE",
-                        "title": "칭찬 제목",
-                        "message": "칭찬 메시지"
-                    },
-                    {
-                        "intent": "RETRY",
-                        "title": "재시도 제목",
-                        "message": "재시도 메시지"
-                    },
-                    {
-                        "intent": "NORMAL",
-                        "title": "일반 제목",
-                        "message": "일반 메시지"
-                    },
-                    {
-                        "intent": "PUSH",
-                        "title": "독려 제목",
-                        "message": "독려 메시지"
-                    }
-                ]
-            }
-            """;
+                {
+                    "feedbackText": "테스트 피드백",
+                    "encouragementCandidates": [
+                        {
+                            "intent": "PRAISE",
+                            "title": "칭찬 제목",
+                            "message": "칭찬 메시지"
+                        },
+                        {
+                            "intent": "RETRY",
+                            "title": "재시도 제목",
+                            "message": "재시도 메시지"
+                        },
+                        {
+                            "intent": "NORMAL",
+                            "title": "일반 제목",
+                            "message": "일반 메시지"
+                        },
+                        {
+                            "intent": "PUSH",
+                            "title": "독려 제목",
+                            "message": "독려 메시지"
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -228,17 +227,17 @@ class DailyAnalysisServiceIntegrationTest extends IntegrationTestBase {
                 .build());
 
         String aiResponse = """
-            {
-                "feedbackText": "어제 미션을 성공적으로 완료했네요!",
-                "encouragementCandidates": [
-                    {
-                        "intent": "PRAISE",
-                        "title": "잘했어요!",
-                        "message": "이 기세를 유지해봐요."
-                    }
-                ]
-            }
-            """;
+                {
+                    "feedbackText": "어제 미션을 성공적으로 완료했네요!",
+                    "encouragementCandidates": [
+                        {
+                            "intent": "PRAISE",
+                            "title": "잘했어요!",
+                            "message": "이 기세를 유지해봐요."
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -263,17 +262,17 @@ class DailyAnalysisServiceIntegrationTest extends IntegrationTestBase {
     void generateDailyAnalysisForUser_skipsIfExists() throws Exception {
         // given - 첫 번째 분석 생성
         String aiResponse = """
-            {
-                "feedbackText": "첫 번째 피드백",
-                "encouragementCandidates": [
-                    {
-                        "intent": "NORMAL",
-                        "title": "첫 번째 제목",
-                        "message": "첫 번째 메시지"
-                    }
-                ]
-            }
-            """;
+                {
+                    "feedbackText": "첫 번째 피드백",
+                    "encouragementCandidates": [
+                        {
+                            "intent": "NORMAL",
+                            "title": "첫 번째 제목",
+                            "message": "첫 번째 메시지"
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -302,17 +301,17 @@ class DailyAnalysisServiceIntegrationTest extends IntegrationTestBase {
     void generateDailyAnalysisForUser_handlesPartialIntents() throws Exception {
         // given - PRAISE만 포함된 응답
         String aiResponse = """
-            {
-                "feedbackText": "미션 실패 피드백",
-                "encouragementCandidates": [
-                    {
-                        "intent": "RETRY",
-                        "title": "다시 도전해요",
-                        "message": "실패는 성공의 어머니예요."
-                    }
-                ]
-            }
-            """;
+                {
+                    "feedbackText": "미션 실패 피드백",
+                    "encouragementCandidates": [
+                        {
+                            "intent": "RETRY",
+                            "title": "다시 도전해요",
+                            "message": "실패는 성공의 어머니예요."
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)

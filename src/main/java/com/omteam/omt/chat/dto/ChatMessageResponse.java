@@ -43,21 +43,6 @@ public class ChatMessageResponse {
     @Schema(description = "메시지 생성 시간", example = "2026-01-15T10:30:00")
     private LocalDateTime createdAt;
 
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class Option {
-        @Schema(description = "선택지 라벨", example = "운동이 힘들어요")
-        private String label;
-
-        @Schema(description = "선택지 값", example = "EXERCISE_HARD")
-        private String value;
-
-        @Schema(description = "액션 타입 (null이면 일반 AI 대화 옵션)")
-        private ChatActionType actionType;
-    }
-
     public static ChatMessageResponse from(ChatMessage message, ObjectMapper objectMapper, boolean isTerminal) {
         return ChatMessageResponse.builder()
                 .messageId(message.getId())
@@ -81,10 +66,26 @@ public class ChatMessageResponse {
             return List.of();
         }
         try {
-            return objectMapper.readValue(optionsJson, new TypeReference<List<Option>>() {});
+            return objectMapper.readValue(optionsJson, new TypeReference<List<Option>>() {
+            });
         } catch (Exception e) {
             log.warn("옵션 JSON 파싱 실패: {}", optionsJson, e);
             return List.of();
         }
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Option {
+        @Schema(description = "선택지 라벨", example = "운동이 힘들어요")
+        private String label;
+
+        @Schema(description = "선택지 값", example = "EXERCISE_HARD")
+        private String value;
+
+        @Schema(description = "액션 타입 (null이면 일반 AI 대화 옵션)")
+        private ChatActionType actionType;
     }
 }

@@ -37,7 +37,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class WeeklyAnalysisService {
 
     private static final int MONTHLY_PATTERN_DAYS = 30;
-
+    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
+            ErrorCode.AI_SERVER_ERROR,
+            ErrorCode.AI_SERVER_CONNECTION_ERROR,
+            ErrorCode.AI_SERVER_CIRCUIT_OPEN
+    );
     private final UserRepository userRepository;
     private final DailyMissionResultRepository missionResultRepository;
     private final WeeklyAiAnalysisRepository weeklyAiAnalysisRepository;
@@ -73,12 +77,6 @@ public class WeeklyAnalysisService {
         log.info("주간 분석 완료: 성공={}, 실패={}", successCount, activeUsers.size() - successCount);
         return BatchProcessResult.of(activeUsers.size(), successCount, failedUserIds);
     }
-
-    private static final Set<ErrorCode> AI_SERVER_ERROR_CODES = EnumSet.of(
-            ErrorCode.AI_SERVER_ERROR,
-            ErrorCode.AI_SERVER_CONNECTION_ERROR,
-            ErrorCode.AI_SERVER_CIRCUIT_OPEN
-    );
 
     private boolean isAiServerError(ErrorCode code) {
         return AI_SERVER_ERROR_CODES.contains(code);
@@ -188,7 +186,7 @@ public class WeeklyAnalysisService {
     }
 
     private WeeklyAiAnalysis buildWeeklyAiAnalysis(User user, LocalDate weekStartDate,
-            AiWeeklyAnalysisResponse response) {
+                                                   AiWeeklyAnalysisResponse response) {
         String failureRankingJson = null;
         if (response.getFailureReasonRanking() != null) {
             try {

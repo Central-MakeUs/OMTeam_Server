@@ -87,7 +87,8 @@ public class MonthlyPatternService {
                 .toList();
     }
 
-    private MonthlyPatternResponse.AiFeedback getAiFeedback(Long userId, boolean hasMissionData, LocalDate weekStartDate) {
+    private MonthlyPatternResponse.AiFeedback getAiFeedback(Long userId, boolean hasMissionData,
+                                                            LocalDate weekStartDate) {
         Optional<WeeklyAiAnalysis> analysisOpt = weeklyAiAnalysisRepository
                 .findByUserUserIdAndWeekStartDate(userId, weekStartDate);
 

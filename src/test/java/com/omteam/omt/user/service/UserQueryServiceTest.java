@@ -24,18 +24,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class UserQueryServiceTest {
 
+    final Long userId = 1L;
     @Mock
     UserRepository userRepository;
-
     @Mock
     UserOnboardingRepository userOnboardingRepository;
-
     @Mock
     UserCharacterRepository userCharacterRepository;
-
     UserQueryService userQueryService;
-
-    final Long userId = 1L;
 
     @BeforeEach
     void setUp() {

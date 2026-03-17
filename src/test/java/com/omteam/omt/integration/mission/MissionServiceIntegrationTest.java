@@ -1,6 +1,6 @@
 package com.omteam.omt.integration.mission;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.omteam.omt.integration.IntegrationTestBase;
 import com.omteam.omt.mission.domain.DailyRecommendedMission;
@@ -17,6 +17,9 @@ import com.omteam.omt.user.domain.UserOnboarding;
 import com.omteam.omt.user.domain.WorkTimeType;
 import com.omteam.omt.user.repository.UserOnboardingRepository;
 import com.omteam.omt.user.repository.UserRepository;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,10 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
 
 @DisplayName("[통합] MissionService - AI 미션 추천 및 DB 저장")
 @Transactional
@@ -76,32 +75,32 @@ class MissionServiceIntegrationTest extends IntegrationTestBase {
     void recommendDailyMissions_savesAndRetrievesFromDb() throws Exception {
         // given
         String aiResponse = """
-            {
-                "missions": [
-                    {
-                        "name": "스트레칭 10분",
-                        "type": "EXERCISE",
-                        "difficulty": 1,
-                        "estimatedMinutes": 10,
-                        "estimatedCalories": 30
-                    },
-                    {
-                        "name": "계단 오르기 5층",
-                        "type": "EXERCISE",
-                        "difficulty": 2,
-                        "estimatedMinutes": 15,
-                        "estimatedCalories": 50
-                    },
-                    {
-                        "name": "점심 샐러드 먹기",
-                        "type": "DIET",
-                        "difficulty": 2,
-                        "estimatedMinutes": 30,
-                        "estimatedCalories": 0
-                    }
-                ]
-            }
-            """;
+                {
+                    "missions": [
+                        {
+                            "name": "스트레칭 10분",
+                            "type": "EXERCISE",
+                            "difficulty": 1,
+                            "estimatedMinutes": 10,
+                            "estimatedCalories": 30
+                        },
+                        {
+                            "name": "계단 오르기 5층",
+                            "type": "EXERCISE",
+                            "difficulty": 2,
+                            "estimatedMinutes": 15,
+                            "estimatedCalories": 50
+                        },
+                        {
+                            "name": "점심 샐러드 먹기",
+                            "type": "DIET",
+                            "difficulty": 2,
+                            "estimatedMinutes": 30,
+                            "estimatedCalories": 0
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -148,18 +147,18 @@ class MissionServiceIntegrationTest extends IntegrationTestBase {
     void getTodayRecommendations_returnsFromDb() throws Exception {
         // given
         String aiResponse = """
-            {
-                "missions": [
-                    {
-                        "name": "아침 산책 20분",
-                        "type": "EXERCISE",
-                        "difficulty": 2,
-                        "estimatedMinutes": 20,
-                        "estimatedCalories": 60
-                    }
-                ]
-            }
-            """;
+                {
+                    "missions": [
+                        {
+                            "name": "아침 산책 20분",
+                            "type": "EXERCISE",
+                            "difficulty": 2,
+                            "estimatedMinutes": 20,
+                            "estimatedCalories": 60
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -183,18 +182,18 @@ class MissionServiceIntegrationTest extends IntegrationTestBase {
     void startMission_updatesStatusInDb() throws Exception {
         // given
         String aiResponse = """
-            {
-                "missions": [
-                    {
-                        "name": "팔굽혀펴기 10회",
-                        "type": "EXERCISE",
-                        "difficulty": 3,
-                        "estimatedMinutes": 5,
-                        "estimatedCalories": 25
-                    }
-                ]
-            }
-            """;
+                {
+                    "missions": [
+                        {
+                            "name": "팔굽혀펴기 10회",
+                            "type": "EXERCISE",
+                            "difficulty": 3,
+                            "estimatedMinutes": 5,
+                            "estimatedCalories": 25
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -218,18 +217,18 @@ class MissionServiceIntegrationTest extends IntegrationTestBase {
     void getTodayMissionStatus_returnsCorrectData() throws Exception {
         // given
         String aiResponse = """
-            {
-                "missions": [
-                    {
-                        "name": "물 2L 마시기",
-                        "type": "DIET",
-                        "difficulty": 1,
-                        "estimatedMinutes": 0,
-                        "estimatedCalories": 0
-                    }
-                ]
-            }
-            """;
+                {
+                    "missions": [
+                        {
+                            "name": "물 2L 마시기",
+                            "type": "DIET",
+                            "difficulty": 1,
+                            "estimatedMinutes": 0,
+                            "estimatedCalories": 0
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -253,25 +252,25 @@ class MissionServiceIntegrationTest extends IntegrationTestBase {
     void recommendDailyMissions_savesDifficultyRange() throws Exception {
         // given
         String aiResponse = """
-            {
-                "missions": [
-                    {
-                        "name": "쉬운 미션",
-                        "type": "EXERCISE",
-                        "difficulty": 1,
-                        "estimatedMinutes": 5,
-                        "estimatedCalories": 10
-                    },
-                    {
-                        "name": "어려운 미션",
-                        "type": "EXERCISE",
-                        "difficulty": 5,
-                        "estimatedMinutes": 60,
-                        "estimatedCalories": 300
-                    }
-                ]
-            }
-            """;
+                {
+                    "missions": [
+                        {
+                            "name": "쉬운 미션",
+                            "type": "EXERCISE",
+                            "difficulty": 1,
+                            "estimatedMinutes": 5,
+                            "estimatedCalories": 10
+                        },
+                        {
+                            "name": "어려운 미션",
+                            "type": "EXERCISE",
+                            "difficulty": 5,
+                            "estimatedMinutes": 60,
+                            "estimatedCalories": 300
+                        }
+                    ]
+                }
+                """;
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)

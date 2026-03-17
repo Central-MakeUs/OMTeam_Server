@@ -1,7 +1,15 @@
 package com.omteam.omt.chat.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.argThat;
+import static org.mockito.BDDMockito.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.never;
+import static org.mockito.BDDMockito.spy;
+import static org.mockito.BDDMockito.times;
+import static org.mockito.BDDMockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omteam.omt.chat.client.AiChatClient;
@@ -38,6 +46,8 @@ import org.springframework.data.domain.PageRequest;
 @ExtendWith(MockitoExtension.class)
 class ChatServiceTest {
 
+    final Long userId = 1L;
+    final Long sessionId = 100L;
     @Mock
     ChatSessionRepository sessionRepository;
     @Mock
@@ -52,12 +62,8 @@ class ChatServiceTest {
     ChatTerminationDetector terminationDetector;
     @Mock
     ChatActionHandler chatActionHandler;
-
     ChatService chatService;
     ObjectMapper objectMapper;
-
-    final Long userId = 1L;
-    final Long sessionId = 100L;
 
     @BeforeEach
     void setUp() {
@@ -239,7 +245,8 @@ class ChatServiceTest {
 
         ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "TIME_SHORTAGE");
         AiChatResponse aiResponse = createAiChatResponse("시간이 부족하시군요. 짧은 운동을 추천해드릴게요.", null, false);
-        ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT, "시간이 부족하시군요. 짧은 운동을 추천해드릴게요.");
+        ChatMessage savedAssistantMessage = createChatMessage(2L, ChatMessageRole.ASSISTANT,
+                "시간이 부족하시군요. 짧은 운동을 추천해드릴게요.");
 
         given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
@@ -274,7 +281,8 @@ class ChatServiceTest {
 
         ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "감사합니다");
         AiChatResponse aiResponse = createAiChatResponse("도움이 되셨길 바랍니다. 좋은 하루 되세요!", null, true);
-        ChatMessage savedAssistantMessage = createTerminalChatMessage(2L, ChatMessageRole.ASSISTANT, "도움이 되셨길 바랍니다. 좋은 하루 되세요!");
+        ChatMessage savedAssistantMessage = createTerminalChatMessage(2L, ChatMessageRole.ASSISTANT,
+                "도움이 되셨길 바랍니다. 좋은 하루 되세요!");
 
         given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));
@@ -336,7 +344,8 @@ class ChatServiceTest {
 
         ChatMessage savedUserMessage = createChatMessage(1L, ChatMessageRole.USER, "고마워");
         AiChatResponse aiResponse = createAiChatResponse("천만에요! 좋은 하루 되세요!", null, true);
-        ChatMessage savedAssistantMessage = createTerminalChatMessage(2L, ChatMessageRole.ASSISTANT, "천만에요! 좋은 하루 되세요!");
+        ChatMessage savedAssistantMessage = createTerminalChatMessage(2L, ChatMessageRole.ASSISTANT,
+                "천만에요! 좋은 하루 되세요!");
 
         given(userQueryService.getUser(userId)).willReturn(user);
         given(sessionRepository.findByUserUserIdAndIsActiveTrue(userId)).willReturn(Optional.of(existingSession));

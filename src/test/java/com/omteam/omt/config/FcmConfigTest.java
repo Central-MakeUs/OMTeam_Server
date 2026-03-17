@@ -1,7 +1,6 @@
 package com.omteam.omt.config;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mockStatic;
 
 import com.google.firebase.FirebaseApp;
@@ -15,6 +14,12 @@ import org.mockito.MockedStatic;
 
 @DisplayName("[단위] FcmConfig")
 class FcmConfigTest {
+
+    private void setField(Object target, String fieldName, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
 
     @Nested
     @DisplayName("initFirebase")
@@ -66,11 +71,5 @@ class FcmConfigTest {
                 assertThatNoException().isThrownBy(config::initFirebase);
             }
         }
-    }
-
-    private void setField(Object target, String fieldName, Object value) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(target, value);
     }
 }

@@ -4,6 +4,7 @@ import com.omteam.omt.user.domain.SocialProvider;
 
 public interface OAuthClient {
     SocialProvider getProvider();
+
     OAuthUserInfo getUserInfo(String idToken);
 }
 
